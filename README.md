@@ -1,4 +1,5 @@
 About The Project
+
 Weather Station is a fully responsive, standalone web application built with Vanilla JavaScript, HTML5, and CSS3. The application uses a serverless function (Netlify Function) to securely query the OpenWeatherMap API to provide real-time weather information, an hourly forecast, and a 5-day forecast.
 
 This project demonstrates skills in integrating with external APIs, handling geolocation, building a modern user interface, and securing API keys on the server-side.
