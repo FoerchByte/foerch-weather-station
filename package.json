@@ -1,0 +1,14 @@
+{
+  "name": "weather-app-standalone",
+  "version": "1.0.0",
+  "description": "A standalone weather application using Vanilla JS and Netlify Functions.",
+  "main": "weather.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
