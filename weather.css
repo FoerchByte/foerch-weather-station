@@ -155,9 +155,9 @@ body.dark-mode .weather-app__error {
 .map-container {
     margin-top: 2rem;
     margin-bottom: 2rem;
-    /* ZMIANA: Dodano pionowy padding, aby stworzyć "bezpieczną strefę" do przewijania na urządzeniach dotykowych */
-    /* EN: Added vertical padding to create a "safe zone" for scrolling on touch devices */
-    padding: 1rem 0;
+    /* ZMIANA: Zwiększono pionowy padding, aby stworzyć większą "bezpieczną strefę" do przewijania */
+    /* EN: Increased vertical padding to create a larger "safe zone" for scrolling */
+    padding: 2rem 0;
 }
 #map {
     height: 300px;
