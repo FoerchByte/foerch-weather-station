@@ -1,17 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     let currentTheme = localStorage.getItem('theme') || 'light';
-    // ZMIANA: Zmienne globalne dla mapy i znacznika
-    // EN: Global variables for the map and marker
     let map = null;
     let marker = null;
-
 
     // Elementy DOM
     const searchBtn = document.getElementById('search-weather-btn');
     const cityInput = document.getElementById('city-input');
     const geoBtn = document.getElementById('geolocation-btn');
     const themeToggle = document.getElementById('theme-toggle');
+    const forecastsContainer = document.getElementById('forecasts-container');
 
     function setTheme(theme) {
         document.body.classList.toggle('dark-mode', theme === 'dark');
@@ -49,15 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function displayError(message) {
         const resultContainer = document.getElementById('weather-result-container');
         resultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`;
-        document.getElementById('forecasts-container').style.display = 'none';
+        forecastsContainer.style.display = 'none';
         document.getElementById('map-container').style.display = 'none';
     }
 
-    // ZMIANA: Nowa funkcja do inicjalizacji mapy
-    // EN: New function to initialize the map
     function initializeMap() {
-        if (map) return; // Inicjalizuj mapę tylko raz / Initialize map only once
-        map = L.map('map').setView([51.75, 19.46], 10); // Domyślna lokalizacja: Łódź / Default location: Lodz
+        if (map) return;
+        map = L.map('map').setView([51.75, 19.46], 10);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: '© OpenStreetMap contributors'
@@ -65,28 +61,19 @@ document.addEventListener('DOMContentLoaded', () => {
         marker = L.marker([51.75, 19.46]).addTo(map);
     }
 
-    // ZMIANA: Nowa funkcja do aktualizacji widoku mapy
-    // EN: New function to update the map view
     function updateMap(lat, lon, cityName) {
         if (map && marker) {
             const newLatLng = L.latLng(lat, lon);
-            map.flyTo(newLatLng, 12); // Płynne przejście do nowej lokalizacji / Smooth transition to the new location
+            map.flyTo(newLatLng, 12);
             marker.setLatLng(newLatLng);
             marker.bindPopup(`<b>${cityName}</b>`).openPopup();
             document.getElementById('map-container').style.display = 'block';
-
-            // Ważne: Odśwież rozmiar mapy po tym, jak kontener stał się widoczny
-            // Important: Invalidate map size after the container becomes visible
-            setTimeout(() => {
-                map.invalidateSize();
-            }, 100);
+            setTimeout(() => map.invalidateSize(), 100);
         }
     }
 
-
     async function handleWeatherSearch(query, triggerButton = null) {
         const resultContainer = document.getElementById('weather-result-container');
-        const forecastsContainer = document.getElementById('forecasts-container');
         const mapContainer = document.getElementById('map-container');
         const originalButtonText = triggerButton ? triggerButton.innerHTML : null;
         
@@ -111,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             url = `/.netlify/functions/weather?lat=${query.latitude}&lon=${query.longitude}&lang=${currentLang}`;
             localStorage.removeItem('lastCity');
         } else {
-             if(triggerButton) setButtonLoadingState(triggerButton, false, originalButtonText);
+            if(triggerButton) setButtonLoadingState(triggerButton, false, originalButtonText);
             return;
         }
 
@@ -124,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errorMessage);
             }
 
-            // ... reszta kodu renderującego pogodę (bez zmian) ...
             const current = data.list[0];
             const sunrise = new Date((data.city.sunrise + data.city.timezone) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
             const sunset = new Date((data.city.sunset + data.city.timezone) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
@@ -149,8 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="road-condition__item"><span>Stan nawierzchni</span><span class="road-condition-value road-condition--${roadCondition.class}">${roadCondition.text}</span></div>
                 </div>`;
             
-            // ZMIANA: Wywołanie funkcji aktualizującej mapę
-            // EN: Call the map update function
             updateMap(data.city.coord.lat, data.city.coord.lon, data.city.name);
 
             const hourlyContainer = document.getElementById('hourly-forecast-container');
@@ -162,8 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `).join('');
 
-            const forecastContainer = document.getElementById('forecast-container');
-            forecastContainer.innerHTML = data.list.filter(item => item.dt_txt.includes("12:00:00")).slice(0, 5).map(item => `
+            const forecastContainerEl = document.getElementById('forecast-container');
+            forecastContainerEl.innerHTML = data.list.filter(item => item.dt_txt.includes("12:00:00")).slice(0, 5).map(item => `
                 <div class="weather-app__forecast-day">
                     <h4>${new Date(item.dt * 1000).toLocaleDateString(currentLang, { weekday: 'long' })}</h4>
                     <div class="weather-app__forecast-icon">${getWeatherIcon(item.weather[0].icon)}</div>
@@ -172,6 +156,13 @@ document.addEventListener('DOMContentLoaded', () => {
             `).join('');
             
             forecastsContainer.style.display = 'block';
+            // ZMIANA: Po załadowaniu danych, zwijamy obie sekcje prognoz na mobilkach
+            // EN: After loading data, collapse both forecast sections on mobile
+            if (window.innerWidth <= 768) {
+                document.querySelector('.hourly-forecast__wrapper').classList.remove('forecast-visible');
+                document.querySelector('.weather-app__forecast-wrapper').classList.remove('forecast-visible');
+            }
+
 
         } catch (error) {
             displayError(error.message);
@@ -179,18 +170,27 @@ document.addEventListener('DOMContentLoaded', () => {
             if(triggerButton) setButtonLoadingState(triggerButton, false, originalButtonText);
         }
     }
+    
+    // ZMIANA: Nowa funkcja do obsługi zwijanych prognoz zamiast przełącznika
+    // EN: New function to handle collapsible forecasts instead of a switcher
+    function setupCollapsibleForecasts() {
+        forecastsContainer.addEventListener('click', (e) => {
+            const header = e.target.closest('.hourly-forecast__title, .weather-app__forecast-title');
+            if (!header) return;
 
-    function setupForecastSwitcher() {
-        const switcher = document.getElementById('forecast-switcher');
-        switcher?.addEventListener('click', function(e) {
-            const button = e.target.closest('button');
-            if (!button) return;
-            const forecastType = button.dataset.forecast;
-            const forecastsContainer = document.getElementById('forecasts-container');
-            if (forecastsContainer) {
-                forecastsContainer.className = `show-${forecastType}`;
-                switcher.querySelector('.active').classList.remove('active');
-                button.classList.add('active');
+            const wrapper = header.parentElement;
+            const currentlyVisible = wrapper.classList.contains('forecast-visible');
+
+            // Zamknij wszystkie sekcje
+            // Close all sections
+            document.querySelectorAll('#forecasts-container .forecast-visible').forEach(el => {
+                el.classList.remove('forecast-visible');
+            });
+
+            // Otwórz klikniętą sekcję, jeśli była zamknięta
+            // Open the clicked section if it was closed
+            if (!currentlyVisible) {
+                wrapper.classList.add('forecast-visible');
             }
         });
     }
@@ -222,11 +222,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    setupForecastSwitcher();
-
-    // ZMIANA: Inicjalizacja mapy przy starcie aplikacji
-    // EN: Initialize the map on application start
     initializeMap();
+    // ZMIANA: Wywołujemy nową funkcję do obsługi akordeonu
+    // EN: Call the new function for the accordion
+    setupCollapsibleForecasts();
 
     const lastCity = localStorage.getItem('lastCity');
     if (lastCity) {
