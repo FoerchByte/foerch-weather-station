@@ -1,6 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     let currentTheme = localStorage.getItem('theme') || 'light';
+    // ZMIANA: Zmienne globalne dla mapy i znacznika
+    // EN: Global variables for the map and marker
+    let map = null;
+    let marker = null;
+
 
     // Elementy DOM
     const searchBtn = document.getElementById('search-weather-btn');
@@ -41,18 +46,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ZMIANA: Nowa funkcja do wyświetlania sformatowanych błędów
-    // EN: New function to display formatted errors
     function displayError(message) {
         const resultContainer = document.getElementById('weather-result-container');
         resultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`;
         document.getElementById('forecasts-container').style.display = 'none';
+        document.getElementById('map-container').style.display = 'none';
+    }
+
+    // ZMIANA: Nowa funkcja do inicjalizacji mapy
+    // EN: New function to initialize the map
+    function initializeMap() {
+        if (map) return; // Inicjalizuj mapę tylko raz / Initialize map only once
+        map = L.map('map').setView([51.75, 19.46], 10); // Domyślna lokalizacja: Łódź / Default location: Lodz
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        marker = L.marker([51.75, 19.46]).addTo(map);
+    }
+
+    // ZMIANA: Nowa funkcja do aktualizacji widoku mapy
+    // EN: New function to update the map view
+    function updateMap(lat, lon, cityName) {
+        if (map && marker) {
+            const newLatLng = L.latLng(lat, lon);
+            map.flyTo(newLatLng, 12); // Płynne przejście do nowej lokalizacji / Smooth transition to the new location
+            marker.setLatLng(newLatLng);
+            marker.bindPopup(`<b>${cityName}</b>`).openPopup();
+            document.getElementById('map-container').style.display = 'block';
+
+            // Ważne: Odśwież rozmiar mapy po tym, jak kontener stał się widoczny
+            // Important: Invalidate map size after the container becomes visible
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
+        }
     }
 
 
     async function handleWeatherSearch(query, triggerButton = null) {
         const resultContainer = document.getElementById('weather-result-container');
         const forecastsContainer = document.getElementById('forecasts-container');
+        const mapContainer = document.getElementById('map-container');
         const originalButtonText = triggerButton ? triggerButton.innerHTML : null;
         
         if(triggerButton) setButtonLoadingState(triggerButton, true);
@@ -65,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         resultContainer.innerHTML = skeletonHTML;
         forecastsContainer.style.display = 'none';
+        mapContainer.style.display = 'none';
 
         const currentLang = 'pl';
         let url;
@@ -88,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errorMessage);
             }
 
+            // ... reszta kodu renderującego pogodę (bez zmian) ...
             const current = data.list[0];
             const sunrise = new Date((data.city.sunrise + data.city.timezone) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
             const sunset = new Date((data.city.sunset + data.city.timezone) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
@@ -112,6 +149,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="road-condition__item"><span>Stan nawierzchni</span><span class="road-condition-value road-condition--${roadCondition.class}">${roadCondition.text}</span></div>
                 </div>`;
             
+            // ZMIANA: Wywołanie funkcji aktualizującej mapę
+            // EN: Call the map update function
+            updateMap(data.city.coord.lat, data.city.coord.lon, data.city.name);
+
             const hourlyContainer = document.getElementById('hourly-forecast-container');
             hourlyContainer.innerHTML = data.list.slice(0, 8).map(item => `
                 <div class="hourly-forecast__item">
@@ -144,10 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
         switcher?.addEventListener('click', function(e) {
             const button = e.target.closest('button');
             if (!button) return;
-
             const forecastType = button.dataset.forecast;
             const forecastsContainer = document.getElementById('forecasts-container');
-            
             if (forecastsContainer) {
                 forecastsContainer.className = `show-${forecastType}`;
                 switcher.querySelector('.active').classList.remove('active');
@@ -160,8 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setTheme(currentTheme);
     themeToggle.addEventListener('click', () => setTheme(currentTheme === 'light' ? 'dark' : 'light'));
     
-    // ZMIANA: Dodano obsługę stanu ładowania dla przycisku wyszukiwania
-    // EN: Added loading state handling for the search button
     searchBtn?.addEventListener('click', () => {
         if (!cityInput.value.trim()) return;
         handleWeatherSearch(cityInput.value.trim(), searchBtn);
@@ -186,6 +223,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     setupForecastSwitcher();
+
+    // ZMIANA: Inicjalizacja mapy przy starcie aplikacji
+    // EN: Initialize the map on application start
+    initializeMap();
 
     const lastCity = localStorage.getItem('lastCity');
     if (lastCity) {
