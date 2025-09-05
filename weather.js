@@ -9,13 +9,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const cityInput = document.getElementById('city-input');
     const geoBtn = document.getElementById('geolocation-btn');
     const themeToggle = document.getElementById('theme-toggle');
-    const forecastsContainer = document.getElementById('forecasts-container');
 
     function setTheme(theme) {
         document.body.classList.toggle('dark-mode', theme === 'dark');
         localStorage.setItem('theme', theme);
         currentTheme = theme;
     }
+
+    function initializeMap() {
+        if (!map) {
+            map = L.map('map').setView([51.75, 19.45], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+        }
+    }
+
+    function updateMap(lat, lon, cityName) {
+        if (map) {
+            map.setView([lat, lon], 13);
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            marker = L.marker([lat, lon]).addTo(map)
+                .bindPopup(cityName)
+                .openPopup();
+        }
+    }
+
+    function toggleButtonLoading(button, isLoading) {
+        const span = button.querySelector('span');
+        if (isLoading) {
+            span.style.display = 'none';
+            if (!button.querySelector('.loader')) {
+                button.insertAdjacentHTML('beforeend', '<div class="loader"></div>');
+            }
+            button.disabled = true;
+        } else {
+            span.style.display = 'inline';
+            const loader = button.querySelector('.loader');
+            if (loader) loader.remove();
+            button.disabled = false;
+        }
+    }
+    
+    function showError(message) {
+        const resultContainer = document.getElementById('weather-result-container');
+        resultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`;
+        document.getElementById('forecasts-container').style.display = 'none';
+        document.getElementById('map-container').style.display = 'none';
+    }
+
 
     function getWeatherIcon(iconCode) {
         const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
@@ -34,51 +78,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<img src="${iconBaseUrl}${iconName}" alt="Weather icon" class="weather-icon-img">`;
     }
 
-    function setButtonLoadingState(button, isLoading, originalText) {
-        if (isLoading) {
-            button.disabled = true;
-            button.innerHTML = `<span class="loader"></span>`;
-        } else {
-            button.disabled = false;
-            button.innerHTML = originalText;
-        }
-    }
-
-    function displayError(message) {
+    async function handleWeatherSearch(query, buttonToLoad) {
         const resultContainer = document.getElementById('weather-result-container');
-        resultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`;
-        forecastsContainer.style.display = 'none';
-        document.getElementById('map-container').style.display = 'none';
-    }
-
-    function initializeMap() {
-        if (map) return;
-        map = L.map('map').setView([51.75, 19.46], 10);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 18,
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-        marker = L.marker([51.75, 19.46]).addTo(map);
-    }
-
-    function updateMap(lat, lon, cityName) {
-        if (map && marker) {
-            const newLatLng = L.latLng(lat, lon);
-            map.flyTo(newLatLng, 12);
-            marker.setLatLng(newLatLng);
-            marker.bindPopup(`<b>${cityName}</b>`).openPopup();
-            document.getElementById('map-container').style.display = 'block';
-            setTimeout(() => map.invalidateSize(), 100);
-        }
-    }
-
-    async function handleWeatherSearch(query, triggerButton = null) {
-        const resultContainer = document.getElementById('weather-result-container');
+        const forecastsContainer = document.getElementById('forecasts-container');
         const mapContainer = document.getElementById('map-container');
-        const originalButtonText = triggerButton ? triggerButton.innerHTML : null;
         
-        if(triggerButton) setButtonLoadingState(triggerButton, true);
-
         const skeletonHTML = `
             <div class="weather-app__skeleton">
                 <div class="skeleton" style="width: 200px; height: 2.2rem; margin-bottom: 1rem;"></div>
@@ -88,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultContainer.innerHTML = skeletonHTML;
         forecastsContainer.style.display = 'none';
         mapContainer.style.display = 'none';
+        if (buttonToLoad) toggleButtonLoading(buttonToLoad, true);
 
         const currentLang = 'pl';
         let url;
@@ -98,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             url = `/.netlify/functions/weather?lat=${query.latitude}&lon=${query.longitude}&lang=${currentLang}`;
             localStorage.removeItem('lastCity');
         } else {
-            if(triggerButton) setButtonLoadingState(triggerButton, false, originalButtonText);
+             if (buttonToLoad) toggleButtonLoading(buttonToLoad, false);
             return;
         }
 
@@ -107,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             if (!response.ok) {
-                const errorMessage = data.message === 'city not found' ? 'Nie znaleziono miasta. Spróbuj ponownie.' : (data.message || "Wystąpił błąd serwera.");
+                const errorMessage = data.message || "Błąd serwera";
                 throw new Error(errorMessage);
             }
 
@@ -135,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="road-condition__item"><span>Stan nawierzchni</span><span class="road-condition-value road-condition--${roadCondition.class}">${roadCondition.text}</span></div>
                 </div>`;
             
+            mapContainer.style.display = 'block';
             updateMap(data.city.coord.lat, data.city.coord.lon, data.city.name);
 
             const hourlyContainer = document.getElementById('hourly-forecast-container');
@@ -146,8 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `).join('');
 
-            const forecastContainerEl = document.getElementById('forecast-container');
-            forecastContainerEl.innerHTML = data.list.filter(item => item.dt_txt.includes("12:00:00")).slice(0, 5).map(item => `
+            const forecastContainer = document.getElementById('forecast-container');
+            forecastContainer.innerHTML = data.list.filter(item => item.dt_txt.includes("12:00:00")).slice(0, 5).map(item => `
                 <div class="weather-app__forecast-day">
                     <h4>${new Date(item.dt * 1000).toLocaleDateString(currentLang, { weekday: 'long' })}</h4>
                     <div class="weather-app__forecast-icon">${getWeatherIcon(item.weather[0].icon)}</div>
@@ -156,81 +162,57 @@ document.addEventListener('DOMContentLoaded', () => {
             `).join('');
             
             forecastsContainer.style.display = 'block';
-            // ZMIANA: Po załadowaniu danych, zwijamy obie sekcje prognoz na mobilkach
-            // EN: After loading data, collapse both forecast sections on mobile
-            if (window.innerWidth <= 768) {
-                document.querySelector('.hourly-forecast__wrapper').classList.remove('forecast-visible');
-                document.querySelector('.weather-app__forecast-wrapper').classList.remove('forecast-visible');
-            }
-
 
         } catch (error) {
-            displayError(error.message);
+            showError(`Błąd: ${error.message}.`);
         } finally {
-            if(triggerButton) setButtonLoadingState(triggerButton, false, originalButtonText);
+            if (buttonToLoad) toggleButtonLoading(buttonToLoad, false);
         }
     }
-    
-    // ZMIANA: Nowa funkcja do obsługi zwijanych prognoz zamiast przełącznika
-    // EN: New function to handle collapsible forecasts instead of a switcher
-    function setupCollapsibleForecasts() {
-        forecastsContainer.addEventListener('click', (e) => {
-            const header = e.target.closest('.hourly-forecast__title, .weather-app__forecast-title');
-            if (!header) return;
 
-            const wrapper = header.parentElement;
-            const currentlyVisible = wrapper.classList.contains('forecast-visible');
+    function setupForecastSwitcher() {
+        const switcher = document.getElementById('forecast-switcher');
+        switcher?.addEventListener('click', function(e) {
+            const button = e.target.closest('button');
+            if (!button) return;
 
-            // Zamknij wszystkie sekcje
-            // Close all sections
-            document.querySelectorAll('#forecasts-container .forecast-visible').forEach(el => {
-                el.classList.remove('forecast-visible');
-            });
-
-            // Otwórz klikniętą sekcję, jeśli była zamknięta
-            // Open the clicked section if it was closed
-            if (!currentlyVisible) {
-                wrapper.classList.add('forecast-visible');
+            const forecastType = button.dataset.forecast;
+            const forecastsContainer = document.getElementById('forecasts-container');
+            
+            if (forecastsContainer) {
+                forecastsContainer.className = `show-${forecastType}`;
+                switcher.querySelector('.active').classList.remove('active');
+                button.classList.add('active');
             }
         });
     }
 
     // Inicjalizacja
     setTheme(currentTheme);
+    initializeMap();
     themeToggle.addEventListener('click', () => setTheme(currentTheme === 'light' ? 'dark' : 'light'));
     
-    searchBtn?.addEventListener('click', () => {
-        if (!cityInput.value.trim()) return;
-        handleWeatherSearch(cityInput.value.trim(), searchBtn);
-    });
-    cityInput?.addEventListener('keyup', e => { 
-        if (e.key === 'Enter' && cityInput.value.trim()) {
-            handleWeatherSearch(cityInput.value.trim(), searchBtn)
-        }
-    });
-    
+    searchBtn?.addEventListener('click', () => handleWeatherSearch(cityInput.value.trim(), searchBtn));
+    cityInput?.addEventListener('keyup', e => { if (e.key === 'Enter') handleWeatherSearch(cityInput.value.trim(), searchBtn); });
     geoBtn?.addEventListener('click', () => {
         if (navigator.geolocation) {
+            toggleButtonLoading(geoBtn, true);
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    handleWeatherSearch({ latitude: position.coords.latitude, longitude: position.coords.longitude }, geoBtn);
-                },
-                () => {
-                    displayError("Nie udało się pobrać Twojej lokalizacji. Sprawdź ustawienia przeglądarki i zezwól na dostęp.");
+                position => handleWeatherSearch({ latitude: position.coords.latitude, longitude: position.coords.longitude }, geoBtn),
+                () => { 
+                    showError("Nie udało się pobrać lokalizacji. Sprawdź ustawienia przeglądarki.");
+                    toggleButtonLoading(geoBtn, false);
                 }
             );
         }
     });
     
-    initializeMap();
-    // ZMIANA: Wywołujemy nową funkcję do obsługi akordeonu
-    // EN: Call the new function for the accordion
-    setupCollapsibleForecasts();
+    setupForecastSwitcher();
 
     const lastCity = localStorage.getItem('lastCity');
     if (lastCity) {
         cityInput.value = lastCity;
-        handleWeatherSearch(lastCity);
+        handleWeatherSearch(lastCity, searchBtn);
     }
 });
 
