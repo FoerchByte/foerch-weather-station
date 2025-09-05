@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getWeatherIcon(iconCode) {
-        // ... (bez zmian) ...
         const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
         const iconMap = {
             '01d': 'clear-day.svg', '01n': 'clear-night.svg',
@@ -32,6 +31,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<img src="${iconBaseUrl}${iconName}" alt="Weather icon" class="weather-icon-img">`;
     }
 
+    // ZMIANA: Dodano funkcję pomocniczą do zarządzania stanem ładowania przycisków
+    // EN: Added a helper function to manage the loading state of buttons
+    function setButtonLoadingState(button, isLoading, originalText) {
+        if (isLoading) {
+            button.disabled = true;
+            button.innerHTML = `<span class="loader"></span>`;
+        } else {
+            button.disabled = false;
+            button.innerHTML = originalText;
+        }
+    }
+
     async function handleWeatherSearch(query) {
         const resultContainer = document.getElementById('weather-result-container');
         const forecastsContainer = document.getElementById('forecasts-container');
@@ -46,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const currentLang = 'pl';
         let url;
-        // ZMIANA: Budujemy URL do naszej funkcji bezserwerowej, a nie do zewnętrznego API
         if (typeof query === 'string' && query) {
             url = `/.netlify/functions/weather?city=${encodeURIComponent(query)}&lang=${currentLang}`;
             localStorage.setItem('lastCity', query);
@@ -62,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             if (!response.ok) {
-                 // Ulepszona obsługa błędów z funkcji bezserwerowej
                 const errorMessage = data.message || "Błąd serwera";
                 throw new Error(errorMessage);
             }
@@ -117,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupForecastSwitcher() {
-        // ... (bez zmian) ...
         const switcher = document.getElementById('forecast-switcher');
         switcher?.addEventListener('click', function(e) {
             const button = e.target.closest('button');
@@ -140,11 +148,23 @@ document.addEventListener('DOMContentLoaded', () => {
     
     searchBtn?.addEventListener('click', () => handleWeatherSearch(cityInput.value.trim()));
     cityInput?.addEventListener('keyup', e => { if (e.key === 'Enter') handleWeatherSearch(cityInput.value.trim()); });
+    
+    // ZMIANA: Ulepszona obsługa kliknięcia przycisku geolokalizacji
+    // EN: Improved handling of the geolocation button click
     geoBtn?.addEventListener('click', () => {
         if (navigator.geolocation) {
+            const originalText = geoBtn.innerHTML;
+            setButtonLoadingState(geoBtn, true, originalText); // Pokaż loader
+
             navigator.geolocation.getCurrentPosition(
-                position => handleWeatherSearch({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
-                () => { document.getElementById('weather-result-container').innerHTML = `<p>Nie udało się pobrać lokalizacji.</p>`; }
+                (position) => {
+                    handleWeatherSearch({ latitude: position.coords.latitude, longitude: position.coords.longitude })
+                        .finally(() => setButtonLoadingState(geoBtn, false, originalText)); // Ukryj loader po zakończeniu
+                },
+                () => {
+                    document.getElementById('weather-result-container').innerHTML = `<p>Nie udało się pobrać lokalizacji.</p>`;
+                    setButtonLoadingState(geoBtn, false, originalText); // Ukryj loader w przypadku błędu
+                }
             );
         }
     });
@@ -157,4 +177,3 @@ document.addEventListener('DOMContentLoaded', () => {
         handleWeatherSearch(lastCity);
     }
 });
-
