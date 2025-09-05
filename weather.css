@@ -99,6 +99,12 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.2s;
+    /* ZMIANA: Dodano dla płynnego przejścia i wyśrodkowania loadera */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px; /* Zapewnia stałą wysokość */
+    box-sizing: border-box;
 }
 .weather-app__button:hover {
     background-color: var(--primary-hover-color);
@@ -109,6 +115,24 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .weather-app__button--geo:hover {
     background-color: #5a6268;
 }
+
+/* ZMIANA: Dodano style dla loadera i stanu ładowania */
+.loader {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-bottom-color: #fff;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 .weather-app__result {
     text-align: center;
     margin-bottom: 2rem;
