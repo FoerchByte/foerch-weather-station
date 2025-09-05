@@ -365,11 +365,16 @@ body.dark-mode .weather-app__error {
         grid-template-columns: 1fr 1fr;
     }
     .hourly-forecast__grid {
+        /* POPRAWKA: Zamiana siatki na flexbox dla lepszej obsługi przewijania */
+        display: flex;
         overflow-x: auto;
         padding-bottom: 1rem;
+        /* Resetujemy właściwości siatki, które mogłyby przeszkadzać */
+        grid-template-columns: none;
     }
     .hourly-forecast__item {
         min-width: 80px;
+        flex-shrink: 0; /* Zapobiega kurczeniu się elementów */
     }
     .weather-app__forecast-grid {
         gap: 0.5rem;
@@ -385,3 +390,4 @@ body.dark-mode .weather-app__error {
         height: 48px;
     }
 }
+
