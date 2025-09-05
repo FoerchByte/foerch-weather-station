@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stacja Pogody - Aplikacja Vanilla JS</title>
-    <!-- ZMIANA: Dodano parametr 'v' (version), aby przeładować cache CSS -->
-    <!-- EN: Added 'v' (version) parameter to reload the CSS cache -->
+    
+    <!-- ZMIANA: Dodano link do stylów biblioteki Leaflet.js -->
+    <!-- EN: Added link to Leaflet.js stylesheet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
     <link rel="stylesheet" href="weather.css?v=1.1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,6 +35,12 @@
             </div>
             <div id="weather-result-container" class="weather-app__result" aria-live="polite"></div>
             
+            <!-- ZMIANA: Dodano kontener dla mapy -->
+            <!-- EN: Added container for the map -->
+            <div id="map-container" class="map-container" style="display: none;">
+                <div id="map"></div>
+            </div>
+
             <div class="forecast-switcher" id="forecast-switcher">
                 <button data-forecast="hourly" class="active">Prognoza godzinowa</button>
                 <button data-forecast="daily">Prognoza na 5 dni</button>
@@ -50,9 +59,10 @@
         </div>
     </main>
     
-    <!-- ZMIANA: Dodano parametr 'v' (version), aby przeładować cache JS -->
-    <!-- EN: Added 'v' (version) parameter to reload the JS cache -->
-    <script src="weather.js?v=1.1"></script>
+    <!-- ZMIANA: Dodano skrypt biblioteki Leaflet.js -->
+    <!-- EN: Added Leaflet.js library script -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="weather.js?v=1.2"></script>
 
 </body>
 </html>
