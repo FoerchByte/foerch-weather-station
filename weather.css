@@ -150,13 +150,9 @@ body.dark-mode .weather-app__error {
     text-align: center;
 }
 
-/* ZMIANA: Dodano style dla kontenera mapy i samej mapy */
-/* EN: Added styles for the map container and the map itself */
 .map-container {
     margin-top: 2rem;
     margin-bottom: 2rem;
-    /* ZMIANA: Zwiększono pionowy padding, aby stworzyć większą "bezpieczną strefę" do przewijania */
-    /* EN: Increased vertical padding to create a larger "safe zone" for scrolling */
     padding: 2rem 0;
 }
 #map {
@@ -164,9 +160,8 @@ body.dark-mode .weather-app__error {
     width: 100%;
     border-radius: 8px;
     border: 1px solid var(--border-color);
-    z-index: 1; /* Zapewnia, że mapa jest na wierzchu */
+    z-index: 1;
 }
-
 
 .current-weather__city {
     font-size: 1.8rem;
@@ -330,22 +325,49 @@ body.dark-mode .weather-app__error {
         .detail-item--sunset { grid-area: sunset; }
         .road-condition__item { grid-area: road; align-items: center; }
 
-        .forecast-switcher { display: flex; }
-        .hourly-forecast__wrapper, .weather-app__forecast-wrapper { margin-top: 0; }
-        .hourly-forecast__title, .weather-app__forecast-title { display: none; }
+        /* ZMIANA: Logika zwijanych prognoz (akordeon) dla widoku mobilnego */
+        /* EN: Collapsible forecast logic (accordion) for mobile view */
+        .forecast-switcher { display: none; } /* Ukrywamy stary przełącznik */
 
-        #forecasts-container.show-hourly .weather-app__forecast-wrapper { display: none; }
-        #forecasts-container.show-daily .hourly-forecast__wrapper { display: none; }
-        #forecasts-container.show-hourly .hourly-forecast__wrapper,
-        #forecasts-container.show-daily .weather-app__forecast-wrapper {
+        .hourly-forecast__wrapper, .weather-app__forecast-wrapper {
+            border-bottom: 1px solid var(--border-color);
+            margin-top: 0;
+        }
+        .hourly-forecast__title, .weather-app__forecast-title {
             display: block;
+            margin: 0;
+            padding: 1rem;
+            cursor: pointer;
+            position: relative;
+        }
+        .hourly-forecast__title::after, .weather-app__forecast-title::after {
+            content: '▼';
+            position: absolute;
+            right: 1rem;
+            transition: transform 0.3s ease;
+            font-size: 0.8rem;
+        }
+        .forecast-visible .hourly-forecast__title::after,
+        .forecast-visible .weather-app__forecast-title::after {
+            transform: rotate(180deg);
         }
 
         .hourly-forecast__grid, .weather-app__forecast-grid {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, padding 0.5s ease;
+            padding: 0 1rem; /* Ukrywamy padding gdy zwinięte */
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
         }
+
+        .forecast-visible .hourly-forecast__grid,
+        .forecast-visible .weather-app__forecast-grid {
+            max-height: 1000px; /* Wystarczająco duża wartość */
+            padding: 1rem; /* Przywracamy padding gdy rozwinięte */
+        }
+
         .hourly-forecast__item, .weather-app__forecast-day {
             flex-direction: row;
             justify-content: space-between;
