@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stacja Pogody - Aplikacja Vanilla JS</title>
     <link rel="stylesheet" href="weather.css?v=1.2">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
+    <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
+    <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap)" rel="stylesheet">
+    <link rel="stylesheet" href="[https://unpkg.com/leaflet@1.9.4/dist/leaflet.css](https://unpkg.com/leaflet@1.9.4/dist/leaflet.css)" />
 </head>
 <body>
 
@@ -16,8 +16,8 @@
         <div class="container">
             <h1>Stacja Pogody</h1>
             <button id="theme-toggle" class="theme-toggle" aria-label="Zmień motyw">
-                <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                <svg class="sun-icon" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <svg class="moon-icon" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
             </button>
         </div>
     </header>
@@ -26,8 +26,8 @@
         <div class="weather-app">
             <div class="weather-app__search">
                 <input type="text" id="city-input" class="weather-app__input" placeholder="Wpisz nazwę miasta...">
-                <button id="search-weather-btn" class="weather-app__button">Szukaj</button>
-                <button id="geolocation-btn" class="weather-app__button weather-app__button--geo">Użyj mojej lokalizacji</button>
+                <button id="search-weather-btn" class="weather-app__button"><span>Szukaj</span></button>
+                <button id="geolocation-btn" class="weather-app__button weather-app__button--geo"><span>Użyj mojej lokalizacji</span></button>
             </div>
             <div id="weather-result-container" class="weather-app__result" aria-live="polite"></div>
             
@@ -36,21 +36,24 @@
             </div>
             
             <div id="forecasts-container" style="display: none;">
+                 <div class="forecast-switcher" id="forecast-switcher">
+                    <button data-forecast="hourly" class="active">Prognoza godzinowa</button>
+                    <button data-forecast="daily">Prognoza na 5 dni</button>
+                </div>
                 <div class="hourly-forecast__wrapper">
-                    <h3 class="hourly-forecast__title">Prognoza godzinowa <span class="accordion-arrow">▼</span></h3>
+                    <h3 class="hourly-forecast__title">Prognoza godzinowa</h3>
                     <div class="hourly-forecast__grid" id="hourly-forecast-container"></div>
                 </div>
                 <div class="weather-app__forecast-wrapper">
-                    <h3 class="weather-app__forecast-title">Prognoza na 5 dni <span class="accordion-arrow">▼</span></h3>
+                    <h3 class="weather-app__forecast-title">Prognoza na 5 dni</h3>
                     <div class="weather-app__forecast-grid" id="forecast-container"></div>
                 </div>
             </div>
         </div>
     </main>
     
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="[https://unpkg.com/leaflet@1.9.4/dist/leaflet.js](https://unpkg.com/leaflet@1.9.4/dist/leaflet.js)"></script>
     <script src="weather.js?v=1.2"></script>
 
 </body>
 </html>
-
