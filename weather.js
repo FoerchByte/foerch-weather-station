@@ -139,6 +139,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     function updateCurrentWeather(data) {
+        // Sprawdzenie integralności danych / Data integrity check
+        if (!data || !data.location || !data.location.name) {
+            // Rzucenie błędu, który zostanie złapany w handleWeatherSearch
+            // Throw an error that will be caught in handleWeatherSearch
+            throw new Error("Otrzymano niekompletne dane z serwera.");
+        }
+
         const roadCondition = data.current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(data.current.weather[0].main)
             ? { text: "Sucha", class: 'roadDry' }
             : (data.current.temp <= 2 ? { text: "Możliwe oblodzenie", class: 'roadIcy' } : { text: "Mokra", class: 'roadWet' });
