@@ -208,8 +208,8 @@ body.dark-mode #map {
     /* Układ domyślny (Desktop i Landscape Mobile) */
     grid-template-columns: repeat(4, 1fr);
     grid-template-areas:
-        "wind     sunrise  aqi    road"
-        "pressure sunset   uv     road"; /* Stan nawierzchni zajmuje dwie komórki */
+        "wind     aqi      road   sunrise"
+        "pressure uv       road   sunset";
 }
 
 .current-weather__detail-item {
