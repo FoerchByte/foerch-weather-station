@@ -184,18 +184,19 @@ body.dark-mode .weather-alert { background-color: #856404; color: #ffeeba; }
     width: 80%; height: 3px; background-color: var(--primary-color);
 }
 
-/* --- Prognoza godzinowa --- */
-/* --- Hourly Forecast --- */
+/* --- Prognoza godzinowa (NOWA, POPRAWIONA WERSJA) --- */
+/* --- Hourly Forecast (NEW, FIXED VERSION) --- */
 .hourly-forecast__wrapper { position: relative; }
 .hourly-forecast__title, .weather-app__forecast-title { margin-bottom: 1rem; }
 
 .hourly-forecast__scroll-container {
-    position: relative;
-    padding: 0 30px; /* Zapewnia miejsce na przyciski nawigacji / Provides space for nav buttons */
-    margin: 0 -30px; /* Kompensuje padding, aby suwak był na całą szerokość / Compensates for padding, making the slider full-width */
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
-
 .hourly-forecast__scroll-wrapper {
+    flex-grow: 1;
+    min-width: 0;
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
@@ -217,21 +218,17 @@ body.dark-mode .weather-alert { background-color: #856404; color: #ffeeba; }
     border: 1px solid var(--border-color); border-radius: 8px;
 }
 .hourly-forecast__slider-nav {
-    display: none; /* Ukryte domyślnie, pokazywane w media query / Hidden by default, shown in media query */
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+    display: none; /* Ukryte na mobile, pokazane na desktopie / Hidden on mobile, shown on desktop */
+    flex-shrink: 0;
     background-color: var(--card-background);
     border: 1px solid var(--border-color);
     border-radius: 50%;
     width: 40px; height: 40px;
     cursor: pointer;
     z-index: 10;
-    display: flex; align-items: center; justify-content: center;
+    align-items: center; justify-content: center;
 }
 .hourly-forecast__slider-nav:disabled { opacity: 0.3; cursor: not-allowed; }
-#hourly-slider-prev { left: 0px; }
-#hourly-slider-next { right: 0px; }
 
 .hourly-forecast__time { font-size: 0.9rem; font-weight: 500; margin: 0 0 0.5rem 0; }
 .hourly-forecast__icon { width: 48px; height: 48px; }
@@ -299,7 +296,9 @@ body.dark-mode .weather-alert { background-color: #856404; color: #ffeeba; }
         .forecast-switcher { display: flex; }
         .hourly-forecast__wrapper, .weather-app__forecast-wrapper { margin-top: 0; }
         .hourly-forecast__title, .weather-app__forecast-title { display: none; }
-        .hourly-forecast__scroll-container { margin: 0; padding: 0; }
+        .hourly-forecast__scroll-container { 
+            display: block; /* Przywrócenie domyślnego zachowania / Revert to default behavior */
+        }
 
         #forecasts-container.show-hourly .weather-app__forecast-wrapper { display: none; }
         #forecasts-container.show-daily .hourly-forecast__wrapper { display: none; }
