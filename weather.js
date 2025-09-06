@@ -1,48 +1,80 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- Zmienne globalne i referencje DOM ---
-    // PL: Zmienne do przechowywania stanu aplikacji i referencji do elementów HTML.
-    // EN: Variables for storing application state and references to HTML elements.
-    let map = null;
-    let marker = null;
-    let hourlyForecastData = [];
-    let currentHourlyRange = 24;
+class WeatherApp {
+    constructor() {
+        // --- Stan aplikacji / Application State ---
+        this.map = null;
+        this.marker = null;
+        this.hourlyForecastData = [];
+        this.currentHourlyRange = 24;
 
-    const dom = {
-        searchBtn: document.getElementById('search-weather-btn'),
-        cityInput: document.getElementById('city-input'),
-        geoBtn: document.getElementById('geolocation-btn'),
-        themeToggle: document.getElementById('theme-toggle'),
-        weatherResultContainer: document.getElementById('weather-result-container'),
-        forecastsContainer: document.getElementById('forecasts-container'),
-        mapContainer: document.getElementById('map-container'),
-        hourly: {
-            container: document.getElementById('hourly-forecast-container'),
-            rangeSwitcher: document.getElementById('hourly-range-switcher'),
-            sliderPrevBtn: document.getElementById('hourly-slider-prev'),
-            sliderNextBtn: document.getElementById('hourly-slider-next'),
-            scrollWrapper: document.querySelector('.hourly-forecast__scroll-wrapper'),
-        },
-        daily: {
-            container: document.getElementById('forecast-container'),
-        },
-    };
+        // --- Referencje DOM / DOM References ---
+        this.dom = {
+            searchBtn: document.getElementById('search-weather-btn'),
+            cityInput: document.getElementById('city-input'),
+            geoBtn: document.getElementById('geolocation-btn'),
+            themeToggle: document.getElementById('theme-toggle'),
+            weatherResultContainer: document.getElementById('weather-result-container'),
+            forecastsContainer: document.getElementById('forecasts-container'),
+            mapContainer: document.getElementById('map-container'),
+            forecastSwitcher: document.getElementById('forecast-switcher'),
+            hourly: {
+                container: document.getElementById('hourly-forecast-container'),
+                rangeSwitcher: document.getElementById('hourly-range-switcher'),
+                sliderPrevBtn: document.getElementById('hourly-slider-prev'),
+                sliderNextBtn: document.getElementById('hourly-slider-next'),
+                scrollWrapper: document.querySelector('.hourly-forecast__scroll-wrapper'),
+            },
+            daily: {
+                container: document.getElementById('forecast-container'),
+            },
+        };
+        
+        // --- Obiekt z ikonami / Icons Object ---
+        this.weatherIcons = {
+            getIcon: (iconCode) => `https://openweathermap.org/img/wn/${iconCode}@4x.png`
+        };
+    }
 
-    // --- Funkcje pomocnicze ---
-    // PL: Funkcja sprawdzająca, czy ekran jest w trybie portretowym na urządzeniu mobilnym.
-    // EN: Function to check if the screen is in portrait mode on a mobile device.
-    const isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
+    // --- Inicjalizacja Aplikacji / Application Initialization ---
+    init() {
+        this.setTheme(localStorage.getItem('theme') || 'light');
+        this.initMap();
+        this.bindEvents();
+        const lastCity = localStorage.getItem('lastCity');
+        if (lastCity) {
+            this.dom.cityInput.value = lastCity;
+            this.handleSearch(lastCity, this.dom.searchBtn);
+        }
+    }
 
-    // PL: Ustawia motyw (jasny/ciemny) i zapisuje wybór w localStorage.
-    // EN: Sets the theme (light/dark) and saves the choice in localStorage.
-    function setTheme(theme) {
+    // --- Powiązanie Eventów / Event Binding ---
+    bindEvents() {
+        this.dom.themeToggle.addEventListener('click', () => this.setTheme(document.body.classList.contains('dark-mode') ? 'light' : 'dark'));
+        this.dom.searchBtn?.addEventListener('click', () => this.handleSearch(this.dom.cityInput.value.trim(), this.dom.searchBtn));
+        this.dom.cityInput?.addEventListener('keyup', e => { if (e.key === 'Enter') this.handleSearch(this.dom.cityInput.value.trim(), this.dom.searchBtn); });
+        this.dom.geoBtn?.addEventListener('click', () => this.handleGeolocation());
+        
+        this.dom.forecastSwitcher?.addEventListener('click', (e) => this.handleForecastSwitch(e));
+        this.dom.hourly.rangeSwitcher?.addEventListener('click', (e) => this.handleHourlyRangeSwitch(e));
+
+        this.dom.hourly.sliderPrevBtn.addEventListener('click', () => this.handleSliderScroll(-1));
+        this.dom.hourly.sliderNextBtn.addEventListener('click', () => this.handleSliderScroll(1));
+        this.dom.hourly.scrollWrapper.addEventListener('scroll', () => this.updateSliderButtons(), { passive: true });
+        window.addEventListener('resize', () => {
+            this.renderHourlyForecast();
+            this.updateSliderButtons();
+        });
+    }
+
+    // --- Funkcje Pomocnicze / Helper Functions ---
+    isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
+
+    setTheme(theme) {
         document.body.classList.toggle('dark-mode', theme === 'dark');
         localStorage.setItem('theme', theme);
-        if (map) updateMapTileLayer();
+        if (this.map) this.updateMapTileLayer();
     }
-    
-    // PL: Przełącza stan ładowania przycisku, pokazując/ukrywając loader.
-    // EN: Toggles the loading state of a button, showing/hiding a loader.
-    function toggleButtonLoading(button, isLoading) {
+
+    toggleButtonLoading(button, isLoading) {
         const span = button.querySelector('span');
         if (isLoading) {
             span.style.display = 'none';
@@ -58,51 +90,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // PL: Wyświetla komunikat o błędzie w głównym kontenerze.
-    // EN: Displays an error message in the main container.
-    function showError(message) {
-        dom.weatherResultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`;
-        dom.forecastsContainer.style.display = 'none';
-        dom.mapContainer.style.display = 'none';
+    showError(message) {
+        this.dom.weatherResultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`;
+        this.dom.forecastsContainer.style.display = 'none';
+        this.dom.mapContainer.style.display = 'none';
     }
 
-    // --- Obsługa mapy ---
-    let lightTileLayer, darkTileLayer;
-    // PL: Inicjalizuje mapę Leaflet, jeśli jeszcze nie istnieje.
-    // EN: Initializes the Leaflet map if it doesn't exist yet.
-    function initializeMap() {
-        if (!map) {
-            map = L.map('map').setView([51.75, 19.45], 10);
-            lightTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
-            darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO' });
-            updateMapTileLayer();
+    // --- Obsługa Mapy / Map Handling ---
+    initMap() {
+        if (!this.map) {
+            this.map = L.map('map').setView([51.75, 19.45], 10);
+            this.lightTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
+            this.darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO' });
+            this.updateMapTileLayer();
         }
     }
 
-    // PL: Aktualizuje warstwę kafelków mapy w zależności od motywu.
-    // EN: Updates the map tile layer depending on the theme.
-    function updateMapTileLayer() {
+    updateMapTileLayer() {
         const isDarkMode = document.body.classList.contains('dark-mode');
-        const targetLayer = isDarkMode ? darkTileLayer : lightTileLayer;
-        const otherLayer = isDarkMode ? lightTileLayer : darkTileLayer;
-        if (map.hasLayer(otherLayer)) map.removeLayer(otherLayer);
-        if (!map.hasLayer(targetLayer)) map.addLayer(targetLayer);
+        const targetLayer = isDarkMode ? this.darkTileLayer : this.lightTileLayer;
+        const otherLayer = isDarkMode ? this.lightTileLayer : this.darkTileLayer;
+        if (this.map.hasLayer(otherLayer)) this.map.removeLayer(otherLayer);
+        if (!this.map.hasLayer(targetLayer)) this.map.addLayer(targetLayer);
     }
 
-    // PL: Aktualizuje widok mapy i pozycję znacznika.
-    // EN: Updates the map view and marker position.
-    function updateMap(lat, lon, cityName) {
-        if (map) {
-            map.setView([lat, lon], 13);
-            if (marker) map.removeLayer(marker);
-            marker = L.marker([lat, lon]).addTo(map).bindPopup(cityName).openPopup();
+    updateMap(lat, lon, cityName) {
+        if (this.map) {
+            this.map.setView([lat, lon], 13);
+            if (this.marker) this.map.removeLayer(this.marker);
+            this.marker = L.marker([lat, lon]).addTo(this.map).bindPopup(cityName).openPopup();
         }
     }
 
-    // --- Pobieranie danych pogodowych ---
-    // PL: Pobiera dane pogodowe z funkcji Netlify na podstawie zapytania.
-    // EN: Fetches weather data from the Netlify function based on a query.
-    async function getWeatherData(query) {
+    // --- Pobieranie Danych / Data Fetching ---
+    async getWeatherData(query) {
         let url;
         if (typeof query === 'string' && query) {
             url = `/.netlify/functions/weather?city=${encodeURIComponent(query.trim())}`;
@@ -119,20 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return data;
     }
 
-    // --- Renderowanie UI ---
-    // PL: KLUCZOWA ZMIANA: Zmieniliśmy źródło ikon na oficjalne ikony OpenWeatherMap.
-    // Są one w 100% niezawodne, ponieważ pochodzą bezpośrednio od dostawcy danych pogodowych.
-    // Używamy `@4x` dla najlepszej możliwej jakości na wszystkich ekranach.
-    // EN: KEY CHANGE: We have changed the icon source to the official OpenWeatherMap icons.
-    // They are 100% reliable as they come directly from the weather data provider.
-    // We use `@4x` for the best possible quality on all screens.
-    const weatherIcons = {
-        getIcon: (iconCode) => `https://openweathermap.org/img/wn/${iconCode}@4x.png`
-    };
-    
-    // PL: Aktualizuje sekcję z bieżącą pogodą.
-    // EN: Updates the current weather section.
-    function updateCurrentWeather(data) {
+    // --- Renderowanie UI / UI Rendering ---
+    renderCurrentWeather(data) {
         const { current, daily, air_quality, location } = data;
         const roadCondition = current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(current.weather[0].main)
             ? { text: "Sucha", class: 'roadDry' }
@@ -147,17 +156,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = daily[0];
         const formatTime = (timestamp) => new Date(timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        dom.weatherResultContainer.innerHTML = `
+        this.dom.weatherResultContainer.innerHTML = `
             <h3 class="current-weather__city">${location.name}</h3>
             <div class="current-weather__main">
-                <div class="current-weather__icon"><img src="${weatherIcons.getIcon(current.weather[0].icon)}" alt="${current.weather[0].description}" class="weather-icon-img"></div>
+                <div class="current-weather__icon"><img src="${this.weatherIcons.getIcon(current.weather[0].icon)}" alt="${current.weather[0].description}" class="weather-icon-img"></div>
                 <div class="current-weather__details">
                     <span class="current-weather__temp">${Math.round(current.temp)}°C</span>
                     <span>${current.weather[0].description}</span>
                 </div>
             </div>
             <div class="current-weather__extra-details">
-                <div class="detail-col detail-col--1">
+                 <div class="detail-col detail-col--1">
                     <div class="current-weather__detail-item"><span class="detail-item-header"><span>Wiatr</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1-3.54 3.54l-6.85 6.85a2.5 2.5 0 1 1-3.54-3.54l6.85-6.85a2.5 2.5 0 1 1 3.54 3.54z"/></svg></span><span class="detail-item-value">${current.wind_speed.toFixed(1)} m/s</span></div>
                     <div class="current-weather__detail-item"><span class="detail-item-header"><span>Ciśnienie</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 12H19a2.5 2.5 0 0 0-5 0H2.5"/><path d="M21.5 12v-6a2.5 2.5 0 0 0-5 0v6"/><path d="M2.5 12v6a2.5 2.5 0 0 0 5 0v-6"/></svg></span><span class="detail-item-value">${current.pressure} hPa</span></div>
                 </div>
@@ -174,18 +183,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="detail-col detail-col--5">
                     <div class="current-weather__detail-item"><span class="detail-item-header"><span>Wschód księżyca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M18 12h-6"/><path d="M12 18s-4-3-4-6 4-6 4-6"/><path d="M12 6s4 3 4 6-4 6-4 6"/></svg></span><span class="detail-item-value">${formatTime(today.moonrise)}</span></div>
-                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Zachód księżyca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18V6"/><path d="M6 12h6"/><path d="M12 6s-4 3-4 6 4 6 4 6"/><path d="M12 18s4-3 4-6-4-6-4-6"/></svg></span><span class="detail-item-value">${formatTime(today.moonset)}</span></div>
+                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Zachód księżyca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18V6"/><path d="M6 12h6"/><path d="M12 6s-4 3-4-6 4 6 4 6"/><path d="M12 18s4-3 4-6-4-6-4-6"/></svg></span><span class="detail-item-value">${formatTime(today.moonset)}</span></div>
                 </div>
             </div>`;
     }
+    
+    renderHourlyForecast() {
+        const range = this.isMobilePortrait() ? this.currentHourlyRange : 48;
+        const forecastToShow = this.hourlyForecastData.slice(1, range + 1);
 
-    // PL: Renderuje prognozę godzinową.
-    // EN: Renders the hourly forecast.
-    function renderHourlyForecast() {
-        const range = window.innerWidth > 1024 ? 48 : currentHourlyRange;
-        const forecastToShow = hourlyForecastData.slice(1, range + 1);
-
-        dom.hourly.container.innerHTML = ''; 
+        this.dom.hourly.container.innerHTML = ''; 
 
         let lastDate = '';
         const today = new Date().toLocaleDateString('pl-PL');
@@ -207,10 +214,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 lastDate = itemDate;
             }
             
-            dom.hourly.container.innerHTML += `
+            this.dom.hourly.container.innerHTML += `
             <div class="hourly-forecast__item ${newDayClass}" data-day="${dayLabel}">
                 <p class="hourly-forecast__time">${itemDateObj.getHours()}:00</p>
-                <div class="hourly-forecast__icon"><img src="${weatherIcons.getIcon(item.weather[0].icon)}" alt="${item.weather[0].description}" class="weather-icon-img"></div>
+                <div class="hourly-forecast__icon"><img src="${this.weatherIcons.getIcon(item.weather[0].icon)}" alt="${item.weather[0].description}" class="weather-icon-img"></div>
                 <p class="hourly-forecast__temp">${Math.round(item.temp)}°C</p>
                 <div class="hourly-forecast__pop">
                     <svg class="hourly-forecast__pop-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a5.53 5.53 0 0 0-5.43 6.05L8 16l5.43-9.95A5.53 5.53 0 0 0 8 0zm0 8.87A2.87 2.87 0 1 1 10.87 6 2.87 2.87 0 0 1 8 8.87z"/></svg>
@@ -219,131 +226,100 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         });
         
-        setTimeout(updateSliderButtons, 0);
+        setTimeout(() => this.updateSliderButtons(), 0);
     }
     
-    // PL: Aktualizuje prognozę na 5 dni.
-    // EN: Updates the 5-day forecast.
-    function updateDailyForecast(data) {
-        dom.daily.container.innerHTML = data.daily.slice(1, 6).map(day => `
+    renderDailyForecast(data) {
+        this.dom.daily.container.innerHTML = data.daily.slice(1, 6).map(day => `
             <div class="weather-app__forecast-day">
                 <h4>${new Date(day.dt * 1000).toLocaleDateString('pl-PL', { weekday: 'long' })}</h4>
-                <div class="weather-app__forecast-icon"><img src="${weatherIcons.getIcon(day.weather[0].icon)}" alt="${day.weather[0].description}" class="weather-icon-img"></div>
+                <div class="weather-app__forecast-icon"><img src="${this.weatherIcons.getIcon(day.weather[0].icon)}" alt="${day.weather[0].description}" class="weather-icon-img"></div>
                 <p>${Math.round(day.temp.max)}° / ${Math.round(day.temp.min)}°</p>
             </div>`).join('');
     }
 
-    // --- Główna logika aplikacji ---
-    // PL: Główna funkcja obsługująca wyszukiwanie pogody.
-    // EN: Main function to handle weather search.
-    async function handleWeatherSearch(query, buttonToLoad) {
+    // --- Główna Logika / Main Logic ---
+    async handleSearch(query, buttonToLoad) {
         if (!query) return;
-        dom.weatherResultContainer.innerHTML = `<div class="weather-app__skeleton"><div class="skeleton" style="width: 200px; height: 2.2rem;"></div><div class="skeleton" style="width: 150px; height: 4rem;"></div></div>`;
-        dom.forecastsContainer.style.display = 'none';
-        dom.mapContainer.style.display = 'none';
-        if (buttonToLoad) toggleButtonLoading(buttonToLoad, true);
+        this.dom.weatherResultContainer.innerHTML = `<div class="weather-app__skeleton"><div class="skeleton" style="width: 200px; height: 2.2rem;"></div><div class="skeleton" style="width: 150px; height: 4rem;"></div></div>`;
+        this.dom.forecastsContainer.style.display = 'none';
+        this.dom.mapContainer.style.display = 'none';
+        if (buttonToLoad) this.toggleButtonLoading(buttonToLoad, true);
 
         try {
-            const data = await getWeatherData(query);
-            if (!data) { showError("Wpisz miasto lub zezwól na geolokalizację."); return; }
+            const data = await this.getWeatherData(query);
+            if (!data) { this.showError("Wpisz miasto lub zezwól na geolokalizację."); return; }
             
             if (typeof query === 'string') localStorage.setItem('lastCity', query.trim());
-            hourlyForecastData = data.hourly;
+            this.hourlyForecastData = data.hourly;
             
-            updateCurrentWeather(data);
-            updateDailyForecast(data);
-            renderHourlyForecast();
+            this.renderCurrentWeather(data);
+            this.renderDailyForecast(data);
+            this.renderHourlyForecast();
             
-            dom.mapContainer.style.display = 'block';
-            updateMap(data.location.lat, data.location.lon, data.location.name);
-            setTimeout(() => map.invalidateSize(), 200);
+            this.dom.mapContainer.style.display = 'block';
+            this.updateMap(data.location.lat, data.location.lon, data.location.name);
+            setTimeout(() => this.map.invalidateSize(), 200);
 
-            dom.forecastsContainer.style.display = 'block';
+            this.dom.forecastsContainer.style.display = 'block';
 
         } catch (error) {
-            showError(`Błąd: ${error.message}`);
+            this.showError(`Błąd: ${error.message}`);
         } finally {
-            if (buttonToLoad) toggleButtonLoading(buttonToLoad, false);
+            if (buttonToLoad) this.toggleButtonLoading(buttonToLoad, false);
         }
     }
 
-    // --- Obsługa slidera ---
-    // PL: Aktualizuje stan przycisków slidera (włączone/wyłączone).
-    // EN: Updates the state of the slider buttons (enabled/disabled).
-    function updateSliderButtons() {
-        if (isMobilePortrait() || !dom.hourly.scrollWrapper) return;
+    handleGeolocation() {
+        if (navigator.geolocation) {
+            this.toggleButtonLoading(this.dom.geoBtn, true);
+            navigator.geolocation.getCurrentPosition(
+                pos => this.handleSearch({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }, this.dom.geoBtn),
+                () => { 
+                    this.showError("Nie udało się pobrać lokalizacji."); 
+                    this.toggleButtonLoading(this.dom.geoBtn, false); 
+                }
+            );
+        }
+    }
+
+    // --- Handlery Zdarzeń UI / UI Event Handlers ---
+    handleForecastSwitch(event) {
+        const btn = event.target.closest('button');
+        if (!btn) return;
+        this.dom.forecastsContainer.className = `show-${btn.dataset.forecast}`;
+        this.dom.forecastSwitcher.querySelector('.active').classList.remove('active');
+        btn.classList.add('active');
+    }
+
+    handleHourlyRangeSwitch(event) {
+        const btn = event.target.closest('button');
+        if (!btn || btn.classList.contains('active')) return;
+        this.currentHourlyRange = parseInt(btn.dataset.range, 10);
+        this.dom.hourly.rangeSwitcher.querySelector('.active').classList.remove('active');
+        btn.classList.add('active');
+        this.renderHourlyForecast();
+    }
+
+    updateSliderButtons() {
+        if (this.isMobilePortrait() || !this.dom.hourly.scrollWrapper) return;
         requestAnimationFrame(() => {
-            const { scrollLeft, scrollWidth, clientWidth } = dom.hourly.scrollWrapper;
-            dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0;
-            dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
+            const { scrollLeft, scrollWidth, clientWidth } = this.dom.hourly.scrollWrapper;
+            this.dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0;
+            this.dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
         });
     }
 
-    // PL: Obsługuje przewijanie slidera.
-    // EN: Handles slider scrolling.
-    function handleSliderScroll(direction) {
-        const item = dom.hourly.container.querySelector('.hourly-forecast__item');
+    handleSliderScroll(direction) {
+        const item = this.dom.hourly.container.querySelector('.hourly-forecast__item');
         if (!item) return;
         const scrollAmount = (item.offsetWidth + 12) * 8 * direction;
-        dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        this.dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
-    
-    // --- Inicjalizacja i event listenery ---
-    // PL: Ustawia wszystkie nasłuchiwacze zdarzeń.
-    // EN: Sets up all event listeners.
-    function setupEventListeners() {
-        dom.themeToggle.addEventListener('click', () => setTheme(document.body.classList.contains('dark-mode') ? 'light' : 'dark'));
-        dom.searchBtn?.addEventListener('click', () => handleWeatherSearch(dom.cityInput.value.trim(), dom.searchBtn));
-        dom.cityInput?.addEventListener('keyup', e => { if (e.key === 'Enter') handleWeatherSearch(dom.cityInput.value.trim(), dom.searchBtn); });
-        dom.geoBtn?.addEventListener('click', () => {
-            if (navigator.geolocation) {
-                toggleButtonLoading(dom.geoBtn, true);
-                navigator.geolocation.getCurrentPosition(
-                    pos => handleWeatherSearch({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }, dom.geoBtn),
-                    () => { showError("Nie udało się pobrać lokalizacji."); toggleButtonLoading(dom.geoBtn, false); }
-                );
-            }
-        });
-        
-        document.getElementById('forecast-switcher')?.addEventListener('click', function(e) {
-            const btn = e.target.closest('button');
-            if (!btn) return;
-            this.parentElement.className = `show-${btn.dataset.forecast}`;
-            this.querySelector('.active').classList.remove('active');
-            btn.classList.add('active');
-        });
+}
 
-        dom.hourly.rangeSwitcher?.addEventListener('click', function(e) {
-            const btn = e.target.closest('button');
-            if (!btn || btn.classList.contains('active')) return;
-            currentHourlyRange = parseInt(btn.dataset.range, 10);
-            this.querySelector('.active').classList.remove('active');
-            btn.classList.add('active');
-            renderHourlyForecast();
-        });
-
-        dom.hourly.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(-1));
-        dom.hourly.sliderNextBtn.addEventListener('click', () => handleSliderScroll(1));
-        dom.hourly.scrollWrapper.addEventListener('scroll', updateSliderButtons, { passive: true });
-        window.addEventListener('resize', () => {
-            renderHourlyForecast();
-            updateSliderButtons();
-        });
-    }
-
-    // PL: Inicjalizuje całą aplikację.
-    // EN: Initializes the entire application.
-    function initializeApp() {
-        setTheme(localStorage.getItem('theme') || 'light');
-        initializeMap();
-        setupEventListeners();
-        const lastCity = localStorage.getItem('lastCity');
-        if (lastCity) {
-            dom.cityInput.value = lastCity;
-            handleWeatherSearch(lastCity, dom.searchBtn);
-        }
-    }
-
-    initializeApp();
+document.addEventListener('DOMContentLoaded', () => {
+    const app = new WeatherApp();
+    app.init();
 });
 
