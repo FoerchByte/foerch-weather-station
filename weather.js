@@ -12,11 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resultContainer: document.getElementById('weather-result-container'),
         forecastsContainer: document.getElementById('forecasts-container'),
         mapContainer: document.getElementById('map-container'),
-        additionalInfoContainer: document.getElementById('additional-info-grid'),
+        detailedMetricsContainer: document.getElementById('detailed-metrics-container'),
         hourlyContainer: document.getElementById('hourly-forecast-container'),
         forecastContainer: document.getElementById('forecast-container'),
-        airQualityContainer: document.getElementById('air-quality-container'),
-        uvIndexContainer: document.getElementById('uv-index-container'),
         forecastSwitcher: document.getElementById('forecast-switcher')
     };
 
@@ -55,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         domElements.resultContainer.innerHTML = '';
         domElements.forecastsContainer.style.display = 'none';
         domElements.mapContainer.style.display = 'none';
-        domElements.additionalInfoContainer.style.display = 'none';
+        domElements.detailedMetricsContainer.style.display = 'none';
     }
 
     function showError(message) {
@@ -63,9 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
         domElements.resultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`;
     }
 
-    function buildApiUrl(query) {
+    function buildApiUrl(query, endpoint = 'forecast') {
         const lang = 'pl';
-        let baseUrl = '/.netlify/functions/weather?';
+        let baseUrl = `/.netlify/functions/weather?endpoint=${endpoint}&`;
         if (typeof query === 'string' && query) {
             return `${baseUrl}city=${encodeURIComponent(query)}&lang=${lang}`;
         } else if (typeof query === 'object' && query.latitude) {
@@ -139,48 +137,69 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updateAirQuality(data) {
-        const aqi = data.list[0].main.aqi;
-        const levels = { 1: 'Dobra', 2: 'Umiarkowana', 3: 'Średnia', 4: 'Zła', 5: 'Bardzo zła' };
-        domElements.airQualityContainer.innerHTML = `
-            <div class="aqi-value">${aqi}</div>
-            <div class="aqi-label aqi-label-${aqi}">${levels[aqi]}</div>`;
-    }
-    
-    function updateUvIndex(data) {
-        const uvi = Math.round(data.value);
-        let level, cssClass;
-        if (uvi <= 2) { level = 'Niski'; cssClass = 'low'; }
-        else if (uvi <= 5) { level = 'Umiarkowany'; cssClass = 'moderate'; }
-        else if (uvi <= 7) { level = 'Wysoki'; cssClass = 'high'; }
-        else if (uvi <= 10) { level = 'Bardzo wysoki'; cssClass = 'very-high'; }
-        else { level = 'Ekstremalny'; cssClass = 'extreme'; }
-        
-        domElements.uvIndexContainer.innerHTML = `
-            <div class="uv-value">${uvi}</div>
-            <div class="uv-label uv-label-${cssClass}">${level}</div>`;
+    function generatePills(count, activeCount, colorClassPrefix) {
+        let pills = '';
+        for (let i = 1; i <= count; i++) {
+            const activeClass = i <= activeCount ? `metric-item__pill--active pill-${colorClassPrefix}` : '';
+            pills += `<div class="metric-item__pill ${activeClass}"></div>`;
+        }
+        return pills;
     }
 
+    function updateDetailedMetrics(airData, uvData) {
+        const aqi = airData.list[0].main.aqi;
+        const aqiLevels = { 1: 'Dobra', 2: 'Umiark.', 3: 'Średnia', 4: 'Zła', 5: 'B. zła' };
+        
+        const uvi = Math.round(uvData.value);
+        let uvLevel, uvCssClass;
+        if (uvi <= 2) { uvLevel = 'Niski'; uvCssClass = 'uv-low'; }
+        else if (uvi <= 5) { uvLevel = 'Umiark.'; uvCssClass = 'uv-moderate'; }
+        else if (uvi <= 7) { uvLevel = 'Wysoki'; uvCssClass = 'uv-high'; }
+        else if (uvi <= 10) { uvLevel = 'B. wysoki'; uvCssClass = 'uv-very-high'; }
+        else { uvLevel = 'Ekstrem.'; uvCssClass = 'uv-extreme'; }
+
+        const airQualityHTML = `
+            <div class="metric-item">
+                <span class="metric-item__label">Jakość Powietrza</span>
+                <div class="metric-item__value-display">
+                    <span class="metric-item__value">${aqiLevels[aqi]}</span>
+                    <div class="metric-item__pills">
+                        ${generatePills(5, aqi, `aqi-${aqi}`)}
+                    </div>
+                </div>
+            </div>`;
+
+        const uvIndexHTML = `
+            <div class="metric-item">
+                <span class="metric-item__label">Indeks UV</span>
+                <div class="metric-item__value-display">
+                    <span class="metric-item__value">${uvLevel} (${uvi})</span>
+                    <div class="metric-item__pills">
+                        ${generatePills(5, Math.ceil(uvi / 2.5), uvCssClass)}
+                    </div>
+                </div>
+            </div>`;
+
+        domElements.detailedMetricsContainer.innerHTML = airQualityHTML + uvIndexHTML;
+        domElements.detailedMetricsContainer.style.display = 'block';
+    }
 
     async function handleWeatherSearch(query, buttonToLoad) {
         if (!query || (typeof query === 'string' && !query.trim())) return;
 
         if(buttonToLoad) toggleButtonLoading(buttonToLoad, true);
+        clearUI();
         domElements.resultContainer.innerHTML = `<div class="weather-app__skeleton"><div class="skeleton" style="width: 200px; height: 2.2rem; margin-bottom: 1rem;"></div><div class="skeleton" style="width: 150px; height: 4rem;"></div></div>`;
-        domElements.forecastsContainer.style.display = 'none';
-        domElements.mapContainer.style.display = 'none';
-        domElements.additionalInfoContainer.style.display = 'none';
-
+        
         try {
             const weatherUrl = buildApiUrl(query);
             if (!weatherUrl) throw new Error("Nieprawidłowe zapytanie.");
             
             const weatherData = await fetchData(weatherUrl);
-            const { lat, lon } = weatherData.city.coord;
+            const coords = { latitude: weatherData.city.coord.lat, longitude: weatherData.city.coord.lon };
 
-            // Równoległe pobieranie dodatkowych danych
-            const airQualityUrl = `/.netlify/functions/weather?endpoint=air_pollution&lat=${lat}&lon=${lon}`;
-            const uvIndexUrl = `/.netlify/functions/weather?endpoint=uvi&lat=${lat}&lon=${lon}`;
+            const airQualityUrl = buildApiUrl(coords, 'air_pollution');
+            const uvIndexUrl = buildApiUrl(coords, 'uvi');
             
             const [airQualityData, uvIndexData] = await Promise.all([
                 fetchData(airQualityUrl),
@@ -189,11 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Aktualizacja UI
             updateCurrentWeather(weatherData);
-            updateAirQuality(airQualityData);
-            updateUvIndex(uvIndexData);
-            updateMap(lat, lon, weatherData.city.name);
+            updateDetailedMetrics(airQualityData, uvIndexData);
+            updateMap(coords.latitude, coords.longitude, weatherData.city.name);
             updateForecasts(weatherData);
-            domElements.additionalInfoContainer.style.display = 'grid';
             document.title = `Pogoda dla ${weatherData.city.name}`;
 
             if (typeof query === 'string') localStorage.setItem('lastCity', query.trim());
@@ -210,13 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function setupEventListeners() {
         domElements.themeToggle.addEventListener('click', () => setTheme(currentTheme === 'light' ? 'dark' : 'light'));
-        
         domElements.searchBtn?.addEventListener('click', () => handleWeatherSearch(domElements.cityInput.value, domElements.searchBtn));
-        
-        domElements.cityInput?.addEventListener('keyup', e => { 
-            if (e.key === 'Enter') handleWeatherSearch(domElements.cityInput.value, domElements.searchBtn); 
-        });
-        
+        domElements.cityInput?.addEventListener('keyup', e => { if (e.key === 'Enter') handleWeatherSearch(domElements.cityInput.value, domElements.searchBtn); });
         domElements.geoBtn?.addEventListener('click', () => {
             if (navigator.geolocation) {
                 toggleButtonLoading(domElements.geoBtn, true);
@@ -229,7 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
             }
         });
-        
         domElements.forecastSwitcher?.addEventListener('click', function(e) {
             const button = e.target.closest('button');
             if (!button) return;
@@ -253,7 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Funkcje pomocnicze (pozostają bez zmian) ---
     function getWeatherIcon(iconCode) {
         const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
         const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg' };
@@ -262,3 +272,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     init();
 });
+
