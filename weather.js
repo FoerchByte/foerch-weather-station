@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Renderowanie UI ---
     const weatherIcons = {
-        getIcon: (iconCode) => `https://basmilius.github.io/weather-icons/production/fill/all/${{
+        getIcon: (iconCode) => `https://basemilius.github.io/weather-icons/production/fill/all/${{
             '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', 
             '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', 
             '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', 
@@ -161,16 +161,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderHourlyForecast() {
-        // PL: Domyślny zakres dla desktopu to 48h, w przeciwnym razie użyj bieżącego ustawienia
-        // EN: Default range for desktop is 48h, otherwise use the current setting
+        const now = new Date();
         const range = window.innerWidth > 1024 ? 48 : currentHourlyRange;
+        
+        // ZMIANA: Zawsze pobieramy 'range' godzin od teraz.
+        // CHANGE: Always fetch 'range' hours from now.
+        const forecastToShow = hourlyForecastData.slice(1, range + 1);
+
         dom.hourly.container.innerHTML = ''; 
 
         let lastDate = '';
         const today = new Date().toLocaleDateString('pl-PL');
         const tomorrow = new Date(Date.now() + 864e5).toLocaleDateString('pl-PL');
         
-        hourlyForecastData.slice(1, range + 1).forEach(item => {
+        forecastToShow.forEach((item, index) => {
             const itemDateObj = new Date(item.dt * 1000);
             const itemDate = itemDateObj.toLocaleDateString('pl-PL');
 
@@ -179,7 +183,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (itemDate === today) dayLabel = 'Dziś';
                 if (itemDate === tomorrow) dayLabel = 'Jutro';
                 
-                dom.hourly.container.innerHTML += `<div class="hourly-forecast__day-separator">${dayLabel}</div>`;
+                if(index > 0) {
+                     dom.hourly.container.innerHTML += `<div class="hourly-forecast__day-separator">${dayLabel}</div>`;
+                }
                 lastDate = itemDate;
             }
             
