@@ -294,24 +294,27 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
     @media (orientation: landscape) {
         .current-weather__extra-details {
-            /* ZMIANA: Przywrócono 5 kolumn i zdefiniowano nowy, precyzyjny układ siatki. */
-            /* Nawierzchnia (col3) jest teraz na górze, w środku. */
-            /* Zmniejszono odstępy, aby wszystko się zmieściło. */
-            /* CHANGE: Reverted to 5 columns and defined a new, precise grid layout. */
-            /* Road condition (col3) is now at the top, in the middle. */
-            /* Gaps were reduced to make everything fit. */
+            /* ZMIANA: Wywalczono 5 kolumn. Zmniejszono odstępy i rozmiar czcionki nagłówków, */
+            /* aby zmieścić wszystkie elementy w jednej linii bez zawijania. */
+            /* CHANGE: Fought for and won the 5-column layout. Reduced gaps and header font size */
+            /* to fit all elements in a single line without wrapping. */
             grid-template-columns: repeat(5, 1fr);
-            grid-template-areas:
-                "col1 col2 col3 col4 col5";
-            gap: 1rem 0.5rem;
+            gap: 1rem 0.4rem; /* Zmniejszony odstęp poziomy */
+            align-items: start; /* Wyrównanie do góry dla spójności */
         }
-        /* ZMIANA: Zapewniono, że kolumny mają przypisane swoje obszary w siatce. */
-        /* CHANGE: Ensured that columns are assigned to their grid areas. */
-        .detail-col--1 { grid-area: col1; }
-        .detail-col--2 { grid-area: col2; }
-        .detail-col--3 { grid-area: col3; }
-        .detail-col--4 { grid-area: col4; }
-        .detail-col--5 { grid-area: col5; }
+        
+        .current-weather__extra-details .detail-item-header {
+            font-size: 0.85rem; /* Zmniejszona czcionka dla etykiet */
+            min-height: 34px; /* Zapewnia równą wysokość, nawet przy zawijaniu */
+            align-items: start;
+        }
+
+        .detail-col--3 {
+            align-self: start; /* Wyrównanie do góry */
+        }
+
+        /* ZMIANA: Usunięto grid-template-areas, aby uprościć i pozwolić na naturalny przepływ */
+        /* CHANGE: Removed grid-template-areas to simplify and allow natural flow */
         
         .hourly-forecast__slider-nav { display: flex; }
         .hourly-forecast__slider-container { padding: 0 50px; }
@@ -335,18 +338,15 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     .detail-col--2 { grid-area: col2; }
     .detail-col--3 {
         grid-area: col3;
-        /* ZMIANA: Etykieta ("Nawierzchnia") jest wyśrodkowana. */
-        /* CHANGE: The label ("Nawierzchnia") is centered. */
-        text-align: center;
+        /* ZMIANA: Cały blok jest centrowany w swojej przestrzeni siatki. */
+        /* CHANGE: The entire block is centered within its grid area. */
+        justify-self: center;
+        text-align: left; /* Tekst wewnątrz bloku jest wyrównany do lewej. */
     }
-    /* ZMIANA: Nowa reguła zapewniająca, że wartość pod etykietą "Nawierzchnia" */
-    /* jest wyrównana do lewej, zachowując spójność z resztą interfejsu. */
-    /* CHANGE: New rule ensuring the value under the "Nawierzchnia" label */
-    /* is left-aligned, maintaining consistency with the rest of the UI. */
-    .detail-col--3 .detail-item-value {
-        display: inline-block;
-        text-align: left;
-    }
+    
+    /* ZMIANA: Usunięto zbędne reguły, nowa, prostsza implementacja powyżej. */
+    /* CHANGE: Removed redundant rules; the new, simpler implementation is above. */
+
     .detail-col--4 { grid-area: col4; }
     .detail-col--5 { grid-area: col5; }
 
