@@ -364,6 +364,12 @@ body.dark-mode #map {
             align-items: center;
         }
 
+        /* Nowa reguła do ukrywania prognozy */
+        #forecasts-container.collapsed .hourly-forecast__wrapper,
+        #forecasts-container.collapsed .weather-app__forecast-wrapper {
+            display: none;
+        }
+
         .forecast-switcher { display: flex; }
         .hourly-forecast__wrapper, .weather-app__forecast-wrapper { margin-top: 0; }
         .hourly-forecast__title, .weather-app__forecast-title { display: none; }
