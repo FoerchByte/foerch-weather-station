@@ -137,7 +137,18 @@ body.dark-mode .weather-app__error {
     grid-template-columns: 1fr 1fr;
 }
 .current-weather__detail-item { display: flex; flex-direction: column; gap: 0.25rem; }
-.current-weather__detail-item span:first-child { font-size: 0.9rem; color: var(--completed-text); }
+.current-weather__detail-item .detail-item-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--completed-text);
+}
+.current-weather__detail-item .detail-item-header svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--completed-text);
+}
 .detail-item-value { font-size: 1.1rem; font-weight: 500; }
 .detail-item--wind { grid-area: wind; }
 .detail-item--pressure { grid-area: pressure; }
@@ -188,21 +199,22 @@ body.dark-mode .weather-alert { background-color: #856404; color: #ffeeba; }
 /* --- Hourly Forecast (NEW, FIXED VERSION) --- */
 .hourly-forecast__wrapper { 
     position: relative;
-    /* Dodajemy padding, aby zrobić miejsce na absolutnie pozycjonowane przyciski */
-    /* EN: Adding padding to make space for absolutely positioned buttons */
     padding: 0 50px;
     margin: 0 -50px;
 }
-.hourly-forecast__title, .weather-app__forecast-title { 
+.hourly-forecast__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 50px; /* Dopasowanie do paddingu wrappera */
     margin-bottom: 1rem;
-    /* Poprawka marginesu, aby tytuł nie nachodził na przyciski */
-    /* EN: Adjusting margin so the title doesn't overlap buttons */
-    padding: 0 50px;
+}
+.hourly-forecast__title, .weather-app__forecast-title { 
+    margin: 0;
 }
 
-.hourly-forecast__scroll-container {
-    /* Ten kontener nie jest już potrzebny do flexboxa, ale zostaje dla struktury */
-    /* EN: This container is no longer needed for flexbox but is kept for structure */
+.hourly-forecast__slider-container {
+    position: relative;
 }
 
 .hourly-forecast__scroll-wrapper {
@@ -238,10 +250,13 @@ body.dark-mode .weather-alert { background-color: #856404; color: #ffeeba; }
     cursor: pointer;
     z-index: 10;
     align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--text-color);
 }
 .hourly-forecast__slider-nav:disabled { opacity: 0.3; cursor: not-allowed; }
-#hourly-slider-prev { left: 0; }
-#hourly-slider-next { right: 0; }
+#hourly-slider-prev { left: -50px; } /* Pozycjonowanie względem slider-container */
+#hourly-slider-next { right: -50px; }
 
 .hourly-forecast__time { font-size: 0.9rem; font-weight: 500; margin: 0 0 0.5rem 0; }
 .hourly-forecast__icon { width: 48px; height: 48px; }
@@ -308,7 +323,9 @@ body.dark-mode .weather-alert { background-color: #856404; color: #ffeeba; }
     @media (orientation: portrait) {
         .forecast-switcher { display: flex; }
         .hourly-forecast__wrapper, .weather-app__forecast-wrapper { margin-top: 0; padding: 0; margin: 0;}
+        .hourly-forecast__header { display: none; }
         .hourly-forecast__title, .weather-app__forecast-title { display: none; }
+
 
         #forecasts-container.show-hourly .weather-app__forecast-wrapper { display: none; }
         #forecasts-container.show-daily .hourly-forecast__wrapper { display: none; }
