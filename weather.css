@@ -9,11 +9,10 @@
     --success-color: #28a745;
     --danger-color: #dc3545;
     --warning-color: #ffc107;
-    --info-color: #17a2b8;
     --completed-text: #6c757d;
-    --aqi-moderate: #a0d468;
-    --aqi-bad: #ff8c00;
-    --uv-extreme: #9932cc;
+    --alert-bg-color: #fff3cd;
+    --alert-border-color: #ffeeba;
+    --alert-text-color: #856404;
 }
 
 body.dark-mode {
@@ -22,6 +21,9 @@ body.dark-mode {
     --card-background: #1e1e1e;
     --border-color: #495057;
     --completed-text: #adb5bd;
+    --alert-bg-color: #3b2d00;
+    --alert-border-color: #594400;
+    --alert-text-color: #ffc107;
 }
 
 body {
@@ -168,10 +170,6 @@ body.dark-mode .weather-app__error {
     z-index: 1;
 }
 
-body.dark-mode #map {
-    filter: invert(1) hue-rotate(180deg);
-}
-
 .current-weather__city {
     font-size: 1.8rem;
     margin-bottom: 0.5rem;
@@ -197,45 +195,63 @@ body.dark-mode #map {
     font-weight: 500;
 }
 
-/* --- Nowa, 4-kolumnowa siatka dla szczegółów (Desktop/Landscape) --- */
-.current-weather__extra-details {
-    display: grid;
-    gap: 1.5rem; /* Zwiększony odstęp dla lepszej czytelności */
-    text-align: center;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
-    
-    /* Układ domyślny (Desktop i Landscape Mobile) */
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-areas:
-        "wind     aqi      road   sunrise"
-        "pressure uv       road   sunset";
+/* --- Nowe style dla alertów pogodowych --- */
+/* --- New styles for weather alerts --- */
+.weather-alerts-container {
+    margin-bottom: 1.5rem;
+}
+.weather-alert {
+    background-color: var(--alert-bg-color);
+    border: 1px solid var(--alert-border-color);
+    color: var(--alert-text-color);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    text-align: left;
+}
+.weather-alert__icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    color: var(--warning-color);
+}
+.weather-alert__content {
+    flex-grow: 1;
+}
+.weather-alert__title {
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+    color: var(--alert-text-color);
+}
+.weather-alert__sender {
+    font-size: 0.85rem;
+    margin: 0 0 0.5rem 0;
+    opacity: 0.9;
 }
 
+
+.current-weather__extra-details {
+    display: grid;
+    gap: 1rem 1.5rem;
+    text-align: left;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+
+    /* Układ domyślny dla desktopu i mobile w poziomie (4 kolumny) */
+    /* Default layout for desktop and mobile landscape (4 columns) */
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-areas:
+        "wind   pressure road     sunrise"
+        "aqi    uv       road     sunset";
+}
 .current-weather__detail-item {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
 }
 
-.detail-item--road {
-    justify-content: center; /* Wyśrodkowanie w pionie */
-}
-
-.current-weather__detail-item span:first-child {
-    font-size: 0.9rem;
-    color: var(--completed-text);
-}
-.current-weather__detail-item span:last-child {
-    font-size: 1.1rem;
-    font-weight: 500;
-}
-.detail-item-value {
-    font-size: 1.1rem;
-    font-weight: 500;
-}
-
-/* Przypisanie do obszarów siatki */
 .detail-item--wind { grid-area: wind; }
 .detail-item--pressure { grid-area: pressure; }
 .detail-item--sunrise { grid-area: sunrise; }
@@ -244,23 +260,29 @@ body.dark-mode #map {
 .detail-item--aqi { grid-area: aqi; }
 .detail-item--uv { grid-area: uv; }
 
-/* --- Kolory wartości --- */
+.current-weather__detail-item span:first-child {
+    font-size: 0.9rem;
+    color: var(--completed-text);
+}
+.detail-item-value {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
 .value-color--roadDry { color: var(--success-color); }
 .value-color--roadWet { color: var(--primary-color); }
 .value-color--roadIcy { color: var(--danger-color); }
 
-.value-color--aqi-1 { color: var(--success-color); }
-.value-color--aqi-2 { color: var(--aqi-moderate); }
-.value-color--aqi-3 { color: var(--warning-color); }
-.value-color--aqi-4 { color: var(--aqi-bad); }
-.value-color--aqi-5 { color: var(--danger-color); }
+.value-color--aqi-1 { color: #4caf50; } /* Dobra */
+.value-color--aqi-2 { color: #ffc107; } /* Umiarkowana */
+.value-color--aqi-3 { color: #ff9800; } /* Średnia */
+.value-color--aqi-4 { color: #f44336; } /* Zła */
+.value-color--aqi-5 { color: #9c27b0; } /* Bardzo zła */
 
-.value-color--uv-low { color: var(--success-color); }
-.value-color--uv-moderate { color: var(--warning-color); }
-.value-color--uv-high { color: var(--aqi-bad); }
-.value-color--uv-very-high { color: var(--danger-color); }
-.value-color--uv-extreme { color: var(--uv-extreme); }
-
+.value-color--uv-low { color: #4caf50; }
+.value-color--uv-moderate { color: #ffc107; }
+.value-color--uv-high { color: #ff9800; }
+.value-color--uv-very-high { color: #f44336; }
+.value-color--uv-extreme { color: #9c27b0; }
 
 .hourly-forecast__wrapper, .weather-app__forecast-wrapper {
     margin-top: 2rem;
@@ -351,39 +373,35 @@ body.dark-mode #map {
     .weather-app__search { flex-direction: column; }
     .weather-app__button { width: 100%; }
 
-    /* Układ dla orientacji pionowej - 2 kolumny */
+    /* Układ dla orientacji pionowej */
     @media (orientation: portrait) {
         .current-weather__extra-details {
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
+            /* Układ dla mobile w pionie (2 kolumny) */
+            /* Layout for mobile portrait (2 columns) */
             grid-template-columns: 1fr 1fr;
             grid-template-areas:
-                "wind     sunrise"
+                "wind sunrise"
                 "pressure sunset"
-                "road     aqi"
-                "uv       uv";
+                "road aqi"
+                "road uv";
         }
-        .detail-item--uv {
-            align-items: center;
-        }
-
+        
         .forecast-switcher { display: flex; }
         .hourly-forecast__wrapper, .weather-app__forecast-wrapper { margin-top: 0; }
         .hourly-forecast__title, .weather-app__forecast-title { display: none; }
 
-        #forecasts-container.show-hourly .weather-app__forecast-wrapper { display: none; }
-        #forecasts-container.show-daily .hourly-forecast__wrapper { display: none; }
-        #forecasts-container.show-hourly .hourly-forecast__wrapper,
-        #forecasts-container.show-daily .weather-app__forecast-wrapper {
-            display: block;
-        }
-        
+        #forecasts-container.show-hourly .weather-app__forecast-wrapper,
+        #forecasts-container.show-daily .hourly-forecast__wrapper,
         #forecasts-container.collapsed .hourly-forecast__wrapper,
         #forecasts-container.collapsed .weather-app__forecast-wrapper {
             display: none;
         }
 
+        #forecasts-container.show-hourly .hourly-forecast__wrapper,
+        #forecasts-container.show-daily .weather-app__forecast-wrapper {
+            display: block;
+        }
+        
         .hourly-forecast__grid, .weather-app__forecast-grid {
             display: flex;
             flex-direction: column;
@@ -405,32 +423,6 @@ body.dark-mode #map {
         .hourly-forecast__temp, .weather-app__forecast-day p {
             margin: 0; font-size: 1.1rem; font-weight: bold; text-align: right;
         }
-    }
-}
-
-/* Układ dla orientacji poziomej na telefonie - dziedziczy teraz układ 4-kolumnowy z desktopu */
-@media (max-width: 900px) and (max-height: 500px) and (orientation: landscape) {
-    .hourly-forecast__grid {
-       display: flex;
-       overflow-x: auto;
-       padding-bottom: 1rem;
-    }
-    .hourly-forecast__item {
-        min-width: 90px;
-        flex-shrink: 0;
-    }
-    .weather-app__forecast-grid {
-        gap: 0.5rem;
-    }
-    .weather-app__forecast-day {
-        padding: 0.5rem;
-    }
-    .weather-app__forecast-day h4 {
-        font-size: 0.9rem;
-    }
-    .weather-app__forecast-icon {
-        width: 48px;
-        height: 48px;
     }
 }
 
