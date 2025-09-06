@@ -60,6 +60,8 @@ exports.handler = async function (event) {
 
     try {
         if (city) {
+            // Geokodowanie: nazwa miasta -> współrzędne
+            // Geocoding: city name -> coordinates
             const geocodingUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${apiKey}`;
             const geoResponse = await fetch(geocodingUrl);
             const geoData = await geoResponse.json();
@@ -70,6 +72,15 @@ exports.handler = async function (event) {
             latitude = geoData[0].lat;
             longitude = geoData[0].lon;
             locationName = `${geoData[0].name}, ${geoData[0].country}`;
+        } else if (lat && lon) {
+            // NOWA LOGIKA: Geokodowanie odwrotne dla wyszukiwania po lokalizacji
+            // NEW LOGIC: Reverse Geocoding for location-based search
+            const reverseGeocodingUrl = `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`;
+            const reverseGeoResponse = await fetch(reverseGeocodingUrl);
+            const reverseGeoData = await reverseGeoResponse.json();
+            if (reverseGeoResponse.ok && reverseGeoData.length > 0) {
+                locationName = `${reverseGeoData[0].name}, ${reverseGeoData[0].country}`;
+            }
         }
 
         if (!latitude || !longitude) {
@@ -90,8 +101,10 @@ exports.handler = async function (event) {
         const oneCallData = await oneCallResponse.json();
         const airPollutionData = await airPollutionResponse.json();
 
-        if (!locationName) {
-            locationName = oneCallData.timezone.replace(/_/g, ' ');
+        // Lepsza logika zastępcza: Jeśli nie udało się znaleźć nazwy, użyj nazwy miasta ze strefy czasowej
+        // Better fallback logic: If a name couldn't be found, use the city name from the timezone
+        if (!locationName && oneCallData.timezone) {
+            locationName = oneCallData.timezone.replace(/_/g, ' ').split('/').pop() || 'Twoja lokalizacja';
         }
         
         const combinedData = {
