@@ -4,26 +4,31 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 exports.handler = async function (event, context) {
     const apiKey = process.env.WEATHER_API_KEY;
     
-    // Sprawdzenie, czy klucz API jest skonfigurowany na serwerze
     if (!apiKey) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ message: 'Klucz API nie jest skonfigurowany po stronie serwera.' }),
-        };
+        return { statusCode: 500, body: JSON.stringify({ message: 'Klucz API nie jest skonfigurowany.' }) };
     }
 
-    const { city, lat, lon, lang } = event.queryStringParameters;
-
+    const { city, lat, lon, lang, endpoint } = event.queryStringParameters;
+    
     let apiUrl;
-    if (city) {
-        apiUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric&lang=${lang || 'pl'}`;
-    } else if (lat && lon) {
-        apiUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=${lang || 'pl'}`;
-    } else {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ message: 'Brak miasta lub współrzędnych.' }),
-        };
+    const base = 'https://api.openweathermap.org/data/2.5/';
+
+    // Dynamiczne budowanie URL na podstawie 'endpoint'
+    switch(endpoint) {
+        case 'air_pollution':
+            apiUrl = `${base}air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
+            break;
+        case 'uvi':
+             apiUrl = `${base}uvi?lat=${lat}&lon=${lon}&appid=${apiKey}`;
+            break;
+        default: // Domyślnie pobieramy prognozę
+            if (city) {
+                apiUrl = `${base}forecast?q=${city}&appid=${apiKey}&units=metric&lang=${lang || 'pl'}`;
+            } else if (lat && lon) {
+                apiUrl = `${base}forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=${lang || 'pl'}`;
+            } else {
+                return { statusCode: 400, body: JSON.stringify({ message: 'Brak miasta lub współrzędnych.' }) };
+            }
     }
 
     try {
@@ -31,20 +36,11 @@ exports.handler = async function (event, context) {
         const data = await response.json();
 
         if (!response.ok) {
-             return {
-                statusCode: response.status,
-                body: JSON.stringify(data),
-            };
+             return { statusCode: response.status, body: JSON.stringify(data) };
         }
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify(data),
-        };
+        return { statusCode: 200, body: JSON.stringify(data) };
     } catch (error) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ message: 'Wystąpił wewnętrzny błąd funkcji bezserwerowej.' }),
-        };
+        return { statusCode: 500, body: JSON.stringify({ message: 'Błąd wewnętrzny funkcji bezserwerowej.' }) };
     }
 };
