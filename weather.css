@@ -302,7 +302,17 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     /* just like on desktop, instead of using auto-fit. */
     @media (orientation: landscape) {
         .current-weather__extra-details {
-            grid-template-columns: repeat(5, 1fr);
+            /* ZMIANA: Zastosowano nowy, 4-kolumnowy układ siatki z wydzielonym, */
+            /* centralnym miejscem dla informacji o nawierzchni. Rozwiązuje to problem */
+            /* zawijania się tekstu i poprawia czytelność. */
+            /* CHANGE: A new 4-column grid layout is applied, with a dedicated */
+            /* central space for the road condition info. This solves the text-wrapping */
+            /* issue and improves readability. */
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-areas:
+                "col1 col2 col4 col5"
+                ". col3 col3 .";
+            gap: 1rem; /* Zapewnienie spójnych odstępów */
         }
         .hourly-forecast__slider-nav { display: flex; }
         .hourly-forecast__slider-container { padding: 0 50px; }
@@ -330,7 +340,14 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     }
     .detail-col--1 { grid-area: col1; }
     .detail-col--2 { grid-area: col2; }
-    .detail-col--3 { grid-area: col3; }
+    .detail-col--3 {
+        grid-area: col3;
+        /* ZMIANA: Dodano wyśrodkowanie tekstu dla kolumny z nawierzchnią */
+        /* w widoku mobilnym w pionie, zgodnie z prośbą. */
+        /* CHANGE: Added text-centering for the road condition column */
+        /* in mobile portrait view, as requested. */
+        text-align: center;
+    }
     .detail-col--4 { grid-area: col4; }
     .detail-col--5 { grid-area: col5; }
 
