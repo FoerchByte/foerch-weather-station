@@ -59,12 +59,23 @@ document.addEventListener('DOMContentLoaded', () => {
         clearUI();
         domElements.resultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`;
     }
+    
+    // Funkcja normalizująca nazwę miasta przed wysłaniem zapytania
+    // Normalizes the city name before sending the request
+    function normalizeCityName(city) {
+        if (city.toLowerCase() === 'łódź') {
+            return 'Lodz';
+        }
+        return city;
+    }
 
     function buildApiUrl(query, endpoint = 'forecast') {
         const lang = 'pl';
         let baseUrl = `/.netlify/functions/weather?endpoint=${endpoint}&`;
+        
         if (typeof query === 'string' && query) {
-            return `${baseUrl}city=${encodeURIComponent(query)}&lang=${lang}`;
+            const normalizedCity = normalizeCityName(query);
+            return `${baseUrl}city=${encodeURIComponent(normalizedCity)}&lang=${lang}`;
         } else if (typeof query === 'object' && query.latitude) {
             return `${baseUrl}lat=${query.latitude}&lon=${query.longitude}&lang=${lang}`;
         }
