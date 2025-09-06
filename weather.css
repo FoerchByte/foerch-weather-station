@@ -132,7 +132,8 @@ body.dark-mode .weather-app__error {
         "wind sunrise"
         "pressure sunset"
         "road aqi"
-        "uv uv";
+        "uv moonrise"
+        "moonset moonset";
     grid-template-columns: 1fr 1fr;
 }
 .current-weather__detail-item { display: flex; flex-direction: column; gap: 0.25rem; }
@@ -145,6 +146,8 @@ body.dark-mode .weather-app__error {
 .detail-item--road { grid-area: road; }
 .detail-item--aqi { grid-area: aqi; }
 .detail-item--uv { grid-area: uv; }
+.detail-item--moonrise { grid-area: moonrise; }
+.detail-item--moonset { grid-area: moonset; }
 
 /* --- Alerty pogodowe --- */
 /* --- Weather Alerts --- */
@@ -186,10 +189,12 @@ body.dark-mode .weather-alert { background-color: #856404; color: #ffeeba; }
 .hourly-forecast__wrapper { position: relative; }
 .hourly-forecast__title, .weather-app__forecast-title { margin-bottom: 1rem; }
 
-/* Poprawka slidera / Slider fix */
 .hourly-forecast__scroll-container {
     position: relative;
+    padding: 0 30px; /* Zapewnia miejsce na przyciski nawigacji / Provides space for nav buttons */
+    margin: 0 -30px; /* Kompensuje padding, aby suwak był na całą szerokość / Compensates for padding, making the slider full-width */
 }
+
 .hourly-forecast__scroll-wrapper {
     display: flex;
     overflow-x: auto;
@@ -198,28 +203,43 @@ body.dark-mode .weather-alert { background-color: #856404; color: #ffeeba; }
     scrollbar-width: none; /* Firefox */
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; /* Safari and Chrome */ }
+
 .hourly-forecast__grid {
-    display: flex; /* Zmienione z grid na flex / Changed from grid to flex */
+    display: flex;
     gap: 12px;
-    padding-bottom: 1rem; /* Zapewnia miejsce, jeśli pojawi się suwak / Provides space if a scrollbar appears */
+    padding-bottom: 1rem;
 }
 .hourly-forecast__item {
-    flex: 0 0 90px; /* Nie rozciąga się, nie kurczy, baza 90px / Doesn't grow, doesn't shrink, base 90px */
+    flex: 0 0 90px;
     scroll-snap-align: start;
     display: flex; flex-direction: column; align-items: center;
     padding: 1rem 0.5rem; background-color: var(--background-color);
     border: 1px solid var(--border-color); border-radius: 8px;
 }
 .hourly-forecast__slider-nav {
-    display: none; /* Domyślnie ukryte / Hidden by default */
+    display: none; /* Ukryte domyślnie, pokazywane w media query / Hidden by default, shown in media query */
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 40px; height: 40px;
+    cursor: pointer;
+    z-index: 10;
+    display: flex; align-items: center; justify-content: center;
 }
+.hourly-forecast__slider-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+#hourly-slider-prev { left: 0px; }
+#hourly-slider-next { right: 0px; }
+
 .hourly-forecast__time { font-size: 0.9rem; font-weight: 500; margin: 0 0 0.5rem 0; }
 .hourly-forecast__icon { width: 48px; height: 48px; }
 .hourly-forecast__temp { font-size: 1.1rem; font-weight: bold; margin-top: 0.5rem; }
 .hourly-forecast__pop { display: flex; align-items: center; gap: 4px; font-size: 0.9rem; margin-top: 0.5rem; color: var(--completed-text); }
 .hourly-forecast__pop-icon { width: 16px; height: 16px; stroke: var(--info-color); }
 #hourly-range-toggle {
-    display: none; /* Ukryty domyślnie, pokazywany w JS / Hidden by default, shown in JS */
+    display: none;
     margin-top: 1rem;
     font-size: 0.9rem;
     padding: 0.5rem 1rem;
@@ -261,29 +281,12 @@ body.dark-mode .weather-alert { background-color: #856404; color: #ffeeba; }
 @media (min-width: 769px) {
     .current-weather__extra-details {
         grid-template-areas:
-            "wind pressure road sunrise"
-            "aqi uv . sunset";
-        grid-template-columns: repeat(4, 1fr);
+            "wind pressure road sunrise moonrise"
+            "aqi uv . sunset moonset";
+        grid-template-columns: repeat(5, 1fr);
     }
-    .detail-item--uv { grid-area: uv; }
     .hourly-forecast__slider-nav {
-        display: block;
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background-color: var(--card-background);
-        border: 1px solid var(--border-color);
-        border-radius: 50%;
-        width: 40px; height: 40px;
-        cursor: pointer;
-        z-index: 10;
-        display: flex; align-items: center; justify-content: center;
-    }
-    .hourly-forecast__slider-nav:disabled { opacity: 0.3; cursor: not-allowed; }
-    #hourly-slider-prev { left: -20px; }
-    #hourly-slider-next { right: -20px; }
-    .hourly-forecast__scroll-container {
-        padding: 0 30px; /* Zapewnia miejsce na przyciski / Provides space for buttons */
+        display: flex;
     }
 }
 
@@ -296,6 +299,7 @@ body.dark-mode .weather-alert { background-color: #856404; color: #ffeeba; }
         .forecast-switcher { display: flex; }
         .hourly-forecast__wrapper, .weather-app__forecast-wrapper { margin-top: 0; }
         .hourly-forecast__title, .weather-app__forecast-title { display: none; }
+        .hourly-forecast__scroll-container { margin: 0; padding: 0; }
 
         #forecasts-container.show-hourly .weather-app__forecast-wrapper { display: none; }
         #forecasts-container.show-daily .hourly-forecast__wrapper { display: none; }
