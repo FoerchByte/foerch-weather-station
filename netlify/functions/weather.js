@@ -21,14 +21,17 @@ exports.handler = async function (event, context) {
         case 'uvi':
              apiUrl = `${base}uvi?lat=${lat}&lon=${lon}&appid=${apiKey}`;
             break;
-        default: // Domyślnie pobieramy prognozę
+        case 'forecast': // Jawnie obsługujemy prognozę
             if (city) {
                 apiUrl = `${base}forecast?q=${city}&appid=${apiKey}&units=metric&lang=${lang || 'pl'}`;
             } else if (lat && lon) {
                 apiUrl = `${base}forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=${lang || 'pl'}`;
             } else {
-                return { statusCode: 400, body: JSON.stringify({ message: 'Brak miasta lub współrzędnych.' }) };
+                return { statusCode: 400, body: JSON.stringify({ message: 'Brak miasta lub współrzędnych dla prognozy.' }) };
             }
+            break;
+        default: 
+            return { statusCode: 400, body: JSON.stringify({ message: 'Nieznany endpoint.' }) };
     }
 
     try {
@@ -44,3 +47,4 @@ exports.handler = async function (event, context) {
         return { statusCode: 500, body: JSON.stringify({ message: 'Błąd wewnętrzny funkcji bezserwerowej.' }) };
     }
 };
+
