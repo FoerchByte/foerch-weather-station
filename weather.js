@@ -98,20 +98,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Pobieranie i przetwarzanie danych pogodowych / Weather Data Fetching and Processing ---
     async function getWeatherData(query) {
         let url;
-        const lastCity = localStorage.getItem('lastCity');
-        const effectiveQuery = query || lastCity;
 
-        if (typeof effectiveQuery === 'string' && effectiveQuery) {
-            const sanitizedQuery = effectiveQuery.trim().toLowerCase() === 'łódź' ? 'Lodz' : effectiveQuery;
+        if (typeof query === 'string' && query) {
+            const sanitizedQuery = query.trim().toLowerCase() === 'łódź' ? 'Lodz' : query;
             url = `/.netlify/functions/weather?city=${encodeURIComponent(sanitizedQuery)}`;
-            localStorage.setItem('lastCity', effectiveQuery);
-        } else if (typeof effectiveQuery === 'object' && effectiveQuery.latitude) {
-            url = `/.netlify/functions/weather?lat=${effectiveQuery.latitude}&lon=${effectiveQuery.longitude}`;
+            localStorage.setItem('lastCity', query); // Zapisujemy oryginalne zapytanie / Save original query
+        } else if (typeof query === 'object' && query.latitude) {
+            url = `/.netlify/functions/weather?lat=${query.latitude}&lon=${query.longitude}`;
             localStorage.removeItem('lastCity');
-        } else if (lastCity) {
-            url = `/.netlify/functions/weather?city=${encodeURIComponent(lastCity)}`;
         } else {
-            return null;
+            return null; // Brak zapytania / No query
         }
 
         const response = await fetch(url);
@@ -129,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Renderowanie komponentów UI / UI Components Rendering ---
     const weatherIcons = {
         getIcon: function(iconCode) {
-            const iconBaseUrl = 'https://basemilius.github.io/weather-icons/production/fill/all/';
+            const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
             const iconMap = {
                 '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', 
                 '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', 
@@ -227,6 +223,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Główna funkcja aplikacji / Main Application Logic ---
     async function handleWeatherSearch(query, buttonToLoad) {
+        if (!query) {
+            showError("Wpisz nazwę miasta, aby rozpocząć.");
+            return;
+        }
         const skeletonHTML = `<div class="weather-app__skeleton"><div class="skeleton" style="width: 200px; height: 2.2rem; margin-bottom: 1rem;"></div><div class="skeleton" style="width: 150px; height: 4rem;"></div></div>`;
         dom.weatherResultContainer.innerHTML = skeletonHTML;
         dom.forecastsContainer.style.display = 'none';
@@ -236,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await getWeatherData(query);
             if (!data) {
+                // Ta ścieżka nie powinna być już osiągalna / This path should no longer be reachable
                 showError("Wpisz miasto lub zezwól na geolokalizację.");
                 return;
             }
@@ -327,6 +328,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Start aplikacji / App Start ---
     initializeMap();
     setupEventListeners();
-    handleWeatherSearch(null, dom.searchBtn); // Załaduj ostatnie miasto lub nic / Load last city or nothing
+
+    // Przywrócenie poprawnej logiki startowej / Restoring correct startup logic
+    const lastCity = localStorage.getItem('lastCity');
+    if (lastCity) {
+        dom.cityInput.value = lastCity;
+        handleWeatherSearch(lastCity, dom.searchBtn);
+    }
 });
 
