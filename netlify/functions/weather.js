@@ -1,127 +1,115 @@
-// Ten plik jest przykładem koncepcyjnym.
-// This file is a conceptual example.
-// Do działania wymaga skonfigurowania i podłączenia klienta bazy danych (np. Upstash, FaunaDB).
-// It requires configuring and connecting a database client (e.g., Upstash, FaunaDB) to work.
-
-// const { db } = require('./database-client'); // Przykładowy import klienta bazy danych
-
+// Importujemy 'node-fetch' dynamicznie, aby zapewnić kompatybilność
+// Import 'node-fetch' dynamically for compatibility
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-// Funkcja do pobrania dzisiejszej daty w formacie YYYY-MM-DD
-// Function to get today's date in YYYY-MM-DD format
-const getTodayDate = () => {
-    return new Date().toISOString().split('T')[0];
-};
+// --- Koncept licznika zapytań / API Call Counter Concept ---
+// W przyszłości można to podłączyć do bazy danych (np. Redis, FaunaDB)
+// In the future, this can be connected to a database (e.g., Redis, FaunaDB)
+const API_CALL_LIMIT = 1000;
+let apiCallCount = 0; // W prostym przykładzie, resetuje się przy każdym wdrożeniu / In a simple example, resets on each deployment
 
-exports.handler = async function (event) {
+async function checkApiLimit() {
+    // W rzeczywistej implementacji, tutaj byłoby zapytanie do bazy danych
+    // In a real implementation, a database query would be here
+    return apiCallCount < API_CALL_LIMIT;
+}
+
+async function incrementApiCount() {
+    // Tutaj byłoby zaktualizowanie wartości w bazie danych
+    // Here, the value in the database would be updated
+    apiCallCount++;
+}
+
+// --- Główna funkcja serwerless / Main Serverless Function ---
+exports.handler = async function (event, context) {
+    // 1. Sprawdzenie klucza API / Check for API Key
     const apiKey = process.env.WEATHER_API_KEY;
-    const DAILY_LIMIT = 1000;
-    const today = getTodayDate();
-    const counterKey = `api_calls_${today}`;
-
-    // --- KROK 1: Sprawdzenie limitu API ---
-    // --- STEP 1: Check API limit ---
-    try {
-        // const currentCount = await db.get(counterKey) || 0; // Pobranie aktualnej liczby zapytań
-        const currentCount = 0; // Symulacja - zakładamy, że limit nie jest przekroczony
-
-        if (currentCount >= DAILY_LIMIT) {
-            return {
-                statusCode: 429, // Too Many Requests
-                body: JSON.stringify({ message: 'Przekroczono dzienny limit zapytań.' }),
-            };
-        }
-        
-        // Zwiększenie licznika - ta operacja powinna być atomowa w prawdziwej bazie danych
-        // Increment counter - this operation should be atomic in a real database
-        // await db.set(counterKey, currentCount + 1, { expiresIn: 86400 }); // Ustawienie licznika z czasem życia 24h
-
-    } catch (dbError) {
-        console.error("Błąd połączenia z bazą danych do sprawdzania limitu:", dbError);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ message: 'Błąd wewnętrzny serwera podczas sprawdzania limitu API.' }),
-        };
-    }
-
-    // --- KROK 2: Wykonanie zapytania do OpenWeatherMap ---
-    // --- STEP 2: Execute the request to OpenWeatherMap ---
     if (!apiKey) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ message: 'Klucz API nie jest skonfigurowany.' }),
-        };
+        return { statusCode: 500, body: JSON.stringify({ message: 'Klucz API nie jest skonfigurowany.' }) };
     }
 
-    const { city, lat, lon } = event.queryStringParameters;
-    let latitude = lat;
-    let longitude = lon;
-    let locationName = '';
+    // 2. Sprawdzenie limitu zapytań / Check API Call Limit
+    const withinLimit = await checkApiLimit();
+    if (!withinLimit) {
+        return { statusCode: 429, body: JSON.stringify({ message: 'Przekroczono dzienny limit zapytań.' }) };
+    }
+
+    // 3. Pobranie parametrów / Get Parameters
+    const { city, lat: latParam, lon: lonParam } = event.queryStringParameters;
+    let lat, lon, locationName, locationCountry;
 
     try {
+        // 4. Geokodowanie (jeśli podano miasto) / Geocoding (if city is provided)
         if (city) {
-            // Geokodowanie: nazwa miasta -> współrzędne
-            // Geocoding: city name -> coordinates
-            const geocodingUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${apiKey}`;
-            const geoResponse = await fetch(geocodingUrl);
-            const geoData = await geoResponse.json();
+            const geoUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(city)}&limit=1&appid=${apiKey}`;
+            const geoResponse = await fetch(geoUrl);
+            if (!geoResponse.ok) throw new Error(`Błąd geokodowania: ${geoResponse.statusText}`);
             
-            if (!geoResponse.ok || geoData.length === 0) {
-                throw new Error('Nie znaleziono miasta.');
-            }
-            latitude = geoData[0].lat;
-            longitude = geoData[0].lon;
-            locationName = `${geoData[0].name}, ${geoData[0].country}`;
-        } else if (lat && lon) {
-            // NOWA LOGIKA: Geokodowanie odwrotne dla wyszukiwania po lokalizacji
-            // NEW LOGIC: Reverse Geocoding for location-based search
-            const reverseGeocodingUrl = `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`;
-            const reverseGeoResponse = await fetch(reverseGeocodingUrl);
+            const geoData = await geoResponse.json();
+            if (!geoData || geoData.length === 0) throw new Error(`Nie znaleziono miasta: ${city}`);
+            
+            lat = geoData[0].lat;
+            lon = geoData[0].lon;
+            locationName = geoData[0].local_names?.pl || geoData[0].name;
+            locationCountry = geoData[0].country;
+
+        } else if (latParam && lonParam) {
+            lat = latParam;
+            lon = lonParam;
+            // Geokodowanie odwrotne / Reverse Geocoding
+            const reverseGeoUrl = `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`;
+            const reverseGeoResponse = await fetch(reverseGeoUrl);
+            if (!reverseGeoResponse.ok) throw new Error(`Błąd geokodowania odwrotnego: ${reverseGeoResponse.statusText}`);
+            
             const reverseGeoData = await reverseGeoResponse.json();
-            if (reverseGeoResponse.ok && reverseGeoData.length > 0) {
-                locationName = `${reverseGeoData[0].name}, ${reverseGeoData[0].country}`;
+            if (reverseGeoData && reverseGeoData.length > 0) {
+                locationName = reverseGeoData[0].local_names?.pl || reverseGeoData[0].name;
+                locationCountry = reverseGeoData[0].country;
+            } else {
+                 throw new Error('Nie udało się ustalić nazwy dla podanych współrzędnych.');
             }
+        } else {
+            return { statusCode: 400, body: JSON.stringify({ message: 'Brak miasta lub współrzędnych.' }) };
         }
 
-        if (!latitude || !longitude) {
-            return { statusCode: 400, body: JSON.stringify({ message: 'Brak współrzędnych do wyszukania pogody.' }) };
-        }
-        
-        const oneCallUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${latitude}&lon=${longitude}&exclude=minutely&appid=${apiKey}&units=metric&lang=pl`;
-        const airPollutionUrl = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${latitude}&lon=${longitude}&appid=${apiKey}`;
+        // 5. Równoległe zapytania o pogodę i jakość powietrza / Parallel requests for weather and air quality
+        const oneCallUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&exclude=minutely&appid=${apiKey}&units=metric&lang=pl`;
+        const airPollutionUrl = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
 
         const [oneCallResponse, airPollutionResponse] = await Promise.all([
             fetch(oneCallUrl),
             fetch(airPollutionUrl)
         ]);
 
-        if (!oneCallResponse.ok) throw new Error('Błąd pobierania danych pogodowych.');
-        if (!airPollutionResponse.ok) throw new Error('Błąd pobierania danych o jakości powietrza.');
+        if (!oneCallResponse.ok) throw new Error(`Błąd pobierania danych pogodowych: ${oneCallResponse.statusText}`);
+        if (!airPollutionResponse.ok) throw new Error(`Błąd pobierania danych o jakości powietrza: ${airPollutionResponse.statusText}`);
 
         const oneCallData = await oneCallResponse.json();
         const airPollutionData = await airPollutionResponse.json();
 
-        // Lepsza logika zastępcza: Jeśli nie udało się znaleźć nazwy, użyj nazwy miasta ze strefy czasowej
-        // Better fallback logic: If a name couldn't be found, use the city name from the timezone
-        if (!locationName && oneCallData.timezone) {
-            locationName = oneCallData.timezone.replace(/_/g, ' ').split('/').pop() || 'Twoja lokalizacja';
-        }
-        
-        const combinedData = {
-            ...oneCallData,
-            airQuality: airPollutionData.list[0],
-            locationName: locationName,
+        // 6. Inkrementacja licznika (tylko przy sukcesie) / Increment counter (only on success)
+        await incrementApiCount();
+
+        // 7. Zbudowanie i zwrócenie finalnej odpowiedzi / Build and return the final response
+        const responsePayload = {
+            location: { name: locationName, country: locationCountry, lat, lon },
+            current: oneCallData.current,
+            hourly: oneCallData.hourly,
+            daily: oneCallData.daily,
+            alerts: oneCallData.alerts,
+            air_quality: airPollutionData.list[0]
         };
 
         return {
             statusCode: 200,
-            body: JSON.stringify(combinedData),
+            body: JSON.stringify(responsePayload),
         };
 
     } catch (error) {
+        // Centralna obsługa błędów / Centralized error handling
         return {
             statusCode: 500,
-            body: JSON.stringify({ message: error.message || 'Wystąpił wewnętrzny błąd funkcji bezserwerowej.' }),
+            body: JSON.stringify({ message: error.message || 'Wystąpił wewnętrzny błąd serwera.' }),
         };
     }
 };
