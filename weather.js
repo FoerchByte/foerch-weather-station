@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
         resultContainer: document.getElementById('weather-result-container'),
         forecastsContainer: document.getElementById('forecasts-container'),
         mapContainer: document.getElementById('map-container'),
-        detailedMetricsContainer: document.getElementById('detailed-metrics-container'),
         hourlyContainer: document.getElementById('hourly-forecast-container'),
         forecastContainer: document.getElementById('forecast-container'),
         forecastSwitcher: document.getElementById('forecast-switcher')
@@ -53,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
         domElements.resultContainer.innerHTML = '';
         domElements.forecastsContainer.style.display = 'none';
         domElements.mapContainer.style.display = 'none';
-        domElements.detailedMetricsContainer.style.display = 'none';
     }
 
     function showError(message) {
@@ -82,16 +80,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Funkcje aktualizujące UI ---
-    function updateCurrentWeather(data) {
-        const current = data.list[0];
-        const sunrise = new Date((data.city.sunrise + data.city.timezone) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
-        const sunset = new Date((data.city.sunset + data.city.timezone) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+    function updateCurrentWeather(weatherData, airData, uvData) {
+        const current = weatherData.list[0];
+        const { city } = weatherData;
+
+        // Dane podstawowe
+        const sunrise = new Date((city.sunrise + city.timezone) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+        const sunset = new Date((city.sunset + city.timezone) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+        
+        // Stan nawierzchni
         const roadCondition = current.main.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(current.weather[0].main)
             ? { text: "Sucha", class: 'roadDry' }
             : (current.main.temp <= 2 ? { text: "Możliwe oblodzenie", class: 'roadIcy' } : { text: "Mokra", class: 'roadWet' });
 
+        // Jakość powietrza (AQI)
+        const aqi = airData.list[0].main.aqi;
+        const aqiLevels = { 1: 'Dobra', 2: 'Umiarkowana', 3: 'Średnia', 4: 'Zła', 5: 'Bardzo zła' };
+        
+        // Indeks UV
+        const uvi = Math.round(uvData.value);
+        let uvLevel, uvCssClass;
+        if (uvi <= 2) { uvLevel = 'Niski'; uvCssClass = 'low'; }
+        else if (uvi <= 5) { uvLevel = 'Umiarkowany'; uvCssClass = 'moderate'; }
+        else if (uvi <= 7) { uvLevel = 'Wysoki'; uvCssClass = 'high'; }
+        else if (uvi <= 10) { uvLevel = 'B. wysoki'; uvCssClass = 'very-high'; }
+        else { uvLevel = 'Ekstremalny'; uvCssClass = 'extreme'; }
+
         domElements.resultContainer.innerHTML = `
-            <h3 class="current-weather__city">${data.city.name}, ${data.city.country}</h3>
+            <h3 class="current-weather__city">${city.name}, ${city.country}</h3>
             <div class="current-weather__main">
                 <div class="current-weather__icon">${getWeatherIcon(current.weather[0].icon)}</div>
                 <div class="current-weather__details">
@@ -100,11 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             <div class="current-weather__extra-details">
-                <div class="current-weather__detail-item detail-item--wind"><span>Wiatr</span><span>${current.wind.speed.toFixed(1)} m/s</span></div>
-                <div class="current-weather__detail-item detail-item--sunrise"><span>Wschód słońca</span><span>${sunrise}</span></div>
-                <div class="current-weather__detail-item detail-item--pressure"><span>Ciśnienie</span><span>${current.main.pressure} hPa</span></div>
-                <div class="current-weather__detail-item detail-item--sunset"><span>Zachód słońca</span><span>${sunset}</span></div>
-                <div class="road-condition__item"><span>Stan nawierzchni</span><span class="road-condition-value road-condition--${roadCondition.class}">${roadCondition.text}</span></div>
+                <div class="current-weather__detail-item detail-item--wind"><span>Wiatr</span><span class="detail-item-value">${current.wind.speed.toFixed(1)} m/s</span></div>
+                <div class="current-weather__detail-item detail-item--pressure"><span>Ciśnienie</span><span class="detail-item-value">${current.main.pressure} hPa</span></div>
+                <div class="current-weather__detail-item detail-item--sunrise"><span>Wschód słońca</span><span class="detail-item-value">${sunrise}</span></div>
+                <div class="current-weather__detail-item detail-item--sunset"><span>Zachód słońca</span><span class="detail-item-value">${sunset}</span></div>
+                <div class="current-weather__detail-item detail-item--road"><span>Stan nawierzchni</span><span class="detail-item-value value-color--${roadCondition.class}">${roadCondition.text}</span></div>
+                <div class="current-weather__detail-item detail-item--aqi"><span>Jakość powietrza</span><span class="detail-item-value value-color--aqi-${aqi}">${aqiLevels[aqi]}</span></div>
+                <div class="current-weather__detail-item detail-item--uv"><span>Indeks UV</span><span class="detail-item-value value-color--uv-${uvCssClass}">${uvLevel} (${uvi})</span></div>
             </div>`;
     }
 
@@ -137,53 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function generatePills(count, activeCount, colorClassPrefix) {
-        let pills = '';
-        for (let i = 1; i <= count; i++) {
-            const activeClass = i <= activeCount ? `metric-item__pill--active pill-${colorClassPrefix}` : '';
-            pills += `<div class="metric-item__pill ${activeClass}"></div>`;
-        }
-        return pills;
-    }
-
-    function updateDetailedMetrics(airData, uvData) {
-        const aqi = airData.list[0].main.aqi;
-        const aqiLevels = { 1: 'Dobra', 2: 'Umiark.', 3: 'Średnia', 4: 'Zła', 5: 'B. zła' };
-        
-        const uvi = Math.round(uvData.value);
-        let uvLevel, uvCssClass;
-        if (uvi <= 2) { uvLevel = 'Niski'; uvCssClass = 'uv-low'; }
-        else if (uvi <= 5) { uvLevel = 'Umiark.'; uvCssClass = 'uv-moderate'; }
-        else if (uvi <= 7) { uvLevel = 'Wysoki'; uvCssClass = 'uv-high'; }
-        else if (uvi <= 10) { uvLevel = 'B. wysoki'; uvCssClass = 'uv-very-high'; }
-        else { uvLevel = 'Ekstrem.'; uvCssClass = 'uv-extreme'; }
-
-        const airQualityHTML = `
-            <div class="metric-item">
-                <span class="metric-item__label">Jakość Powietrza</span>
-                <div class="metric-item__value-display">
-                    <span class="metric-item__value">${aqiLevels[aqi]}</span>
-                    <div class="metric-item__pills">
-                        ${generatePills(5, aqi, `aqi-${aqi}`)}
-                    </div>
-                </div>
-            </div>`;
-
-        const uvIndexHTML = `
-            <div class="metric-item">
-                <span class="metric-item__label">Indeks UV</span>
-                <div class="metric-item__value-display">
-                    <span class="metric-item__value">${uvLevel} (${uvi})</span>
-                    <div class="metric-item__pills">
-                        ${generatePills(5, Math.ceil(uvi / 2.5), uvCssClass)}
-                    </div>
-                </div>
-            </div>`;
-
-        domElements.detailedMetricsContainer.innerHTML = airQualityHTML + uvIndexHTML;
-        domElements.detailedMetricsContainer.style.display = 'block';
-    }
-
     async function handleWeatherSearch(query, buttonToLoad) {
         if (!query || (typeof query === 'string' && !query.trim())) return;
 
@@ -207,8 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ]);
 
             // Aktualizacja UI
-            updateCurrentWeather(weatherData);
-            updateDetailedMetrics(airQualityData, uvIndexData);
+            updateCurrentWeather(weatherData, airQualityData, uvIndexData);
             updateMap(coords.latitude, coords.longitude, weatherData.city.name);
             updateForecasts(weatherData);
             document.title = `Pogoda dla ${weatherData.city.name}`;
