@@ -41,7 +41,10 @@ exports.handler = async function (event, context) {
     try {
         // 4. Geokodowanie (jeśli podano miasto) / Geocoding (if city is provided)
         if (city) {
-            const geoUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(city)}&limit=1&appid=${apiKey}`;
+            // ZMIANA: Dodajemy kod kraju 'PL' do zapytania, aby zwiększyć precyzję geokodowania dla polskich miast.
+            // CHANGE: We add the country code 'PL' to the query to increase geocoding precision for Polish cities.
+            const geoQuery = `${city.trim()},PL`;
+            const geoUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(geoQuery)}&limit=1&appid=${apiKey}`;
             const geoResponse = await fetch(geoUrl);
             if (!geoResponse.ok) throw new Error(`Błąd geokodowania: ${geoResponse.statusText}`);
             
@@ -113,4 +116,3 @@ exports.handler = async function (event, context) {
         };
     }
 };
-
