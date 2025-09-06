@@ -1,50 +1,115 @@
-// Importujemy 'node-fetch' dynamicznie, aby zapewnić kompatybilność
+// Ten plik jest przykładem koncepcyjnym.
+// This file is a conceptual example.
+// Do działania wymaga skonfigurowania i podłączenia klienta bazy danych (np. Upstash, FaunaDB).
+// It requires configuring and connecting a database client (e.g., Upstash, FaunaDB) to work.
+
+// const { db } = require('./database-client'); // Przykładowy import klienta bazy danych
+
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-exports.handler = async function (event, context) {
+// Funkcja do pobrania dzisiejszej daty w formacie YYYY-MM-DD
+// Function to get today's date in YYYY-MM-DD format
+const getTodayDate = () => {
+    return new Date().toISOString().split('T')[0];
+};
+
+exports.handler = async function (event) {
     const apiKey = process.env.WEATHER_API_KEY;
-    
+    const DAILY_LIMIT = 1000;
+    const today = getTodayDate();
+    const counterKey = `api_calls_${today}`;
+
+    // --- KROK 1: Sprawdzenie limitu API ---
+    // --- STEP 1: Check API limit ---
+    try {
+        // const currentCount = await db.get(counterKey) || 0; // Pobranie aktualnej liczby zapytań
+        const currentCount = 0; // Symulacja - zakładamy, że limit nie jest przekroczony
+
+        if (currentCount >= DAILY_LIMIT) {
+            return {
+                statusCode: 429, // Too Many Requests
+                body: JSON.stringify({ message: 'Przekroczono dzienny limit zapytań.' }),
+            };
+        }
+        
+        // Zwiększenie licznika - ta operacja powinna być atomowa w prawdziwej bazie danych
+        // Increment counter - this operation should be atomic in a real database
+        // await db.set(counterKey, currentCount + 1, { expiresIn: 86400 }); // Ustawienie licznika z czasem życia 24h
+
+    } catch (dbError) {
+        console.error("Błąd połączenia z bazą danych do sprawdzania limitu:", dbError);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: 'Błąd wewnętrzny serwera podczas sprawdzania limitu API.' }),
+        };
+    }
+
+    // --- KROK 2: Wykonanie zapytania do OpenWeatherMap ---
+    // --- STEP 2: Execute the request to OpenWeatherMap ---
     if (!apiKey) {
-        return { statusCode: 500, body: JSON.stringify({ message: 'Klucz API nie jest skonfigurowany.' }) };
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: 'Klucz API nie jest skonfigurowany.' }),
+        };
     }
 
-    const { city, lat, lon, lang, endpoint } = event.queryStringParameters;
-    
-    let apiUrl;
-    const base = 'https://api.openweathermap.org/data/2.5/';
-
-    // Dynamiczne budowanie URL na podstawie 'endpoint'
-    switch(endpoint) {
-        case 'air_pollution':
-            apiUrl = `${base}air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
-            break;
-        case 'uvi':
-             apiUrl = `${base}uvi?lat=${lat}&lon=${lon}&appid=${apiKey}`;
-            break;
-        case 'forecast': // Jawnie obsługujemy prognozę
-            if (city) {
-                apiUrl = `${base}forecast?q=${city}&appid=${apiKey}&units=metric&lang=${lang || 'pl'}`;
-            } else if (lat && lon) {
-                apiUrl = `${base}forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=${lang || 'pl'}`;
-            } else {
-                return { statusCode: 400, body: JSON.stringify({ message: 'Brak miasta lub współrzędnych dla prognozy.' }) };
-            }
-            break;
-        default: 
-            return { statusCode: 400, body: JSON.stringify({ message: 'Nieznany endpoint.' }) };
-    }
+    const { city, lat, lon } = event.queryStringParameters;
+    let latitude = lat;
+    let longitude = lon;
+    let locationName = '';
 
     try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-
-        if (!response.ok) {
-             return { statusCode: response.status, body: JSON.stringify(data) };
+        if (city) {
+            const geocodingUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${apiKey}`;
+            const geoResponse = await fetch(geocodingUrl);
+            const geoData = await geoResponse.json();
+            
+            if (!geoResponse.ok || geoData.length === 0) {
+                throw new Error('Nie znaleziono miasta.');
+            }
+            latitude = geoData[0].lat;
+            longitude = geoData[0].lon;
+            locationName = `${geoData[0].name}, ${geoData[0].country}`;
         }
 
-        return { statusCode: 200, body: JSON.stringify(data) };
+        if (!latitude || !longitude) {
+            return { statusCode: 400, body: JSON.stringify({ message: 'Brak współrzędnych do wyszukania pogody.' }) };
+        }
+        
+        const oneCallUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${latitude}&lon=${longitude}&exclude=minutely&appid=${apiKey}&units=metric&lang=pl`;
+        const airPollutionUrl = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${latitude}&lon=${longitude}&appid=${apiKey}`;
+
+        const [oneCallResponse, airPollutionResponse] = await Promise.all([
+            fetch(oneCallUrl),
+            fetch(airPollutionUrl)
+        ]);
+
+        if (!oneCallResponse.ok) throw new Error('Błąd pobierania danych pogodowych.');
+        if (!airPollutionResponse.ok) throw new Error('Błąd pobierania danych o jakości powietrza.');
+
+        const oneCallData = await oneCallResponse.json();
+        const airPollutionData = await airPollutionResponse.json();
+
+        if (!locationName) {
+            locationName = oneCallData.timezone.replace(/_/g, ' ');
+        }
+        
+        const combinedData = {
+            ...oneCallData,
+            airQuality: airPollutionData.list[0],
+            locationName: locationName,
+        };
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify(combinedData),
+        };
+
     } catch (error) {
-        return { statusCode: 500, body: JSON.stringify({ message: 'Błąd wewnętrzny funkcji bezserwerowej.' }) };
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: error.message || 'Wystąpił wewnętrzny błąd funkcji bezserwerowej.' }),
+        };
     }
 };
 
