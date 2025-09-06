@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         domElements.resultContainer.innerHTML = '';
         domElements.forecastsContainer.style.display = 'none';
         domElements.mapContainer.style.display = 'none';
+        domElements.forecastsContainer.classList.remove('collapsed');
     }
 
     function showError(message) {
@@ -181,6 +182,14 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCurrentWeather(weatherData, airQualityData, uvIndexData);
             updateMap(coords.latitude, coords.longitude, weatherData.city.name);
             updateForecasts(weatherData);
+
+            // Logika zwijania prognozy w widoku pionowym na mobile
+            if (window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches) {
+                domElements.forecastsContainer.classList.add('collapsed');
+            } else {
+                domElements.forecastsContainer.classList.remove('collapsed');
+            }
+
             document.title = `Pogoda dla ${weatherData.city.name}`;
 
             if (typeof query === 'string') localStorage.setItem('lastCity', query.trim());
@@ -214,9 +223,19 @@ document.addEventListener('DOMContentLoaded', () => {
         domElements.forecastSwitcher?.addEventListener('click', function(e) {
             const button = e.target.closest('button');
             if (!button) return;
+
+            domElements.forecastsContainer.classList.remove('collapsed');
+
             const forecastType = button.dataset.forecast;
             if (domElements.forecastsContainer) {
-                domElements.forecastsContainer.className = `show-${forecastType}`;
+                if (forecastType === 'hourly') {
+                    domElements.forecastsContainer.classList.add('show-hourly');
+                    domElements.forecastsContainer.classList.remove('show-daily');
+                } else {
+                    domElements.forecastsContainer.classList.add('show-daily');
+                    domElements.forecastsContainer.classList.remove('show-hourly');
+                }
+
                 domElements.forecastSwitcher.querySelector('.active').classList.remove('active');
                 button.classList.add('active');
             }
