@@ -60,8 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
         domElements.resultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`;
     }
     
-    // Funkcja normalizująca nazwę miasta przed wysłaniem zapytania
-    // Normalizes the city name before sending the request
     function normalizeCityName(city) {
         if (city.toLowerCase() === 'łódź') {
             return 'Lodz';
@@ -69,48 +67,57 @@ document.addEventListener('DOMContentLoaded', () => {
         return city;
     }
 
-    function buildApiUrl(query, endpoint = 'forecast') {
-        const lang = 'pl';
-        let baseUrl = `/.netlify/functions/weather?endpoint=${endpoint}&`;
-        
+    // Buduje URL do naszej funkcji Netlify
+    // Builds the URL to our Netlify function
+    function buildApiUrl(query) {
+        let baseUrl = `/.netlify/functions/weather?`;
         if (typeof query === 'string' && query) {
             const normalizedCity = normalizeCityName(query);
-            return `${baseUrl}city=${encodeURIComponent(normalizedCity)}&lang=${lang}`;
+            return `${baseUrl}city=${encodeURIComponent(normalizedCity)}`;
         } else if (typeof query === 'object' && query.latitude) {
-            return `${baseUrl}lat=${query.latitude}&lon=${query.longitude}&lang=${lang}`;
+            return `${baseUrl}lat=${query.latitude}&lon=${query.longitude}`;
         }
         return null;
     }
     
+    // Pobiera wszystkie dane za pomocą jednego zapytania do naszej funkcji serwerless
+    // Fetches all data with a single request to our serverless function
     async function fetchData(url) {
         const response = await fetch(url);
         if (!response.ok) {
+            if (response.status === 429) {
+                throw new Error("Osiągnięto dzienny limit zapytań do serwisu pogodowego. Spróbuj ponownie jutro.");
+            }
             const data = await response.json().catch(() => ({ message: `Błąd HTTP: ${response.status}` }));
             throw new Error(data.message || `Błąd HTTP: ${response.status}`);
         }
         return response.json();
     }
 
-    // --- Funkcje aktualizujące UI ---
-    function updateCurrentWeather(weatherData, airData, uvData) {
-        const current = weatherData.list[0];
-        const { city } = weatherData;
-
-        // Dane podstawowe
-        const sunrise = new Date((city.sunrise + city.timezone) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
-        const sunset = new Date((city.sunset + city.timezone) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+    // --- Funkcje aktualizujące UI (dostosowane do One Call API) ---
+    // --- UI Update Functions (adapted for One Call API) ---
+    function updateCurrentWeather(data) {
+        const { current, airQuality, locationName } = data;
+        
+        // Dane podstawowe z obiektu 'current'
+        // Basic data from the 'current' object
+        const sunrise = new Date(current.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const sunset = new Date(current.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         
         // Stan nawierzchni
-        const roadCondition = current.main.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(current.weather[0].main)
+        // Road condition
+        const roadCondition = current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(current.weather[0].main)
             ? { text: "Sucha", class: 'roadDry' }
-            : (current.main.temp <= 2 ? { text: "Możliwe oblodzenie", class: 'roadIcy' } : { text: "Mokra", class: 'roadWet' });
+            : (current.temp <= 2 ? { text: "Możliwe oblodzenie", class: 'roadIcy' } : { text: "Mokra", class: 'roadWet' });
 
-        // Jakość powietrza (AQI)
-        const aqi = airData.list[0].main.aqi;
+        // Jakość powietrza (AQI) z dołączonego obiektu 'airQuality'
+        // Air quality (AQI) from the attached 'airQuality' object
+        const aqi = airQuality.main.aqi;
         const aqiLevels = { 1: 'Dobra', 2: 'Umiarkowana', 3: 'Średnia', 4: 'Zła', 5: 'Bardzo zła' };
         
-        // Indeks UV
-        const uvi = Math.round(uvData.value);
+        // Indeks UV z obiektu 'current'
+        // UV index from the 'current' object
+        const uvi = Math.round(current.uvi);
         let uvLevel, uvCssClass;
         if (uvi <= 2) { uvLevel = 'Niski'; uvCssClass = 'low'; }
         else if (uvi <= 5) { uvLevel = 'Umiarkowany'; uvCssClass = 'moderate'; }
@@ -119,17 +126,17 @@ document.addEventListener('DOMContentLoaded', () => {
         else { uvLevel = 'Ekstremalny'; uvCssClass = 'extreme'; }
 
         domElements.resultContainer.innerHTML = `
-            <h3 class="current-weather__city">${city.name}, ${city.country}</h3>
+            <h3 class="current-weather__city">${locationName}</h3>
             <div class="current-weather__main">
                 <div class="current-weather__icon">${getWeatherIcon(current.weather[0].icon)}</div>
                 <div class="current-weather__details">
-                    <span class="current-weather__temp">${Math.round(current.main.temp)}°C</span>
+                    <span class="current-weather__temp">${Math.round(current.temp)}°C</span>
                     <span>${current.weather[0].description}</span>
                 </div>
             </div>
             <div class="current-weather__extra-details">
-                <div class="current-weather__detail-item detail-item--wind"><span>Wiatr</span><span class="detail-item-value">${current.wind.speed.toFixed(1)} m/s</span></div>
-                <div class="current-weather__detail-item detail-item--pressure"><span>Ciśnienie</span><span class="detail-item-value">${current.main.pressure} hPa</span></div>
+                <div class="current-weather__detail-item detail-item--wind"><span>Wiatr</span><span class="detail-item-value">${current.wind_speed.toFixed(1)} m/s</span></div>
+                <div class="current-weather__detail-item detail-item--pressure"><span>Ciśnienie</span><span class="detail-item-value">${current.pressure} hPa</span></div>
                 <div class="current-weather__detail-item detail-item--sunrise"><span>Wschód słońca</span><span class="detail-item-value">${sunrise}</span></div>
                 <div class="current-weather__detail-item detail-item--sunset"><span>Zachód słońca</span><span class="detail-item-value">${sunset}</span></div>
                 <div class="current-weather__detail-item detail-item--road"><span>Stan nawierzchni</span><span class="detail-item-value value-color--${roadCondition.class}">${roadCondition.text}</span></div>
@@ -139,18 +146,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateForecasts(data) {
-        domElements.hourlyContainer.innerHTML = data.list.slice(0, 8).map(item => `
+        // Prognoza godzinowa z tablicy 'hourly'
+        // Hourly forecast from the 'hourly' array
+        domElements.hourlyContainer.innerHTML = data.hourly.slice(0, 8).map(item => `
             <div class="hourly-forecast__item">
                 <p class="hourly-forecast__time">${new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                 <div class="hourly-forecast__icon">${getWeatherIcon(item.weather[0].icon)}</div>
-                <p class="hourly-forecast__temp">${Math.round(item.main.temp)}°C</p>
+                <p class="hourly-forecast__temp">${Math.round(item.temp)}°C</p>
             </div>`).join('');
 
-        domElements.forecastContainer.innerHTML = data.list.filter(item => item.dt_txt.includes("12:00:00")).slice(0, 5).map(item => `
+        // Prognoza 5-dniowa z tablicy 'daily'
+        // 5-day forecast from the 'daily' array
+        domElements.forecastContainer.innerHTML = data.daily.slice(0, 5).map(item => `
             <div class="weather-app__forecast-day">
                 <h4>${new Date(item.dt * 1000).toLocaleDateString('pl', { weekday: 'long' })}</h4>
                 <div class="weather-app__forecast-icon">${getWeatherIcon(item.weather[0].icon)}</div>
-                <p>${Math.round(item.main.temp)}°C</p>
+                <p>${Math.round(item.temp.day)}°C</p>
             </div>`).join('');
         domElements.forecastsContainer.style.display = 'block';
     }
@@ -175,24 +186,17 @@ document.addEventListener('DOMContentLoaded', () => {
         domElements.resultContainer.innerHTML = `<div class="weather-app__skeleton"><div class="skeleton" style="width: 200px; height: 2.2rem; margin-bottom: 1rem;"></div><div class="skeleton" style="width: 150px; height: 4rem;"></div></div>`;
         
         try {
-            const weatherUrl = buildApiUrl(query);
-            if (!weatherUrl) throw new Error("Nieprawidłowe zapytanie.");
+            const apiUrl = buildApiUrl(query);
+            if (!apiUrl) throw new Error("Nieprawidłowe zapytanie.");
             
-            const weatherData = await fetchData(weatherUrl);
-            const coords = { latitude: weatherData.city.coord.lat, longitude: weatherData.city.coord.lon };
-
-            const airQualityUrl = buildApiUrl(coords, 'air_pollution');
-            const uvIndexUrl = buildApiUrl(coords, 'uvi');
-            
-            const [airQualityData, uvIndexData] = await Promise.all([
-                fetchData(airQualityUrl),
-                fetchData(uvIndexUrl)
-            ]);
+            // Pojedyncze, zunifikowane zapytanie
+            // Single, unified request
+            const data = await fetchData(apiUrl);
 
             // Aktualizacja UI
-            updateCurrentWeather(weatherData, airQualityData, uvIndexData);
-            updateMap(coords.latitude, coords.longitude, weatherData.city.name);
-            updateForecasts(weatherData);
+            updateCurrentWeather(data);
+            updateMap(data.lat, data.lon, data.locationName);
+            updateForecasts(data);
 
             // Logika zwijania prognozy w widoku pionowym na mobile
             if (window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches) {
@@ -201,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 domElements.forecastsContainer.classList.remove('collapsed');
             }
 
-            document.title = `Pogoda dla ${weatherData.city.name}`;
+            document.title = `Pogoda dla ${data.locationName}`;
 
             if (typeof query === 'string') localStorage.setItem('lastCity', query.trim());
             else localStorage.removeItem('lastCity');
