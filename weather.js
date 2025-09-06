@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Start aplikacji / App Start ---
-    functioninitializeApp() {
+    function initializeApp() {
         setTheme(localStorage.getItem('theme') || 'light');
         initializeMap();
         setupEventListeners();
