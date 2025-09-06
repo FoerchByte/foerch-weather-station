@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Zmienne globalne i referencje DOM ---
+    // PL: Zmienne globalne i odwołania do elementów DOM
+    // EN: Global variables and DOM references
     let map = null;
     let marker = null;
     let hourlyForecastData = [];
@@ -28,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Funkcje pomocnicze ---
     const isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
-    const isMobileLandscape = () => window.matchMedia("(max-width: 1024px) and (orientation: landscape)").matches;
 
     function setTheme(theme) {
         document.body.classList.toggle('dark-mode', theme === 'dark');
@@ -132,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formatTime = (timestamp) => new Date(timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         dom.weatherResultContainer.innerHTML = `
-            <h3 class="current-weather__city">${location.name}, ${location.country}</h3>
+            <h3 class="current-weather__city">${location.name}</h3>
             <div class="current-weather__main">
                 <div class="current-weather__icon"><img src="${weatherIcons.getIcon(current.weather[0].icon)}" alt="Weather icon" class="weather-icon-img"></div>
                 <div class="current-weather__details">
@@ -176,18 +177,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderHourlyForecast() {
+        // PL: Domyślny zakres dla desktopu to 48h
+        // EN: Default range for desktop is 48h
         const range = isMobilePortrait() ? 48 : currentHourlyRange;
-        dom.hourly.container.innerHTML = hourlyForecastData.slice(1, range + 1).map(item => `
+        dom.hourly.container.innerHTML = ''; // Wyczyść kontener przed renderowaniem
+
+        let lastDate = '';
+        const today = new Date().toLocaleDateString('pl-PL');
+        const tomorrow = new Date(Date.now() + 864e5).toLocaleDateString('pl-PL');
+        
+        hourlyForecastData.slice(1, range + 1).forEach(item => {
+            const itemDateObj = new Date(item.dt * 1000);
+            const itemDate = itemDateObj.toLocaleDateString('pl-PL');
+
+            if (itemDate !== lastDate) {
+                let dayLabel = itemDateObj.toLocaleDateString('pl-PL', { weekday: 'long' });
+                if (itemDate === today) dayLabel = 'Dziś';
+                if (itemDate === tomorrow) dayLabel = 'Jutro';
+                
+                dom.hourly.container.innerHTML += `<div class="hourly-forecast__day-separator">${dayLabel}</div>`;
+                lastDate = itemDate;
+            }
+            
+            dom.hourly.container.innerHTML += `
             <div class="hourly-forecast__item">
-                <p class="hourly-forecast__time">${new Date(item.dt * 1000).getHours()}:00</p>
+                <p class="hourly-forecast__time">${itemDateObj.getHours()}:00</p>
                 <div class="hourly-forecast__icon"><img src="${weatherIcons.getIcon(item.weather[0].icon)}" alt="" class="weather-icon-img"></div>
                 <p class="hourly-forecast__temp">${Math.round(item.temp)}°C</p>
                 <div class="hourly-forecast__pop">
-                     <svg class="hourly-forecast__pop-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1.68a10.32 10.32 0 0 1 10.32 10.32c0 5.7-4.62 10.32-10.32 10.32S1.68 17.7 1.68 12 6.3 1.68 12 1.68zM12 7.44v5.76M12 16.8h.01"/></svg>
+                     <svg class="hourly-forecast__pop-icon" viewBox="0 0 24 24"><path d="M12 2.09961C6.54 2.09961 2.09961 6.54 2.09961 12C2.09961 17.46 6.54 21.9004 12 21.9004C17.46 21.9004 21.9004 17.46 21.9004 12C21.9004 6.54 17.46 2.09961 12 2.09961ZM12 17.0996C11.4 17.0996 10.9 16.5996 10.9 15.9996C10.9 15.3996 11.4 14.8996 12 14.8996C12.6 14.8996 13.1 15.3996 13.1 15.9996C13.1 16.5996 12.6 17.0996 12 17.0996ZM12.5 13.0996H11.4C11.1 13.0996 10.9 12.8996 10.9 12.5996V8.09961C10.9 7.49961 11.4 6.99961 12 6.99961C12.6 6.99961 13.1 7.49961 13.1 8.09961V12.5996C13.1 12.8996 12.8 13.0996 12.5 13.0996Z"></path></svg>
                     <span>${Math.round(item.pop * 100)}%</span>
                 </div>
-            </div>`).join('');
-        updateSliderButtons();
+            </div>`;
+        });
+
+        // PL: Wymuszenie ponownego przeliczenia szerokości po dynamicznym dodaniu treści
+        // EN: Force a recalculation of width after dynamically adding content
+        setTimeout(updateSliderButtons, 0);
     }
     
     function updateDailyForecast(data) {
@@ -216,11 +242,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             updateCurrentWeather(data);
             updateDailyForecast(data);
+            
+            // PL: Domyślny zakres dla desktopu to 48h, dla mobile landscape 24h
+            // EN: Default range for desktop is 48h, for mobile landscape 24h
+            currentHourlyRange = window.innerWidth > 1024 ? 48 : 24;
+            
             renderHourlyForecast();
             
             dom.mapContainer.style.display = 'block';
             updateMap(data.location.lat, data.location.lon, data.location.name);
-            setTimeout(() => map.invalidateSize(), 200); // FIX: odświeżenie mapy
+            setTimeout(() => map.invalidateSize(), 200);
 
             dom.forecastsContainer.style.display = 'block';
             if (isMobilePortrait()) dom.forecastsContainer.classList.add('collapsed');
@@ -234,16 +265,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Obsługa slidera ---
     function updateSliderButtons() {
-        if(isMobilePortrait() || !dom.hourly.scrollWrapper) return;
-        const { scrollLeft, scrollWidth, clientWidth } = dom.hourly.scrollWrapper;
-        dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0;
-        dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
+        if (isMobilePortrait() || !dom.hourly.scrollWrapper) return;
+        
+        // PL: Upewniamy się, że przeglądarka zdążyła przeliczyć wymiary
+        // EN: Ensure the browser has had time to recalculate dimensions
+        requestAnimationFrame(() => {
+            const { scrollLeft, scrollWidth, clientWidth } = dom.hourly.scrollWrapper;
+            dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0;
+            dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
+        });
     }
 
     function handleSliderScroll(direction) {
         const item = dom.hourly.container.querySelector('.hourly-forecast__item');
         if (!item) return;
-        const scrollAmount = (item.offsetWidth + 12) * 8 * direction; // Przewijaj o 8
+        const scrollAmount = (item.offsetWidth + 12) * 8 * direction;
         dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
     
@@ -273,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dom.hourly.landscapeSwitcher?.addEventListener('click', function(e) {
             const btn = e.target.closest('button');
-            if (!btn) return;
+            if (!btn || btn.classList.contains('active')) return;
             currentHourlyRange = parseInt(btn.dataset.range, 10);
             this.querySelector('.active').classList.remove('active');
             btn.classList.add('active');
@@ -283,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.hourly.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(-1));
         dom.hourly.sliderNextBtn.addEventListener('click', () => handleSliderScroll(1));
         dom.hourly.scrollWrapper.addEventListener('scroll', updateSliderButtons, { passive: true });
+        window.addEventListener('resize', updateSliderButtons);
     }
 
     function initializeApp() {
