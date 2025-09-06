@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
         geoBtn: document.getElementById('geolocation-btn'),
         themeToggle: document.getElementById('theme-toggle'),
         resultContainer: document.getElementById('weather-result-container'),
+        alertsContainer: document.getElementById('weather-alerts-container'),
         forecastsContainer: document.getElementById('forecasts-container'),
         mapContainer: document.getElementById('map-container'),
         hourlyContainer: document.getElementById('hourly-forecast-container'),
@@ -50,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function clearUI() {
         domElements.resultContainer.innerHTML = '';
+        if (domElements.alertsContainer) domElements.alertsContainer.innerHTML = '';
         domElements.forecastsContainer.style.display = 'none';
         domElements.mapContainer.style.display = 'none';
         domElements.forecastsContainer.classList.remove('collapsed');
@@ -96,6 +98,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Funkcje aktualizujące UI (dostosowane do One Call API) ---
     // --- UI Update Functions (adapted for One Call API) ---
+    function updateWeatherAlerts(alerts) {
+        const container = domElements.alertsContainer;
+        if (!container) return;
+
+        container.innerHTML = ''; // Wyczyść poprzednie alerty
+        if (!alerts || alerts.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        const alertHTML = alerts.map(alert => {
+            const startTime = new Date(alert.start * 1000).toLocaleString('pl-PL');
+            const endTime = new Date(alert.end * 1000).toLocaleString('pl-PL');
+
+            return `
+            <div class="weather-alert">
+                <div class="weather-alert__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"></path></svg>
+                </div>
+                <div class="weather-alert__content">
+                    <h4 class="weather-alert__title">${alert.event}</h4>
+                    <p class="weather-alert__sender">Wydane przez: ${alert.sender_name}</p>
+                    <p>Ważne od ${startTime} do ${endTime}.</p>
+                </div>
+            </div>
+            `;
+        }).join('');
+
+        container.innerHTML = alertHTML;
+        container.style.display = 'block';
+    }
+
     function updateCurrentWeather(data) {
         const { current, airQuality, locationName } = data;
         
@@ -134,6 +168,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span>${current.weather[0].description}</span>
                 </div>
             </div>
+
+            <!-- Kontener na alerty, zostanie wypełniony przez JS -->
+            <!-- Container for alerts, will be populated by JS -->
+            <div id="weather-alerts-container" style="display: none;"></div>
+
             <div class="current-weather__extra-details">
                 <div class="current-weather__detail-item detail-item--wind"><span>Wiatr</span><span class="detail-item-value">${current.wind_speed.toFixed(1)} m/s</span></div>
                 <div class="current-weather__detail-item detail-item--pressure"><span>Ciśnienie</span><span class="detail-item-value">${current.pressure} hPa</span></div>
@@ -192,9 +231,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Pojedyncze, zunifikowane zapytanie
             // Single, unified request
             const data = await fetchData(apiUrl);
-
+            
             // Aktualizacja UI
             updateCurrentWeather(data);
+            updateWeatherAlerts(data.alerts); // <-- NOWA LINIJKA / NEW LINE
             updateMap(data.lat, data.lon, data.locationName);
             updateForecasts(data);
 
