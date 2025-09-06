@@ -29,11 +29,7 @@
                 <button id="search-weather-btn" class="weather-app__button"><span>Szukaj</span></button>
                 <button id="geolocation-btn" class="weather-app__button weather-app__button--geo"><span>Użyj mojej lokalizacji</span></button>
             </div>
-            
-            <div id="weather-result-container" class="weather-app__result" aria-live="polite">
-                <!-- Treść pogody będzie wstawiana tutaj przez JS -->
-                <!-- Weather content will be inserted here by JS -->
-            </div>
+            <div id="weather-result-container" class="weather-app__result" aria-live="polite"></div>
             
             <div id="map-container" style="display: none;">
                 <div id="map"></div>
@@ -44,10 +40,22 @@
                     <button data-forecast="hourly" class="active">Prognoza godzinowa</button>
                     <button data-forecast="daily">Prognoza na 5 dni</button>
                 </div>
+
+                <!-- Zmodyfikowana sekcja prognozy godzinowej / Modified hourly forecast section -->
                 <div class="hourly-forecast__wrapper">
-                    <h3 class="hourly-forecast__title">Prognoza godzinowa</h3>
-                    <div class="hourly-forecast__grid" id="hourly-forecast-container"></div>
+                    <div class="hourly-forecast__header">
+                        <h3 class="hourly-forecast__title">Prognoza godzinowa</h3>
+                        <button class="hourly-forecast__toggle-range" id="hourly-range-toggle" style="display: none;">Pokaż 48h</button>
+                    </div>
+                    <div class="hourly-forecast__slider-container">
+                        <button class="slider-btn slider-btn--prev" id="hourly-slider-prev" aria-label="Poprzednia strona prognozy">&lt;</button>
+                        <div class="hourly-forecast__scroll-wrapper">
+                            <div class="hourly-forecast__grid" id="hourly-forecast-container"></div>
+                        </div>
+                        <button class="slider-btn slider-btn--next" id="hourly-slider-next" aria-label="Następna strona prognozy">&gt;</button>
+                    </div>
                 </div>
+
                 <div class="weather-app__forecast-wrapper">
                     <h3 class="weather-app__forecast-title">Prognoza na 5 dni</h3>
                     <div class="weather-app__forecast-grid" id="forecast-container"></div>
