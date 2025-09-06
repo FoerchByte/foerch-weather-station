@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Zmienne globalne i referencje DOM ---
+    // PL: Zmienne do przechowywania stanu aplikacji i referencji do elementów HTML.
+    // EN: Variables for storing application state and references to HTML elements.
     let map = null;
     let marker = null;
     let hourlyForecastData = [];
@@ -26,14 +28,20 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Funkcje pomocnicze ---
+    // PL: Funkcja sprawdzająca, czy ekran jest w trybie portretowym na urządzeniu mobilnym.
+    // EN: Function to check if the screen is in portrait mode on a mobile device.
     const isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
 
+    // PL: Ustawia motyw (jasny/ciemny) i zapisuje wybór w localStorage.
+    // EN: Sets the theme (light/dark) and saves the choice in localStorage.
     function setTheme(theme) {
         document.body.classList.toggle('dark-mode', theme === 'dark');
         localStorage.setItem('theme', theme);
         if (map) updateMapTileLayer();
     }
     
+    // PL: Przełącza stan ładowania przycisku, pokazując/ukrywając loader.
+    // EN: Toggles the loading state of a button, showing/hiding a loader.
     function toggleButtonLoading(button, isLoading) {
         const span = button.querySelector('span');
         if (isLoading) {
@@ -50,6 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // PL: Wyświetla komunikat o błędzie w głównym kontenerze.
+    // EN: Displays an error message in the main container.
     function showError(message) {
         dom.weatherResultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`;
         dom.forecastsContainer.style.display = 'none';
@@ -58,6 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Obsługa mapy ---
     let lightTileLayer, darkTileLayer;
+    // PL: Inicjalizuje mapę Leaflet, jeśli jeszcze nie istnieje.
+    // EN: Initializes the Leaflet map if it doesn't exist yet.
     function initializeMap() {
         if (!map) {
             map = L.map('map').setView([51.75, 19.45], 10);
@@ -67,6 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // PL: Aktualizuje warstwę kafelków mapy w zależności od motywu.
+    // EN: Updates the map tile layer depending on the theme.
     function updateMapTileLayer() {
         const isDarkMode = document.body.classList.contains('dark-mode');
         const targetLayer = isDarkMode ? darkTileLayer : lightTileLayer;
@@ -75,6 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!map.hasLayer(targetLayer)) map.addLayer(targetLayer);
     }
 
+    // PL: Aktualizuje widok mapy i pozycję znacznika.
+    // EN: Updates the map view and marker position.
     function updateMap(lat, lon, cityName) {
         if (map) {
             map.setView([lat, lon], 13);
@@ -84,6 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Pobieranie danych pogodowych ---
+    // PL: Pobiera dane pogodowe z funkcji Netlify na podstawie zapytania.
+    // EN: Fetches weather data from the Netlify function based on a query.
     async function getWeatherData(query) {
         let url;
         if (typeof query === 'string' && query) {
@@ -113,6 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }[iconCode] || 'not-available.svg'}`
     };
     
+    // PL: Aktualizuje sekcję z bieżącą pogodą.
+    // EN: Updates the current weather section.
     function updateCurrentWeather(data) {
         const { current, daily, air_quality, location } = data;
         const roadCondition = current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(current.weather[0].main)
@@ -160,6 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
     }
 
+    // PL: Renderuje prognozę godzinową.
+    // EN: Renders the hourly forecast.
     function renderHourlyForecast() {
         const range = window.innerWidth > 1024 ? 48 : currentHourlyRange;
         const forecastToShow = hourlyForecastData.slice(1, range + 1);
@@ -201,6 +223,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(updateSliderButtons, 0);
     }
     
+    // PL: Aktualizuje prognozę na 5 dni.
+    // EN: Updates the 5-day forecast.
     function updateDailyForecast(data) {
         dom.daily.container.innerHTML = data.daily.slice(1, 6).map(day => `
             <div class="weather-app__forecast-day">
@@ -211,6 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Główna logika aplikacji ---
+    // PL: Główna funkcja obsługująca wyszukiwanie pogody.
+    // EN: Main function to handle weather search.
     async function handleWeatherSearch(query, buttonToLoad) {
         if (!query) return;
         dom.weatherResultContainer.innerHTML = `<div class="weather-app__skeleton"><div class="skeleton" style="width: 200px; height: 2.2rem;"></div><div class="skeleton" style="width: 150px; height: 4rem;"></div></div>`;
@@ -243,6 +269,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Obsługa slidera ---
+    // PL: Aktualizuje stan przycisków slidera (włączone/wyłączone).
+    // EN: Updates the state of the slider buttons (enabled/disabled).
     function updateSliderButtons() {
         if (isMobilePortrait() || !dom.hourly.scrollWrapper) return;
         requestAnimationFrame(() => {
@@ -252,6 +280,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // PL: Obsługuje przewijanie slidera.
+    // EN: Handles slider scrolling.
     function handleSliderScroll(direction) {
         const item = dom.hourly.container.querySelector('.hourly-forecast__item');
         if (!item) return;
@@ -260,6 +290,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // --- Inicjalizacja i event listenery ---
+    // PL: Ustawia wszystkie nasłuchiwacze zdarzeń.
+    // EN: Sets up all event listeners.
     function setupEventListeners() {
         dom.themeToggle.addEventListener('click', () => setTheme(document.body.classList.contains('dark-mode') ? 'light' : 'dark'));
         dom.searchBtn?.addEventListener('click', () => handleWeatherSearch(dom.cityInput.value.trim(), dom.searchBtn));
@@ -277,7 +309,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('forecast-switcher')?.addEventListener('click', function(e) {
             const btn = e.target.closest('button');
             if (!btn) return;
-            dom.forecastsContainer.className = `show-${btn.dataset.forecast}`;
+            // PL: Usuwa klasę 'show-daily' lub 'show-hourly' i dodaje nową.
+            // EN: Removes 'show-daily' or 'show-hourly' class and adds the new one.
+            this.parentElement.className = `show-${btn.dataset.forecast}`;
             this.querySelector('.active').classList.remove('active');
             btn.classList.add('active');
         });
@@ -300,6 +334,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // PL: Inicjalizuje całą aplikację.
+    // EN: Initializes the entire application.
     function initializeApp() {
         setTheme(localStorage.getItem('theme') || 'light');
         initializeMap();
