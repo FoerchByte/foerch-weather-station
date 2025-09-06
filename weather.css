@@ -196,20 +196,24 @@ body.dark-mode #map {
     font-size: 2.5rem;
     font-weight: 500;
 }
-/* --- Ulepszona siatka (Grid) dla szczegółów --- */
+/* --- Ujednolicona siatka (Grid) dla szczegółów --- */
 .current-weather__extra-details {
     display: grid;
     gap: 1rem 1.5rem;
     text-align: center;
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-color);
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
     
-    /* Układ domyślny (Desktop) */
-    grid-template-columns: repeat(3, 1fr);
+    /* Układ ujednolicony dla wszystkich widoków */
+    grid-template-columns: 1fr 1fr;
     grid-template-areas:
-        "wind     pressure  sunrise"
-        "road     aqi       sunset"
-        "uv       .         .";
+        "wind     sunrise"
+        "pressure sunset"
+        "road     aqi"
+        "uv       uv";
 }
 
 .current-weather__detail-item {
@@ -237,7 +241,10 @@ body.dark-mode #map {
 .detail-item--sunset { grid-area: sunset; }
 .detail-item--road { grid-area: road; }
 .detail-item--aqi { grid-area: aqi; }
-.detail-item--uv { grid-area: uv; }
+.detail-item--uv { 
+    grid-area: uv; 
+    align-items: center; /* Wyśrodkowanie elementu UV */
+}
 
 
 /* --- Kolory wartości --- */
@@ -349,21 +356,6 @@ body.dark-mode #map {
 
     /* Układ dla orientacji pionowej */
     @media (orientation: portrait) {
-        .current-weather__extra-details {
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-            grid-template-columns: 1fr 1fr;
-            grid-template-areas:
-                "wind     sunrise"
-                "pressure sunset"
-                "road     aqi"
-                "uv       uv";
-        }
-        .detail-item--uv {
-            align-items: center;
-        }
-
         .forecast-switcher { display: flex; }
         .hourly-forecast__wrapper, .weather-app__forecast-wrapper { margin-top: 0; }
         .hourly-forecast__title, .weather-app__forecast-title { display: none; }
@@ -375,7 +367,6 @@ body.dark-mode #map {
             display: block;
         }
         
-        /* Poprawka: Przeniesiono regułę na koniec, aby miała pierwszeństwo */
         #forecasts-container.collapsed .hourly-forecast__wrapper,
         #forecasts-container.collapsed .weather-app__forecast-wrapper {
             display: none;
@@ -405,15 +396,8 @@ body.dark-mode #map {
     }
 }
 
-/* Układ dla orientacji poziomej na telefonie */
+/* Układ dla orientacji poziomej na telefonie - dziedziczy teraz układ desktopowy */
 @media (max-width: 900px) and (max-height: 500px) and (orientation: landscape) {
-    .current-weather__extra-details {
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-areas:
-            "wind     pressure  sunrise"
-            "road     aqi       sunset"
-            "uv       .         .";
-    }
     .weather-app__forecast-grid {
         gap: 0.5rem;
     }
