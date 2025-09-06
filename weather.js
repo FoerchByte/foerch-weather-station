@@ -170,28 +170,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toLocaleDateString('pl-PL');
         const tomorrow = new Date(Date.now() + 864e5).toLocaleDateString('pl-PL');
         
-        forecastToShow.forEach((item, index) => {
+        forecastToShow.forEach((item) => {
             const itemDateObj = new Date(item.dt * 1000);
             const itemDate = itemDateObj.toLocaleDateString('pl-PL');
+            
+            let dayLabel = '';
+            let newDayClass = '';
 
             if (itemDate !== lastDate) {
-                let dayLabel = itemDateObj.toLocaleDateString('pl-PL', { weekday: 'long' });
                 if (itemDate === today) dayLabel = 'Dziś';
-                if (itemDate === tomorrow) dayLabel = 'Jutro';
+                else if (itemDate === tomorrow) dayLabel = 'Jutro';
+                else dayLabel = itemDateObj.toLocaleDateString('pl-PL', { weekday: 'long' });
                 
-                if(index > 0 || isMobilePortrait()) {
-                     dom.hourly.container.innerHTML += `<div class="hourly-forecast__day-separator">${dayLabel}</div>`;
-                }
+                newDayClass = 'hourly-forecast__item--new-day';
                 lastDate = itemDate;
             }
             
             dom.hourly.container.innerHTML += `
-            <div class="hourly-forecast__item">
+            <div class="hourly-forecast__item ${newDayClass}" data-day="${dayLabel}">
                 <p class="hourly-forecast__time">${itemDateObj.getHours()}:00</p>
                 <div class="hourly-forecast__icon"><img src="${weatherIcons.getIcon(item.weather[0].icon)}" alt="" class="weather-icon-img"></div>
                 <p class="hourly-forecast__temp">${Math.round(item.temp)}°C</p>
                 <div class="hourly-forecast__pop">
-                    <svg class="hourly-forecast__pop-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12,0C7.9,0,4.5,3.4,4.5,7.5c0,2.1,0.9,4,2.3,5.4L12,24l5.2-11.1c1.4-1.4,2.3-3.3,2.3-5.4C19.5,3.4,16.1,0,12,0z M12,12.5c-2.8,0-5-2.2-5-5s2.2-5,5-5s5,2.2,5,5S14.8,12.5,12,12.5z"/></svg>
+                    <svg class="hourly-forecast__pop-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a5.53 5.53 0 0 0-5.43 6.05L8 16l5.43-9.95A5.53 5.53 0 0 0 8 0zm0 8.87A2.87 2.87 0 1 1 10.87 6 2.87 2.87 0 0 1 8 8.87z"/></svg>
                     <span>${Math.round(item.pop * 100)}%</span>
                 </div>
             </div>`;
@@ -237,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             showError(`Błąd: ${error.message}`);
         } finally {
-            if (buttonToLoad) toggleButtonLoading(buttonToLoad, false);
+            if (buttonToLoad) toggleButtonLoading(buttonToToLoad, false);
         }
     }
 
