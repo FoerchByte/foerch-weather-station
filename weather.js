@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Zmienne globalne i referencje DOM ---
-    // --- Global variables and DOM references ---
+    // PL: Zmienne globalne i odwołania do elementów DOM
+    // EN: Global variables and DOM references
     let map = null;
     let marker = null;
     let hourlyForecastData = [];
@@ -75,8 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateMapTileLayer() {
-        // Poprawka: Bezpośrednie sprawdzanie klasy na body zamiast polegania na zmiennej
-        // Fix: Directly check the class on the body instead of relying on a variable
         const isDarkMode = document.body.classList.contains('dark-mode');
         const targetLayer = isDarkMode ? darkTileLayer : lightTileLayer;
         const otherLayer = isDarkMode ? lightTileLayer : darkTileLayer;
@@ -107,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (typeof query === 'object' && query.latitude) {
             url = `/.netlify/functions/weather?lat=${query.latitude}&lon=${query.longitude}`;
         } else {
-            return null; // Brak zapytania / No query
+            return null;
         }
 
         const response = await fetch(url);
@@ -155,6 +154,10 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (uvIndex >= 8) uvCategory = 'very-high';
         else if (uvIndex >= 6) uvCategory = 'high';
         else if (uvIndex >= 3) uvCategory = 'moderate';
+        
+        const today = data.daily[0];
+        const moonrise = new Date(today.moonrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const moonset = new Date(today.moonset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         dom.weatherResultContainer.innerHTML = `
             <h3 class="current-weather__city">${data.location.name}, ${data.location.country}</h3>
@@ -174,6 +177,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="current-weather__detail-item detail-item--sunset"><span>Zachód słońca</span><span class="detail-item-value">${new Date(data.current.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
                 <div class="current-weather__detail-item detail-item--aqi"><span>Jakość powietrza</span><span class="detail-item-value value-color--aqi-${data.air_quality.main.aqi}">${aqiMap[data.air_quality.main.aqi]}</span></div>
                 <div class="current-weather__detail-item detail-item--uv"><span>Indeks UV</span><span class="detail-item-value value-color--uv-${uvCategory}">${uvMap[uvCategory]}</span></div>
+                <div class="current-weather__detail-item detail-item--moonrise"><span>Wschód księżyca</span><span class="detail-item-value">${moonrise}</span></div>
+                <div class="current-weather__detail-item detail-item--moonset"><span>Zachód księżyca</span><span class="detail-item-value">${moonset}</span></div>
             </div>
         `;
         updateWeatherAlerts(data.alerts);
@@ -201,8 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderHourlyForecast() {
-        // W mobilnym widoku pionowym, renderuj 24 lub 48h w zależności od przełącznika
-        // In mobile portrait view, render 24 or 48h depending on the toggle
         const range = isMobilePortrait() ? currentHourlyRange : 48;
         dom.hourly.container.innerHTML = hourlyForecastData.slice(0, range).map(item => `
             <div class="hourly-forecast__item">
@@ -231,7 +234,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Główna funkcja aplikacji / Main Application Logic ---
     async function handleWeatherSearch(query, buttonToLoad) {
         if (!query) {
-            showError("Wpisz nazwę miasta, aby rozpocząć.");
+            // Cicha obsługa - nie pokazuj błędu na starcie, jeśli nie ma miasta
+            // Silent handling - don't show an error on start if there's no city
             return;
         }
         const skeletonHTML = `<div class="weather-app__skeleton"><div class="skeleton" style="width: 200px; height: 2.2rem; margin-bottom: 1rem;"></div><div class="skeleton" style="width: 150px; height: 4rem;"></div></div>`;
@@ -247,8 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            // Zapisz do localStorage tylko przy pomyślnym wyszukaniu po nazwie
-            // Save to localStorage only on a successful search by name
             if (typeof query === 'string' && query) {
                 localStorage.setItem('lastCity', query.trim());
             }
@@ -284,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Obsługa slidera prognozy godzinowej / Hourly Forecast Slider Handling ---
     function updateSliderButtons() {
-        if(isMobilePortrait()) return;
+        if(isMobilePortrait() || !dom.hourly.scrollWrapper) return;
         const { scrollLeft, scrollWidth, clientWidth } = dom.hourly.scrollWrapper;
         dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0;
         dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth -1;
@@ -292,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleSliderScroll(direction) {
         const itemWidth = dom.hourly.container.querySelector('.hourly-forecast__item')?.offsetWidth || 100;
-        const scrollAmount = (itemWidth + 12) * 8 * direction; // 12 is the gap
+        const scrollAmount = (itemWidth + 12) * 8 * direction; // 12 to odstęp / 12 is the gap
         dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
     
@@ -328,7 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
             dom.forecastsContainer.classList.remove('collapsed');
         });
 
-        // Event Listeners dla nowego slidera i przełącznika / Event listeners for the new slider and toggle
         dom.hourly.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(-1));
         dom.hourly.sliderNextBtn.addEventListener('click', () => handleSliderScroll(1));
         dom.hourly.scrollWrapper.addEventListener('scroll', updateSliderButtons);
@@ -341,14 +342,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Start aplikacji / App Start ---
-    setTheme(localStorage.getItem('theme') || 'light');
-    initializeMap();
-    setupEventListeners();
+    functioninitializeApp() {
+        setTheme(localStorage.getItem('theme') || 'light');
+        initializeMap();
+        setupEventListeners();
 
-    const lastCity = localStorage.getItem('lastCity');
-    if (lastCity) {
-        dom.cityInput.value = lastCity;
-        handleWeatherSearch(lastCity, dom.searchBtn);
+        const lastCity = localStorage.getItem('lastCity');
+        if (lastCity) {
+            dom.cityInput.value = lastCity;
+            handleWeatherSearch(lastCity, dom.searchBtn);
+        }
     }
+
+    initializeApp();
 });
 
