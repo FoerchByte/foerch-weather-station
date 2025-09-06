@@ -3,6 +3,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTheme = localStorage.getItem('theme') || 'light';
     let map = null;
     let marker = null;
+    let currentTileLayer = null; // Zmienna do przechowywania warstwy mapy / Variable to store the map layer
+
+    // Obiekty konfiguracyjne dla warstw mapy / Configuration objects for map layers
+    const tileLayers = {
+        light: {
+            url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        },
+        dark: {
+            url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        }
+    };
 
     const domElements = {
         searchBtn: document.getElementById('search-weather-btn'),
@@ -22,14 +35,25 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.toggle('dark-mode', theme === 'dark');
         localStorage.setItem('theme', theme);
         currentTheme = theme;
+        updateMapTheme(theme); // Aktualizuj motyw mapy przy zmianie / Update map theme on change
+    }
+
+    function updateMapTheme(theme) {
+        if (!map) return;
+        const layerConfig = tileLayers[theme] || tileLayers.light;
+
+        if (currentTileLayer) {
+            map.removeLayer(currentTileLayer);
+        }
+        currentTileLayer = L.tileLayer(layerConfig.url, {
+            attribution: layerConfig.attribution
+        }).addTo(map);
     }
 
     function initializeMap() {
         if (!map) {
             map = L.map('map').setView([51.75, 19.45], 10);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+            updateMapTheme(currentTheme); // Ustaw początkową warstwę mapy / Set the initial map layer
         }
     }
     
@@ -102,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = domElements.alertsContainer;
         if (!container) return;
 
-        container.innerHTML = ''; // Wyczyść poprzednie alerty
+        container.innerHTML = ''; // Wyczyść poprzednie alerty / Clear previous alerts
         if (!alerts || alerts.length === 0) {
             container.style.display = 'none';
             return;
@@ -234,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Aktualizacja UI
             updateCurrentWeather(data);
-            updateWeatherAlerts(data.alerts); // <-- NOWA LINIJKA / NEW LINE
+            updateWeatherAlerts(data.alerts); 
             updateMap(data.lat, data.lon, data.locationName);
             updateForecasts(data);
 
