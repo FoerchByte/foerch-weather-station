@@ -172,7 +172,7 @@ body.dark-mode .weather-app__error {
 /* Poprawka wizualna dla mapy w trybie ciemnym */
 /* Visual fix for the map in dark mode */
 body.dark-mode .leaflet-tile-pane {
-    filter: brightness(0.9) saturate(0.9);
+    filter: brightness(0.8) saturate(0.9);
 }
 
 
@@ -249,8 +249,8 @@ body.dark-mode .leaflet-tile-pane {
     /* Default layout for desktop and mobile landscape (4 columns) */
     grid-template-columns: repeat(4, 1fr);
     grid-template-areas:
-        "wind   pressure road     sunrise"
-        "aqi    uv       road     sunset";
+        "wind aqi  road sunrise"
+        "pressure uv   road sunset";
 }
 .current-weather__detail-item {
     display: flex;
