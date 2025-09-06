@@ -153,60 +153,67 @@ body.dark-mode .weather-app__error {
     margin-bottom: 2rem;
 }
 
-/* --- Nowe style dla dodatkowych informacji --- */
-.additional-info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+/* --- Style dla szczegółowych metryk (AQI, UV) --- */
+.detailed-metrics-container {
     margin-bottom: 2rem;
-}
-
-.info-card {
-    background-color: var(--background-color);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 1.5rem;
+    overflow: hidden;
 }
 
-.info-card__title {
-    margin: 0 0 1rem 0;
-    font-size: 1.2rem;
-    text-align: left;
-}
-
-.info-card__content {
+.metric-item {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    text-align: center;
+    padding: 1rem 1.5rem;
+    background-color: var(--background-color);
 }
 
-.aqi-value, .uv-value {
-    font-size: 2rem;
+.metric-item:not(:last-child) {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.metric-item__label {
     font-weight: 500;
-    margin-bottom: 0.5rem;
 }
 
-.aqi-label, .uv-label {
-    font-size: 1rem;
+.metric-item__value-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.metric-item__value {
+    font-size: 1.1rem;
     font-weight: 700;
-    padding: 0.25rem 0.75rem;
-    border-radius: 15px;
-    color: #fff;
 }
 
-.aqi-label-1 { background-color: var(--success-color); }
-.aqi-label-2 { background-color: #a0d468; }
-.aqi-label-3 { background-color: var(--warning-color); }
-.aqi-label-4 { background-color: #ff8c00; }
-.aqi-label-5 { background-color: var(--danger-color); }
+.metric-item__pills {
+    display: flex;
+    gap: 4px;
+}
 
-.uv-label-low { background-color: var(--success-color); }
-.uv-label-moderate { background-color: var(--warning-color); color: var(--text-color)}
-.uv-label-high { background-color: #ff8c00; }
-.uv-label-very-high { background-color: var(--danger-color); }
-.uv-label-extreme { background-color: #9932cc; }
+.metric-item__pill {
+    width: 10px;
+    height: 20px;
+    border-radius: 4px;
+    background-color: var(--border-color);
+}
+.metric-item__pill--active {
+    background-color: var(--primary-color);
+}
+
+.pill-aqi-1 { background-color: var(--success-color); }
+.pill-aqi-2 { background-color: #a0d468; }
+.pill-aqi-3 { background-color: var(--warning-color); }
+.pill-aqi-4 { background-color: #ff8c00; }
+.pill-aqi-5 { background-color: var(--danger-color); }
+
+.pill-uv-low { background-color: var(--success-color); }
+.pill-uv-moderate { background-color: var(--warning-color); }
+.pill-uv-high { background-color: #ff8c00; }
+.pill-uv-very-high { background-color: var(--danger-color); }
+.pill-uv-extreme { background-color: #9932cc; }
 
 #map-container {
     padding: 0;
@@ -366,10 +373,6 @@ body.dark-mode #map {
     .weather-app { padding: 1.5rem 1rem; }
     .weather-app__search { flex-direction: column; }
     .weather-app__button { width: 100%; }
-
-    .additional-info-grid {
-        grid-template-columns: 1fr;
-    }
 
     /* Układ dla orientacji pionowej */
     @media (orientation: portrait) {
