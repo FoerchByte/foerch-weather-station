@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stacja Pogody - Aplikacja Vanilla JS</title>
-    <link rel="stylesheet" href="weather.css?v=1.5">
+    <link rel="stylesheet" href="weather.css?v=1.6">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -44,12 +44,13 @@
                 <div class="hourly-forecast__wrapper">
                     <div class="hourly-forecast__header">
                         <h3 class="hourly-forecast__title">Prognoza godzinowa</h3>
-                        <!-- Przełącznik dla widoku mobilnego-poziomego -->
-                        <div class="hourly-forecast__header-switcher" id="hourly-landscape-switcher">
-                           <button data-range="24" class="active">24h</button>
-                           <button data-range="48">48h</button>
-                        </div>
                     </div>
+                    
+                    <div class="hourly-forecast__range-switcher" id="hourly-range-switcher">
+                        <button data-range="24" class="active">24h</button>
+                        <button data-range="48">48h</button>
+                    </div>
+
                     <div class="hourly-forecast__slider-container">
                         <button class="hourly-forecast__slider-nav" id="hourly-slider-prev" aria-label="Poprzednia strona prognozy">&lt;</button>
                         <div class="hourly-forecast__scroll-wrapper">
@@ -68,7 +69,7 @@
     </main>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="weather.js?v=1.5"></script>
+    <script src="weather.js?v=1.6"></script>
 
 </body>
 </html>
