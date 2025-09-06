@@ -101,9 +101,14 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 /* --- Wyniki bieżącej pogody --- */
 .weather-app__result { text-align: center; }
 .current-weather__city { font-size: 1.8rem; margin-bottom: 0.5rem; }
+
+/* POPRAWKA 1: Wyrównanie głównej ikony pogody i temperatury */
 .current-weather__main {
-    display: flex; align-items: center;
-    justify-content: center; gap: 1rem; margin-bottom: 2rem;
+    display: flex;
+    align-items: center; /* Kluczowe dla wyrównania w pionie */
+    justify-content: center;
+    gap: 1.5rem; /* Zwiększony odstęp dla lepszej czytelności */
+    margin-bottom: 2rem;
 }
 .current-weather__icon { width: 80px; height: 80px; }
 .weather-icon-img { width: 100%; height: 100%; object-fit: contain; }
@@ -122,16 +127,20 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .detail-col--3 { justify-content: center; text-align: center;}
 
 .current-weather__detail-item { display: flex; flex-direction: column; gap: 0.25rem; }
+
+/* POPRAWKA 2: Ujednolicenie rozmiaru i wyrównania małych ikon w szczegółach */
 .current-weather__detail-item .detail-item-header {
     display: flex;
-    align-items: center;
+    align-items: center; /* Wyrównuje ikonę i tekst w pionie */
     gap: 0.5rem;
     font-size: 0.9rem;
     color: var(--completed-text);
 }
 .current-weather__detail-item .detail-item-header svg {
-    width: 16px; height: 16px;
+    width: 18px; /* Ujednolicony rozmiar */
+    height: 18px; /* Ujednolicony rozmiar */
     stroke: var(--completed-text);
+    flex-shrink: 0; /* Zapobiega kurczeniu się ikony */
 }
 .detail-item-value { font-size: 1.1rem; font-weight: 500; }
 
@@ -183,7 +192,14 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     margin-bottom: 1rem;
 }
 .hourly-forecast__title { margin: 0; }
-.hourly-forecast__slider-container { position: relative; }
+
+/* POPRAWKA 3: Wizualna wskazówka o możliwości przewijania */
+.hourly-forecast__slider-container {
+    position: relative;
+    /* Maska tworząca efekt "fade-out" na krawędziach, informująca o przewijaniu */
+    -webkit-mask-image: linear-gradient(to right, transparent, black 20px, black 97%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 20px, black 97%, transparent);
+}
 .hourly-forecast__scroll-wrapper {
     display: flex;
     overflow-x: auto;
@@ -193,7 +209,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
-.hourly-forecast__grid { display: flex; flex-wrap: nowrap; gap: 12px; padding-bottom: 1rem; }
+.hourly-forecast__grid { display: flex; flex-wrap: nowrap; gap: 12px; padding: 0 10px 1rem 10px; }
 .hourly-forecast__item {
     flex: 0 0 calc((100% - (7 * 12px)) / 8);
     scroll-snap-align: start;
@@ -222,17 +238,20 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     font-size: 0.9em;
 }
 
+/* POPRAWKA 5: Zmiana pozycjonowania strzałek slidera */
 .hourly-forecast__slider-nav {
     display: none; position: absolute; top: 50%;
-    transform: translateY(-50%); background-color: var(--card-background);
+    transform: translateY(-50%); background-color: rgba(var(--card-background-rgb, 255, 255, 255), 0.8);
     border: 1px solid var(--border-color); border-radius: 50%;
     width: 40px; height: 40px; cursor: pointer; z-index: 10;
     align-items: center; justify-content: center; font-size: 1.5rem;
     line-height: 1; color: var(--text-color);
+    backdrop-filter: blur(2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 .hourly-forecast__slider-nav:disabled { opacity: 0.3; cursor: not-allowed; }
-#hourly-slider-prev { left: -50px; }
-#hourly-slider-next { right: -50px; }
+#hourly-slider-prev { left: 5px; } /* Przesunięte do wewnątrz kontenera */
+#hourly-slider-next { right: 5px; } /* Przesunięte do wewnątrz kontenera */
 
 .hourly-forecast__time { font-size: 0.9rem; font-weight: 500; margin: 0 0 0.5rem 0; }
 .hourly-forecast__icon { width: 48px; height: 48px; }
@@ -244,9 +263,11 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .weather-app__forecast-wrapper {
     margin-top: 2rem;
 }
+/* POPRAWKA 4: Wyśrodkowanie kart prognozy 5-dniowej */
 .weather-app__forecast-grid {
     display: grid; 
-    grid-template-columns: repeat(5, 1fr);
+    /* Użycie auto-fit pozwala na lepsze dopasowanie na różnych szerokościach */
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 1rem;
 }
 .weather-app__forecast-day {
@@ -280,10 +301,9 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 /* --- Media Queries --- */
 @media (min-width: 1025px) {
     .hourly-forecast__slider-nav { display: flex; }
-    .hourly-forecast__header { margin-left: 50px; margin-right: 50px; }
-    .hourly-forecast__slider-container { padding: 0 50px; }
+    /* Dodajemy padding do siatki, aby zrobić miejsce na strzałki */
+    .hourly-forecast__grid { padding: 0 45px 1rem 45px; }
     .hourly-forecast__range-switcher { display: none; }
-    .hourly-forecast__grid { padding-left: 25px; }
 }
 
 @media (max-width: 1024px) {
@@ -293,10 +313,9 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
     @media (orientation: landscape) {
         .hourly-forecast__slider-nav { display: flex; }
-        .hourly-forecast__slider-container { padding: 0 50px; }
         .weather-app__forecast-wrapper { display: none; }
         .forecast-switcher { display: none; }
-        .hourly-forecast__grid { padding-left: 25px; }
+        .hourly-forecast__grid { padding: 0 45px 1rem 45px; }
     }
 }
 
@@ -360,4 +379,3 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
     }
 }
-
