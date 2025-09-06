@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Zmienne globalne i referencje DOM ---
-    // PL: Zmienne globalne i odwołania do elementów DOM
-    // EN: Global variables and DOM references
     let map = null;
     let marker = null;
     let hourlyForecastData = [];
@@ -15,10 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
         weatherResultContainer: document.getElementById('weather-result-container'),
         forecastsContainer: document.getElementById('forecasts-container'),
         mapContainer: document.getElementById('map-container'),
-        alertsContainer: document.getElementById('weather-alerts-container'),
         hourly: {
             container: document.getElementById('hourly-forecast-container'),
-            landscapeSwitcher: document.getElementById('hourly-landscape-switcher'),
+            rangeSwitcher: document.getElementById('hourly-range-switcher'),
             sliderPrevBtn: document.getElementById('hourly-slider-prev'),
             sliderNextBtn: document.getElementById('hourly-slider-next'),
             scrollWrapper: document.querySelector('.hourly-forecast__scroll-wrapper'),
@@ -57,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.weatherResultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`;
         dom.forecastsContainer.style.display = 'none';
         dom.mapContainer.style.display = 'none';
-        if(dom.alertsContainer) dom.alertsContainer.style.display = 'none';
     }
 
     // --- Obsługa mapy ---
@@ -141,7 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span>${current.weather[0].description}</span>
                 </div>
             </div>
-            <div id="weather-alerts-container"></div>
             <div class="current-weather__extra-details">
                 <div class="detail-col detail-col--1">
                     <div class="current-weather__detail-item"><span class="detail-item-header"><span>Wiatr</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1-3.54 3.54l-6.85 6.85a2.5 2.5 0 1 1-3.54-3.54l6.85-6.85a2.5 2.5 0 1 1 3.54 3.54z"/></svg></span><span class="detail-item-value">${current.wind_speed.toFixed(1)} m/s</span></div>
@@ -163,24 +158,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="current-weather__detail-item"><span class="detail-item-header"><span>Zachód księżyca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18V6"/><path d="M6 12h6"/><path d="M12 6s-4 3-4 6 4 6 4 6"/><path d="M12 18s4-3 4-6-4-6-4-6"/></svg></span><span class="detail-item-value">${formatTime(today.moonset)}</span></div>
                 </div>
             </div>`;
-        updateWeatherAlerts(data.alerts);
-    }
-
-    function updateWeatherAlerts(alerts) {
-        const container = document.getElementById('weather-alerts-container');
-        if (!alerts || alerts.length === 0) {
-            if(container) container.style.display = 'none';
-            return;
-        }
-        container.style.display = 'block';
-        container.innerHTML = alerts.map(alert => `...`).join(''); // Skrócono dla zwięzłości
     }
 
     function renderHourlyForecast() {
-        // PL: Domyślny zakres dla desktopu to 48h
-        // EN: Default range for desktop is 48h
-        const range = isMobilePortrait() ? 48 : currentHourlyRange;
-        dom.hourly.container.innerHTML = ''; // Wyczyść kontener przed renderowaniem
+        // PL: Domyślny zakres dla desktopu to 48h, w przeciwnym razie użyj bieżącego ustawienia
+        // EN: Default range for desktop is 48h, otherwise use the current setting
+        const range = window.innerWidth > 1024 ? 48 : currentHourlyRange;
+        dom.hourly.container.innerHTML = ''; 
 
         let lastDate = '';
         const today = new Date().toLocaleDateString('pl-PL');
@@ -205,14 +189,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="hourly-forecast__icon"><img src="${weatherIcons.getIcon(item.weather[0].icon)}" alt="" class="weather-icon-img"></div>
                 <p class="hourly-forecast__temp">${Math.round(item.temp)}°C</p>
                 <div class="hourly-forecast__pop">
-                     <svg class="hourly-forecast__pop-icon" viewBox="0 0 24 24"><path d="M12 2.09961C6.54 2.09961 2.09961 6.54 2.09961 12C2.09961 17.46 6.54 21.9004 12 21.9004C17.46 21.9004 21.9004 17.46 21.9004 12C21.9004 6.54 17.46 2.09961 12 2.09961ZM12 17.0996C11.4 17.0996 10.9 16.5996 10.9 15.9996C10.9 15.3996 11.4 14.8996 12 14.8996C12.6 14.8996 13.1 15.3996 13.1 15.9996C13.1 16.5996 12.6 17.0996 12 17.0996ZM12.5 13.0996H11.4C11.1 13.0996 10.9 12.8996 10.9 12.5996V8.09961C10.9 7.49961 11.4 6.99961 12 6.99961C12.6 6.99961 13.1 7.49961 13.1 8.09961V12.5996C13.1 12.8996 12.8 13.0996 12.5 13.0996Z"></path></svg>
+                    <svg class="hourly-forecast__pop-icon" viewBox="0 0 24 24"><path d="M12.7,1.3c-0.1,0-0.2,0-0.3,0.1C12.3,1.4,12.3,1.5,12.3,1.6l0.2,2.3c2.9,0.5,5.2,2.8,5.7,5.7l2.3,0.2c0.1,0,0.2,0.1,0.3,0.2c0,0.1,0,0.2-0.1,0.3l-2,1.3c-0.1,0-0.2,0-0.3-0.1l-2-1.3c-0.1,0-0.1-0.2-0.1-0.3c0-0.1,0.1-0.2,0.2-0.2l0.8-0.1c-0.4-2.1-2.2-3.9-4.4-4.4l-0.1,0.8c0,0.1,0,0.2-0.1,0.3c-0.1,0-0.2,0-0.3-0.1l-1.3-2C12.9,1.4,12.8,1.3,12.7,1.3z M6,12.2c0.1,0,0.2,0,0.3,0.1l1.3,2c0.1,0.1,0.1,0.2,0.1,0.3c0,0.1-0.1,0.2-0.2,0.2l-0.8,0.1c0.5,2.1,2.2,3.8,4.4,4.3l0.1-0.8c0-0.1,0.1-0.2,0.2-0.3c0.1,0,0.2,0,0.3,0.1l2,1.3c0.1,0.1,0.1,0.2,0.1,0.3c0,0.1-0.1,0.2-0.2,0.2l-2.3-0.2c-2.9-0.5-5.2-2.8-5.7-5.7L3.5,15c-0.1,0-0.2-0.1-0.3-0.2c0-0.1,0-0.2,0.1-0.3L5.3,13c0.1-0.1,0.2,0,0.3,0.1L6,12.2z"/></svg>
                     <span>${Math.round(item.pop * 100)}%</span>
                 </div>
             </div>`;
         });
-
-        // PL: Wymuszenie ponownego przeliczenia szerokości po dynamicznym dodaniu treści
-        // EN: Force a recalculation of width after dynamically adding content
+        
         setTimeout(updateSliderButtons, 0);
     }
     
@@ -242,11 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             updateCurrentWeather(data);
             updateDailyForecast(data);
-            
-            // PL: Domyślny zakres dla desktopu to 48h, dla mobile landscape 24h
-            // EN: Default range for desktop is 48h, for mobile landscape 24h
-            currentHourlyRange = window.innerWidth > 1024 ? 48 : 24;
-            
             renderHourlyForecast();
             
             dom.mapContainer.style.display = 'block';
@@ -266,9 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Obsługa slidera ---
     function updateSliderButtons() {
         if (isMobilePortrait() || !dom.hourly.scrollWrapper) return;
-        
-        // PL: Upewniamy się, że przeglądarka zdążyła przeliczyć wymiary
-        // EN: Ensure the browser has had time to recalculate dimensions
         requestAnimationFrame(() => {
             const { scrollLeft, scrollWidth, clientWidth } = dom.hourly.scrollWrapper;
             dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0;
@@ -307,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dom.forecastsContainer.classList.remove('collapsed');
         });
 
-        dom.hourly.landscapeSwitcher?.addEventListener('click', function(e) {
+        dom.hourly.rangeSwitcher?.addEventListener('click', function(e) {
             const btn = e.target.closest('button');
             if (!btn || btn.classList.contains('active')) return;
             currentHourlyRange = parseInt(btn.dataset.range, 10);
