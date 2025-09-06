@@ -196,24 +196,20 @@ body.dark-mode #map {
     font-size: 2.5rem;
     font-weight: 500;
 }
-/* --- Ujednolicona siatka (Grid) dla szczegółów --- */
+
+/* --- Nowa, 4-kolumnowa siatka dla szczegółów (Desktop/Landscape) --- */
 .current-weather__extra-details {
     display: grid;
-    gap: 1rem 1.5rem;
+    gap: 1.5rem; /* Zwiększony odstęp dla lepszej czytelności */
     text-align: center;
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-color);
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
     
-    /* Układ ujednolicony dla wszystkich widoków */
-    grid-template-columns: 1fr 1fr;
+    /* Układ domyślny (Desktop i Landscape Mobile) */
+    grid-template-columns: repeat(4, 1fr);
     grid-template-areas:
-        "wind     sunrise"
-        "pressure sunset"
-        "road     aqi"
-        "uv       uv";
+        "wind     sunrise  aqi    road"
+        "pressure sunset   uv     road"; /* Stan nawierzchni zajmuje dwie komórki */
 }
 
 .current-weather__detail-item {
@@ -221,6 +217,11 @@ body.dark-mode #map {
     flex-direction: column;
     gap: 0.25rem;
 }
+
+.detail-item--road {
+    justify-content: center; /* Wyśrodkowanie w pionie */
+}
+
 .current-weather__detail-item span:first-child {
     font-size: 0.9rem;
     color: var(--completed-text);
@@ -229,7 +230,7 @@ body.dark-mode #map {
     font-size: 1.1rem;
     font-weight: 500;
 }
-.detail-item-value { /* Klasa dla wartości, aby łatwiej stylować */
+.detail-item-value {
     font-size: 1.1rem;
     font-weight: 500;
 }
@@ -241,22 +242,18 @@ body.dark-mode #map {
 .detail-item--sunset { grid-area: sunset; }
 .detail-item--road { grid-area: road; }
 .detail-item--aqi { grid-area: aqi; }
-.detail-item--uv { 
-    grid-area: uv; 
-    align-items: center; /* Wyśrodkowanie elementu UV */
-}
-
+.detail-item--uv { grid-area: uv; }
 
 /* --- Kolory wartości --- */
 .value-color--roadDry { color: var(--success-color); }
 .value-color--roadWet { color: var(--primary-color); }
 .value-color--roadIcy { color: var(--danger-color); }
 
-.value-color--aqi-1 { color: var(--success-color); } /* Dobra */
-.value-color--aqi-2 { color: var(--aqi-moderate); } /* Umiarkowana */
-.value-color--aqi-3 { color: var(--warning-color); } /* Średnia */
-.value-color--aqi-4 { color: var(--aqi-bad); } /* Zła */
-.value-color--aqi-5 { color: var(--danger-color); } /* Bardzo zła */
+.value-color--aqi-1 { color: var(--success-color); }
+.value-color--aqi-2 { color: var(--aqi-moderate); }
+.value-color--aqi-3 { color: var(--warning-color); }
+.value-color--aqi-4 { color: var(--aqi-bad); }
+.value-color--aqi-5 { color: var(--danger-color); }
 
 .value-color--uv-low { color: var(--success-color); }
 .value-color--uv-moderate { color: var(--warning-color); }
@@ -354,8 +351,23 @@ body.dark-mode #map {
     .weather-app__search { flex-direction: column; }
     .weather-app__button { width: 100%; }
 
-    /* Układ dla orientacji pionowej */
+    /* Układ dla orientacji pionowej - 2 kolumny */
     @media (orientation: portrait) {
+        .current-weather__extra-details {
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            grid-template-columns: 1fr 1fr;
+            grid-template-areas:
+                "wind     sunrise"
+                "pressure sunset"
+                "road     aqi"
+                "uv       uv";
+        }
+        .detail-item--uv {
+            align-items: center;
+        }
+
         .forecast-switcher { display: flex; }
         .hourly-forecast__wrapper, .weather-app__forecast-wrapper { margin-top: 0; }
         .hourly-forecast__title, .weather-app__forecast-title { display: none; }
@@ -396,8 +408,17 @@ body.dark-mode #map {
     }
 }
 
-/* Układ dla orientacji poziomej na telefonie - dziedziczy teraz układ desktopowy */
+/* Układ dla orientacji poziomej na telefonie - dziedziczy teraz układ 4-kolumnowy z desktopu */
 @media (max-width: 900px) and (max-height: 500px) and (orientation: landscape) {
+    .hourly-forecast__grid {
+       display: flex;
+       overflow-x: auto;
+       padding-bottom: 1rem;
+    }
+    .hourly-forecast__item {
+        min-width: 90px;
+        flex-shrink: 0;
+    }
     .weather-app__forecast-grid {
         gap: 0.5rem;
     }
