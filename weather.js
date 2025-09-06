@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Zmienne globalne i referencje DOM ---
     // --- Global variables and DOM references ---
-    let currentTheme = localStorage.getItem('theme') || 'light';
     let map = null;
     let marker = null;
     let hourlyForecastData = [];
@@ -34,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function setTheme(theme) {
         document.body.classList.toggle('dark-mode', theme === 'dark');
         localStorage.setItem('theme', theme);
-        currentTheme = theme;
         if (map) updateMapTileLayer();
     }
     
@@ -77,8 +75,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateMapTileLayer() {
-        const targetLayer = currentTheme === 'dark' ? darkTileLayer : lightTileLayer;
-        const otherLayer = currentTheme === 'dark' ? lightTileLayer : darkTileLayer;
+        // Poprawka: Bezpośrednie sprawdzanie klasy na body zamiast polegania na zmiennej
+        // Fix: Directly check the class on the body instead of relying on a variable
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const targetLayer = isDarkMode ? darkTileLayer : lightTileLayer;
+        const otherLayer = isDarkMode ? lightTileLayer : darkTileLayer;
+
         if (map.hasLayer(otherLayer)) {
             map.removeLayer(otherLayer);
         }
@@ -102,10 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof query === 'string' && query) {
             const sanitizedQuery = query.trim().toLowerCase() === 'łódź' ? 'Lodz' : query;
             url = `/.netlify/functions/weather?city=${encodeURIComponent(sanitizedQuery)}`;
-            localStorage.setItem('lastCity', query); // Zapisujemy oryginalne zapytanie / Save original query
         } else if (typeof query === 'object' && query.latitude) {
             url = `/.netlify/functions/weather?lat=${query.latitude}&lon=${query.longitude}`;
-            localStorage.removeItem('lastCity');
         } else {
             return null; // Brak zapytania / No query
         }
@@ -139,10 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     function updateCurrentWeather(data) {
-        // Sprawdzenie integralności danych / Data integrity check
         if (!data || !data.location || !data.location.name) {
-            // Rzucenie błędu, który zostanie złapany w handleWeatherSearch
-            // Throw an error that will be caught in handleWeatherSearch
             throw new Error("Otrzymano niekompletne dane z serwera.");
         }
 
@@ -203,7 +200,10 @@ document.addEventListener('DOMContentLoaded', () => {
         container.style.display = 'block';
     }
 
-    function renderHourlyForecast(range) {
+    function renderHourlyForecast() {
+        // W mobilnym widoku pionowym, renderuj 24 lub 48h w zależności od przełącznika
+        // In mobile portrait view, render 24 or 48h depending on the toggle
+        const range = isMobilePortrait() ? currentHourlyRange : 48;
         dom.hourly.container.innerHTML = hourlyForecastData.slice(0, range).map(item => `
             <div class="hourly-forecast__item">
                 <p class="hourly-forecast__time">${new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit' })}:00</p>
@@ -243,11 +243,16 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await getWeatherData(query);
             if (!data) {
-                // Ta ścieżka nie powinna być już osiągalna / This path should no longer be reachable
                 showError("Wpisz miasto lub zezwól na geolokalizację.");
                 return;
             }
             
+            // Zapisz do localStorage tylko przy pomyślnym wyszukaniu po nazwie
+            // Save to localStorage only on a successful search by name
+            if (typeof query === 'string' && query) {
+                localStorage.setItem('lastCity', query.trim());
+            }
+
             hourlyForecastData = data.hourly;
             updateCurrentWeather(data);
             updateDailyForecast(data);
@@ -260,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentHourlyRange = 48;
                  dom.hourly.rangeToggleBtn.style.display = 'none';
             }
-            renderHourlyForecast(currentHourlyRange);
+            renderHourlyForecast();
             
             dom.mapContainer.style.display = 'block';
             updateMap(data.location.lat, data.location.lon, data.location.name);
@@ -293,7 +298,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Inicjalizacja i event listenery / Initialization and Event Listeners ---
     function setupEventListeners() {
-        dom.themeToggle.addEventListener('click', () => setTheme(currentTheme === 'light' ? 'dark' : 'light'));
+        dom.themeToggle.addEventListener('click', () => {
+            const current = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
+            setTheme(current === 'light' ? 'dark' : 'light');
+        });
         
         dom.searchBtn?.addEventListener('click', () => handleWeatherSearch(dom.cityInput.value.trim(), dom.searchBtn));
         dom.cityInput?.addEventListener('keyup', e => { if (e.key === 'Enter') handleWeatherSearch(dom.cityInput.value.trim(), dom.searchBtn); });
@@ -328,15 +336,15 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.hourly.rangeToggleBtn.addEventListener('click', () => {
             currentHourlyRange = currentHourlyRange === 24 ? 48 : 24;
             dom.hourly.rangeToggleBtn.textContent = currentHourlyRange === 24 ? 'Pokaż 48h' : 'Pokaż 24h';
-            renderHourlyForecast(currentHourlyRange);
+            renderHourlyForecast();
         });
     }
 
     // --- Start aplikacji / App Start ---
+    setTheme(localStorage.getItem('theme') || 'light');
     initializeMap();
     setupEventListeners();
 
-    // Przywrócenie poprawnej logiki startowej / Restoring correct startup logic
     const lastCity = localStorage.getItem('lastCity');
     if (lastCity) {
         dom.cityInput.value = lastCity;
