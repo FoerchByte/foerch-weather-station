@@ -101,8 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let url;
 
         if (typeof query === 'string' && query) {
-            const sanitizedQuery = query.trim().toLowerCase() === 'łódź' ? 'Lodz' : query;
-            url = `/.netlify/functions/weather?city=${encodeURIComponent(sanitizedQuery)}`;
+            url = `/.netlify/functions/weather?city=${encodeURIComponent(query.trim())}`;
         } else if (typeof query === 'object' && query.latitude) {
             url = `/.netlify/functions/weather?lat=${query.latitude}&lon=${query.longitude}`;
         } else {
@@ -170,15 +169,15 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div id="weather-alerts-container"></div>
             <div class="current-weather__extra-details">
-                <div class="current-weather__detail-item detail-item--wind"><span>Wiatr</span><span class="detail-item-value">${data.current.wind_speed.toFixed(1)} m/s</span></div>
-                <div class="current-weather__detail-item detail-item--pressure"><span>Ciśnienie</span><span class="detail-item-value">${data.current.pressure} hPa</span></div>
-                <div class="current-weather__detail-item detail-item--road"><span>Stan nawierzchni</span><span class="detail-item-value value-color--${roadCondition.class}">${roadCondition.text}</span></div>
-                <div class="current-weather__detail-item detail-item--sunrise"><span>Wschód słońca</span><span class="detail-item-value">${new Date(data.current.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
-                <div class="current-weather__detail-item detail-item--sunset"><span>Zachód słońca</span><span class="detail-item-value">${new Date(data.current.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
-                <div class="current-weather__detail-item detail-item--aqi"><span>Jakość powietrza</span><span class="detail-item-value value-color--aqi-${data.air_quality.main.aqi}">${aqiMap[data.air_quality.main.aqi]}</span></div>
-                <div class="current-weather__detail-item detail-item--uv"><span>Indeks UV</span><span class="detail-item-value value-color--uv-${uvCategory}">${uvMap[uvCategory]}</span></div>
-                <div class="current-weather__detail-item detail-item--moonrise"><span>Wschód księżyca</span><span class="detail-item-value">${moonrise}</span></div>
-                <div class="current-weather__detail-item detail-item--moonset"><span>Zachód księżyca</span><span class="detail-item-value">${moonset}</span></div>
+                <div class="current-weather__detail-item detail-item--wind"><span class="detail-item-header"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1-3.54 3.54l-6.85 6.85a2.5 2.5 0 1 1-3.54-3.54l6.85-6.85a2.5 2.5 0 1 1 3.54 3.54z"/></svg>Wiatr</span><span class="detail-item-value">${data.current.wind_speed.toFixed(1)} m/s</span></div>
+                <div class="current-weather__detail-item detail-item--pressure"><span class="detail-item-header"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 12H19a2.5 2.5 0 0 0-5 0H2.5"/><path d="M21.5 12v-6a2.5 2.5 0 0 0-5 0v6"/><path d="M2.5 12v6a2.5 2.5 0 0 0 5 0v-6"/></svg>Ciśnienie</span><span class="detail-item-value">${data.current.pressure} hPa</span></div>
+                <div class="current-weather__detail-item detail-item--road"><span class="detail-item-header"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0-4.4-3.6-8-8-8s-8 3.6-8 8c0 2 .8 3.8 2 5l-3 7h18l-3-7c1.2-1.2 2-3 2-5Z"/><path d="M12 10h.01"/></svg>Stan nawierzchni</span><span class="detail-item-value value-color--${roadCondition.class}">${roadCondition.text}</span></div>
+                <div class="current-weather__detail-item detail-item--sunrise"><span class="detail-item-header"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>Wschód słońca</span><span class="detail-item-value">${new Date(data.current.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
+                <div class="current-weather__detail-item detail-item--sunset"><span class="detail-item-header"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/><path d="M16 18a4 4 0 0 1-8 0"/></svg>Zachód słońca</span><span class="detail-item-value">${new Date(data.current.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
+                <div class="current-weather__detail-item detail-item--aqi"><span class="detail-item-header"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5a8.45 8.45 0 0 0-5.04 1.94 8.45 8.45 0 0 0-2.02 5.07 8.45 8.45 0 0 0 .5 3.51 8.45 8.45 0 0 0 3.51 .5h8.55a8.45 8.45 0 0 0 2.02-5.07 8.45 8.45 0 0 0-5.04-1.94Z"/><path d="M12.5 4.5a8.45 8.45 0 0 1 5.04 1.94 8.45 8.45 0 0 1 2.02 5.07 8.45 8.45 0 0 1-.5 3.51 8.45 8.45 0 0 1-3.51 .5h-8.55a8.45 8.45 0 0 1-2.02-5.07 8.45 8.45 0 0 1 5.04-1.94Z"/><path d="M8 15h8"/><path d="M8 12h3"/><path d="M13 12h3"/></svg>Jakość powietrza</span><span class="detail-item-value value-color--aqi-${data.air_quality.main.aqi}">${aqiMap[data.air_quality.main.aqi]}</span></div>
+                <div class="current-weather__detail-item detail-item--uv"><span class="detail-item-header"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v1"/><path d="M12 20v1"/><path d="M3 12h1"/><path d="M20 12h1"/><path d="m19.07 4.93-1.41 1.41"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 19.07-1.41-1.41"/><path d="m6.34 6.34-1.41-1.41"/><circle cx="12" cy="12" r="4"/><path d="M12 16a4 4 0 0 0 4-4"/></svg>Indeks UV</span><span class="detail-item-value value-color--uv-${uvCategory}">${uvMap[uvCategory]}</span></div>
+                <div class="current-weather__detail-item detail-item--moonrise"><span class="detail-item-header"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M18 12h-6"/><path d="M12 18s-4-3-4-6 4-6 4-6"/><path d="M12 6s4 3 4 6-4 6-4 6"/></svg>Wschód księżyca</span><span class="detail-item-value">${moonrise}</span></div>
+                <div class="current-weather__detail-item detail-item--moonset"><span class="detail-item-header"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18V6"/><path d="M6 12h6"/><path d="M12 6s-4 3-4 6 4 6 4 6"/><path d="M12 18s4-3 4-6-4-6-4-6"/></svg>Zachód księżyca</span><span class="detail-item-value">${moonset}</span></div>
             </div>
         `;
         updateWeatherAlerts(data.alerts);
@@ -289,12 +288,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if(isMobilePortrait() || !dom.hourly.scrollWrapper) return;
         const { scrollLeft, scrollWidth, clientWidth } = dom.hourly.scrollWrapper;
         dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0;
-        dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth -1;
+        // Dodano mały bufor (1px), aby uniknąć problemów z zaokrąglaniem
+        // Added a small buffer (1px) to avoid rounding issues
+        dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
     }
 
     function handleSliderScroll(direction) {
         const itemWidth = dom.hourly.container.querySelector('.hourly-forecast__item')?.offsetWidth || 100;
-        const scrollAmount = (itemWidth + 12) * 8 * direction; // 12 to odstęp / 12 is the gap
+        const scrollAmount = (itemWidth + 12) * 4 * direction; // Przewijaj o 4 elementy / Scroll by 4 items
         dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
     
