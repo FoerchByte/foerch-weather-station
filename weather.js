@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Renderowanie UI ---
     const weatherIcons = {
-        getIcon: (iconCode) => `https://basemilius.github.io/weather-icons/production/fill/all/${{
+        getIcon: (iconCode) => `https://basmilius.github.io/weather-icons/production/fill/all/${{
             '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', 
             '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', 
             '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', 
@@ -161,11 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderHourlyForecast() {
-        const now = new Date();
         const range = window.innerWidth > 1024 ? 48 : currentHourlyRange;
-        
-        // ZMIANA: Zawsze pobieramy 'range' godzin od teraz.
-        // CHANGE: Always fetch 'range' hours from now.
         const forecastToShow = hourlyForecastData.slice(1, range + 1);
 
         dom.hourly.container.innerHTML = ''; 
@@ -183,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (itemDate === today) dayLabel = 'Dziś';
                 if (itemDate === tomorrow) dayLabel = 'Jutro';
                 
-                if(index > 0) {
+                if(index > 0 || isMobilePortrait()) {
                      dom.hourly.container.innerHTML += `<div class="hourly-forecast__day-separator">${dayLabel}</div>`;
                 }
                 lastDate = itemDate;
@@ -195,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="hourly-forecast__icon"><img src="${weatherIcons.getIcon(item.weather[0].icon)}" alt="" class="weather-icon-img"></div>
                 <p class="hourly-forecast__temp">${Math.round(item.temp)}°C</p>
                 <div class="hourly-forecast__pop">
-                    <svg class="hourly-forecast__pop-icon" viewBox="0 0 24 24"><path d="M12.7,1.3c-0.1,0-0.2,0-0.3,0.1C12.3,1.4,12.3,1.5,12.3,1.6l0.2,2.3c2.9,0.5,5.2,2.8,5.7,5.7l2.3,0.2c0.1,0,0.2,0.1,0.3,0.2c0,0.1,0,0.2-0.1,0.3l-2,1.3c-0.1,0-0.2,0-0.3-0.1l-2-1.3c-0.1,0-0.1-0.2-0.1-0.3c0-0.1,0.1-0.2,0.2-0.2l0.8-0.1c-0.4-2.1-2.2-3.9-4.4-4.4l-0.1,0.8c0,0.1,0,0.2-0.1,0.3c-0.1,0-0.2,0-0.3-0.1l-1.3-2C12.9,1.4,12.8,1.3,12.7,1.3z M6,12.2c0.1,0,0.2,0,0.3,0.1l1.3,2c0.1,0.1,0.1,0.2,0.1,0.3c0,0.1-0.1,0.2-0.2,0.2l-0.8,0.1c0.5,2.1,2.2,3.8,4.4,4.3l0.1-0.8c0-0.1,0.1-0.2,0.2-0.3c0.1,0,0.2,0,0.3,0.1l2,1.3c0.1,0.1,0.1,0.2,0.1,0.3c0,0.1-0.1,0.2-0.2,0.2l-2.3-0.2c-2.9-0.5-5.2-2.8-5.7-5.7L3.5,15c-0.1,0-0.2-0.1-0.3-0.2c0-0.1,0-0.2,0.1-0.3L5.3,13c0.1-0.1,0.2,0,0.3,0.1L6,12.2z"/></svg>
+                    <svg class="hourly-forecast__pop-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12,0C7.9,0,4.5,3.4,4.5,7.5c0,2.1,0.9,4,2.3,5.4L12,24l5.2-11.1c1.4-1.4,2.3-3.3,2.3-5.4C19.5,3.4,16.1,0,12,0z M12,12.5c-2.8,0-5-2.2-5-5s2.2-5,5-5s5,2.2,5,5S14.8,12.5,12,12.5z"/></svg>
                     <span>${Math.round(item.pop * 100)}%</span>
                 </div>
             </div>`;
@@ -237,7 +233,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => map.invalidateSize(), 200);
 
             dom.forecastsContainer.style.display = 'block';
-            if (isMobilePortrait()) dom.forecastsContainer.classList.add('collapsed');
 
         } catch (error) {
             showError(`Błąd: ${error.message}`);
@@ -284,7 +279,6 @@ document.addEventListener('DOMContentLoaded', () => {
             dom.forecastsContainer.className = `show-${btn.dataset.forecast}`;
             this.querySelector('.active').classList.remove('active');
             btn.classList.add('active');
-            dom.forecastsContainer.classList.remove('collapsed');
         });
 
         dom.hourly.rangeSwitcher?.addEventListener('click', function(e) {
@@ -299,7 +293,10 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.hourly.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(-1));
         dom.hourly.sliderNextBtn.addEventListener('click', () => handleSliderScroll(1));
         dom.hourly.scrollWrapper.addEventListener('scroll', updateSliderButtons, { passive: true });
-        window.addEventListener('resize', updateSliderButtons);
+        window.addEventListener('resize', () => {
+            renderHourlyForecast();
+            updateSliderButtons();
+        });
     }
 
     function initializeApp() {
