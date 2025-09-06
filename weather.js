@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="current-weather__detail-item detail-item--sunset"><span>Zachód słońca</span><span class="detail-item-value">${sunset}</span></div>
                 <div class="current-weather__detail-item detail-item--road"><span>Stan nawierzchni</span><span class="detail-item-value value-color--${roadCondition.class}">${roadCondition.text}</span></div>
                 <div class="current-weather__detail-item detail-item--aqi"><span>Jakość powietrza</span><span class="detail-item-value value-color--aqi-${aqi}">${aqiLevels[aqi]}</span></div>
-                <div class="current-weather__detail-item detail-item--uv"><span>Indeks UV</span><span class="detail-item-value value-color--uv-${uvCssClass}">${uvLevel} (${uvi})</span></div>
+                <div class="current-weather__detail-item detail-item--uv"><span>Indeks UV</span><span class="detail-item-value value-color--uv-${uvCssClass}">${uvLevel}</span></div>
             </div>`;
     }
 
