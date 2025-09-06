@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Renderowanie UI ---
     const weatherIcons = {
-        getIcon: (iconCode) => `https://basmilius.github.io/weather-icons/production/fill/all/${{
+        getIcon: (iconCode) => `https://basemilius.github.io/weather-icons/production/fill/all/${{
             '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', 
             '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', 
             '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', 
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             showError(`Błąd: ${error.message}`);
         } finally {
-            if (buttonToLoad) toggleButtonLoading(buttonToToLoad, false);
+            if (buttonToLoad) toggleButtonLoading(buttonToLoad, false);
         }
     }
 
