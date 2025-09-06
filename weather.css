@@ -8,6 +8,8 @@
     --border-color: #dee2e6;
     --success-color: #28a745;
     --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
     --completed-text: #6c757d;
 }
 
@@ -148,7 +150,63 @@ body.dark-mode .weather-app__error {
 
 .weather-app__result {
     text-align: center;
+    margin-bottom: 2rem;
 }
+
+/* --- Nowe style dla dodatkowych informacji --- */
+.additional-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.info-card__title {
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    text-align: left;
+}
+
+.info-card__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.aqi-value, .uv-value {
+    font-size: 2rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.aqi-label, .uv-label {
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    color: #fff;
+}
+
+.aqi-label-1 { background-color: var(--success-color); }
+.aqi-label-2 { background-color: #a0d468; }
+.aqi-label-3 { background-color: var(--warning-color); }
+.aqi-label-4 { background-color: #ff8c00; }
+.aqi-label-5 { background-color: var(--danger-color); }
+
+.uv-label-low { background-color: var(--success-color); }
+.uv-label-moderate { background-color: var(--warning-color); color: var(--text-color)}
+.uv-label-high { background-color: #ff8c00; }
+.uv-label-very-high { background-color: var(--danger-color); }
+.uv-label-extreme { background-color: #9932cc; }
 
 #map-container {
     padding: 0;
@@ -161,6 +219,10 @@ body.dark-mode .weather-app__error {
     border-radius: 8px;
     border: 1px solid var(--border-color);
     z-index: 1;
+}
+
+body.dark-mode #map {
+    filter: invert(1) hue-rotate(180deg);
 }
 
 .current-weather__city {
@@ -191,7 +253,6 @@ body.dark-mode .weather-app__error {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 1rem;
     text-align: center;
-    margin-top: 1.5rem;
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-color);
     align-items: start;
@@ -306,6 +367,10 @@ body.dark-mode .weather-app__error {
     .weather-app__search { flex-direction: column; }
     .weather-app__button { width: 100%; }
 
+    .additional-info-grid {
+        grid-template-columns: 1fr;
+    }
+
     /* Układ dla orientacji pionowej */
     @media (orientation: portrait) {
         .current-weather__extra-details {
@@ -379,3 +444,4 @@ body.dark-mode .weather-app__error {
         height: 48px;
     }
 }
+
