@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stacja Pogody - Aplikacja Vanilla JS</title>
-    <link rel="stylesheet" href="weather.css">
+    <link rel="stylesheet" href="weather.css?v=1.6">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
 
@@ -25,21 +26,40 @@
         <div class="weather-app">
             <div class="weather-app__search">
                 <input type="text" id="city-input" class="weather-app__input" placeholder="Wpisz nazwę miasta...">
-                <button id="search-weather-btn" class="weather-app__button">Szukaj</button>
-                <button id="geolocation-btn" class="weather-app__button weather-app__button--geo">Użyj mojej lokalizacji</button>
+                <button id="search-weather-btn" class="weather-app__button"><span>Szukaj</span></button>
+                <button id="geolocation-btn" class="weather-app__button weather-app__button--geo"><span>Użyj mojej lokalizacji</span></button>
             </div>
             <div id="weather-result-container" class="weather-app__result" aria-live="polite"></div>
             
-            <div class="forecast-switcher" id="forecast-switcher">
-                <button data-forecast="hourly" class="active">Prognoza godzinowa</button>
-                <button data-forecast="daily">Prognoza na 5 dni</button>
+            <div id="map-container" style="display: none;">
+                <div id="map"></div>
             </div>
             
-            <div id="forecasts-container" class="show-hourly">
-                <div class="hourly-forecast__wrapper">
-                    <h3 class="hourly-forecast__title">Prognoza godzinowa</h3>
-                    <div class="hourly-forecast__grid" id="hourly-forecast-container"></div>
+            <div id="forecasts-container" style="display: none;" class="show-hourly">
+                 <div class="forecast-switcher" id="forecast-switcher">
+                    <button data-forecast="hourly" class="active">Prognoza godzinowa</button>
+                    <button data-forecast="daily">Prognoza na 5 dni</button>
                 </div>
+
+                <div class="hourly-forecast__wrapper">
+                    <div class="hourly-forecast__header">
+                        <h3 class="hourly-forecast__title">Prognoza godzinowa</h3>
+                    </div>
+                    
+                    <div class="hourly-forecast__range-switcher" id="hourly-range-switcher">
+                        <button data-range="24" class="active">24h</button>
+                        <button data-range="48">48h</button>
+                    </div>
+
+                    <div class="hourly-forecast__slider-container">
+                        <button class="hourly-forecast__slider-nav" id="hourly-slider-prev" aria-label="Poprzednia strona prognozy">&lt;</button>
+                        <div class="hourly-forecast__scroll-wrapper">
+                            <div class="hourly-forecast__grid" id="hourly-forecast-container"></div>
+                        </div>
+                        <button class="hourly-forecast__slider-nav" id="hourly-slider-next" aria-label="Następna strona prognozy">&gt;</button>
+                    </div>
+                </div>
+
                 <div class="weather-app__forecast-wrapper">
                     <h3 class="weather-app__forecast-title">Prognoza na 5 dni</h3>
                     <div class="weather-app__forecast-grid" id="forecast-container"></div>
@@ -48,7 +68,9 @@
         </div>
     </main>
     
-    <script src="weather.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="weather.js?v=1.6"></script>
 
 </body>
 </html>
+
