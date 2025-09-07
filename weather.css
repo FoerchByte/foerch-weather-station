@@ -392,8 +392,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 @media (max-width: 1024px) {
     .weather-app { padding: 1.5rem 1rem; }
 
-    /* ZMIANA: Ukrywanie treści prognoz domyślnie na mobile */
-    /* CHANGE: Hide forecast content by default on mobile */
     #forecasts-container:not(.show-hourly):not(.show-daily) .hourly-forecast__wrapper,
     #forecasts-container:not(.show-hourly):not(.show-daily) .weather-app__forecast-wrapper {
         display: none;
@@ -440,7 +438,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         .hourly-forecast__slider-container { padding: 0 5px; }
 
         .forecast-switcher { 
-            display: flex; /* ZMIANA: Pokazanie switchera w landscape */
+            display: flex;
         } 
 
         .hourly-forecast__grid {
@@ -551,28 +549,30 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
              gap: 8px;
         }
         
-        .hourly-forecast__item { 
+        .hourly-forecast__item {
             display: flex;
             justify-content: space-between;
             align-items: center; 
             padding: 0.75rem 1rem;
-            position: relative;
         }
-
-        .hourly-forecast__item-left, .hourly-forecast__item-right {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        
+        .hourly-forecast__time { 
+            flex-basis: 25%;
+            text-align: left;
+            font-size: 1rem;
         }
 
         .hourly-forecast__icon {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
+            /* This will be handled by the parent's space-between */
         }
-
-        .hourly-forecast__time { 
-            font-size: 1rem;
+        
+        .hourly-forecast__item-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 1rem;
+            flex-basis: 45%;
+            text-align: right;
         }
 
         .hourly-forecast__temp {
