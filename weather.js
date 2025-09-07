@@ -213,15 +213,13 @@ class WeatherApp {
             forecastToShow = this.hourlyForecastData.filter(item => {
                 const itemDate = new Date(item.dt * 1000);
                 return itemDate > now && itemDate <= endOfTomorrow;
-            });
+            }).slice(0, 24); // Ensure we only show a max of 24 hours
         } else { // 48h
-            forecastToShow = this.hourlyForecastData.slice(0, 48);
+            forecastToShow = this.hourlyForecastData.slice(1, 49); // Get next 48 hours
         }
         
         this.dom.hourly.container.innerHTML = ''; 
 
-        // --- ZMIANA: Usunięto `todayStr` i zmodyfikowano logikę etykiet ---
-        // --- CHANGE: Removed `todayStr` and modified label logic ---
         let lastDate = '';
         const tomorrowStr = new Date(Date.now() + 864e5).toLocaleDateString('pl-PL');
         
@@ -232,8 +230,6 @@ class WeatherApp {
             let dayLabel = '';
             let newDayClass = '';
 
-            // PL: Sprawdzamy, czy zmieniła się data I CZY nie jest to pierwszy kafelek.
-            // EN: Check if the date has changed AND if it's not the first tile.
             if (itemDate !== lastDate && lastDate !== '') {
                 newDayClass = 'hourly-forecast__item--new-day';
                 if (itemDate === tomorrowStr) {
@@ -242,8 +238,6 @@ class WeatherApp {
                     dayLabel = itemDateObj.toLocaleDateString('pl-PL', { weekday: 'long' });
                 }
             }
-            // PL: Aktualizujemy `lastDate` w każdej iteracji.
-            // EN: Update `lastDate` in every iteration.
             lastDate = itemDate;
             
             this.dom.hourly.container.innerHTML += `
@@ -355,10 +349,13 @@ class WeatherApp {
         if (!item) return;
 
         const itemWidth = item.offsetWidth;
-        const gap = 12; // Zdefiniowane w CSS
+        // --- KLUCZOWA ZMIANA / KEY CHANGE ---
+        const gap = 8; // ZMIANA: Dopasowano do wartości `gap` w CSS (było 12) / CHANGE: Matched to the `gap` value in CSS (was 12)
         
-        const visibleItems = Math.floor(this.dom.hourly.scrollWrapper.clientWidth / (itemWidth + gap));
-        const scrollAmount = (itemWidth + gap) * visibleItems * direction;
+        // ZMIANA: Przewijamy o stałą liczbę 8 kafelków, a nie o liczbę widocznych elementów
+        // CHANGE: We scroll by a fixed number of 8 tiles, not by the number of visible items
+        const itemsToScroll = 8; 
+        const scrollAmount = (itemWidth + gap) * itemsToScroll * direction;
         
         this.dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
@@ -368,4 +365,3 @@ document.addEventListener('DOMContentLoaded', () => {
     const app = new WeatherApp();
     app.init();
 });
-
