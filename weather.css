@@ -234,13 +234,16 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: space-between; /* ZMIANA: Równomierne rozłożenie w pionie */
     background-color: var(--background-color);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     position: relative;
     flex-shrink: 0;
-    padding: 0.2rem;
+    padding: 0.6rem 0.2rem;
     flex-basis: calc(12.5% - 7px);
+    height: 140px; /* ZMIANA: Ustawienie stałej wysokości */
+    box-sizing: border-box; /* ZMIANA: Padding wliczony w wysokość */
 }
 
 .hourly-forecast__item--new-day::before {
@@ -295,26 +298,26 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 #hourly-slider-next { right: 5px; }
 
 .hourly-forecast__time {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     margin: 0;
 }
 .hourly-forecast__icon {
-    width: 28px;
-    height: 28px;
+    width: 40px;
+    height: 40px;
     margin: 0.1rem 0;
 }
 .hourly-forecast__temp {
-    font-size: 0.85rem;
+    font-size: 1rem;
     margin: 0;
 }
 .hourly-forecast__pop {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     margin-top: 0.1rem;
     gap: 2px;
 }
 .hourly-forecast__pop-icon {
-    width: 9px;
-    height: 9px;
+    width: 10px;
+    height: 10px;
 }
 
 /* --- Prognoza 5-dniowa --- */
@@ -386,6 +389,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
     .hourly-forecast__item {
         flex-basis: calc(20% - 10px);
+        height: auto; /* ZMIANA: Reset wysokości dla tabletów */
     }
 
     @media (orientation: landscape) {
