@@ -232,11 +232,10 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     flex-shrink: 0;
 }
 
-/* ZMIANA: Dodaje separator i odstęp po każdej grupie oprócz ostatniej */
-/* CHANGE: Adds a separator and spacing after each group except the last one */
+/* ZMIANA: Dodaje odstęp po każdej grupie oprócz ostatniej */
+/* CHANGE: Adds spacing after each group except the last one */
 .hourly-forecast__day-group:not(:last-child) {
-    padding-right: 16px; 
-    border-right: 1px solid var(--border-color);
+    padding-right: 16px;
 }
 
 .hourly-forecast__day-heading {
@@ -267,6 +266,25 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     padding: 1rem;
     box-sizing: border-box;
 }
+
+/* NOWOŚĆ: Rysuje separator idealnie pomiędzy kafelkami dni */
+/* NEW: Draws a separator perfectly between the daily tiles */
+.hourly-forecast__item:last-of-type {
+    position: relative;
+}
+
+.hourly-forecast__day-group:not(:last-child) .hourly-forecast__item:last-of-type::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    /* Pozycjonuje linię na środku 16px przerwy (8px od krawędzi kafelka) */
+    /* Positions the line in the middle of the 16px gap (8px from the tile's edge) */
+    right: -8px; 
+    width: 1px;
+    background-color: var(--border-color);
+}
+
 
 .hourly-forecast__slider-nav {
     display: none; 
@@ -460,9 +478,12 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         
         .hourly-forecast__day-group {
             padding-right: 0;
-            /* ZMIANA: Usunięcie separatora na mobilnym widoku pionowym */
-            /* CHANGE: Remove separator on mobile portrait view */
-            border-right: none;
+        }
+
+        /* ZMIANA: Ukrycie separatora na mobilnym widoku pionowym */
+        /* CHANGE: Hide separator on mobile portrait view */
+        .hourly-forecast__day-group:not(:last-child) .hourly-forecast__item:last-of-type::after {
+            display: none;
         }
 
         .hourly-forecast__items {
