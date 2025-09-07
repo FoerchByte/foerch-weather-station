@@ -427,6 +427,61 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         .hourly-forecast__slider-container { padding: 0 5px; }
         .weather-app__forecast-wrapper { display: none; }
         .forecast-switcher { display: none; }
+
+        /* --- ZMIANA: Przywrócenie układu desktopowego dla prognozy godzinowej --- */
+        /* --- CHANGE: Restore desktop layout for hourly forecast --- */
+
+        /* Przywrócenie kierunku wiersza dla głównego kontenera */
+        /* Restore row direction for the main container */
+        .hourly-forecast__grid {
+            flex-direction: row;
+        }
+        
+        /* Przywrócenie siatki i dostosowanie szerokości kafelków */
+        /* Restore grid and adjust tile width */
+        .hourly-forecast__items {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: 80px; /* Zmniejszono z 90px aby zmieścić więcej kafelków */
+            gap: 8px; /* Upewnienie się, że przerwa jest zresetowana */
+        }
+
+        /* Przywrócenie pionowego układu wewnątrz kafelka */
+        /* Restore vertical layout inside the tile */
+        .hourly-forecast__item {
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            height: auto; /* Usunięcie stałej wysokości jeśli była */
+        }
+
+        /* Przywrócenie stylów dla elementów wewnątrz kafelka */
+        /* Restore styles for elements inside the tile */
+        .hourly-forecast__item > * {
+            flex: initial;
+        }
+        .hourly-forecast__time {
+            flex-basis: auto;
+            font-size: 0.8rem;
+        }
+        .hourly-forecast__icon {
+             justify-content: center; /* Zapewnienie wyśrodkowania */
+        }
+        .hourly-forecast__temp {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: normal;
+        }
+        .hourly-forecast__pop {
+            justify-content: center;
+        }
+
+        /* Upewnienie się, że separator jest widoczny */
+        /* Make sure the separator is visible */
+        .hourly-forecast__day-group:not(:last-child)::after {
+            display: block;
+        }
     }
 }
 
