@@ -521,9 +521,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
          }
 
         .hourly-forecast__grid {
-             display: flex;
-             flex-direction: column;
-             gap: 0;
+             display: block; /* ZMIANA: z flex na block */
         }
 
         .hourly-forecast__day-group {
@@ -554,8 +552,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             justify-content: space-between;
             align-items: center;
             padding: 0.75rem 1rem;
-            width: 100%; /* EXPLICITLY ADDED WIDTH */
-            box-sizing: border-box; /* ADDED FOR CORRECT PADDING CALCULATION */
+            box-sizing: border-box;
         }
 
         .hourly-forecast__time {
