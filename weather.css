@@ -135,7 +135,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     color: var(--completed-text);
 }
 .current-weather__detail-item .detail-item-header svg {
-    width: 22px; height: 22px; /* Zwiększono dla lepszej czytelności */
+    width: 22px; height: 22px;
     stroke: var(--completed-text);
 }
 .detail-item-value { font-size: 1.1rem; font-weight: 500; }
@@ -419,8 +419,8 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
 
         .current-weather__extra-details {
-            grid-template-columns: repeat(3, 1fr); /* Zmieniono na 3 kolumny dla przejrzystości */
-            gap: 1.5rem 1rem; /* Zwiększono odstępy */
+            grid-template-columns: repeat(5, 1fr); /* Przywrócenie 5 kolumn */
+            gap: 1rem 0.4rem;
             align-items: start;
         }
 
@@ -492,15 +492,18 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         grid-template-columns: 1fr 1fr;
         grid-template-areas:
             "col1 col2"
-            "col3 col3" /* Przeniesiono na środek */
+            "col3 col3" /* Ustawienie "Nawierzchni" na środku */
             "col4 col5";
     }
     .detail-col--1 { grid-area: col1; }
     .detail-col--2 { grid-area: col2; }
     .detail-col--3 {
         grid-area: col3;
-        justify-self: stretch; /* Rozciągnięcie na całą szerokość */
-        text-align: center; /* Wyśrodkowanie tekstu wewnątrz */
+        justify-self: stretch;
+    }
+     /* Dodatkowa reguła centrująca zawartość "Nawierzchni" */
+    .detail-col--3 .current-weather__detail-item {
+        align-items: center;
     }
     .detail-col--4 { grid-area: col4; }
     .detail-col--5 { grid-area: col5; }
@@ -570,15 +573,14 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
 
         .hourly-forecast__time {
-            /* Usunięto stałą szerokość dla elastyczności */
             text-align: left;
             font-size: 1rem;
             margin: 0;
         }
 
         .hourly-forecast__icon {
-            width: 56px; /* Zwiększono dla lepszej widoczności */
-            height: 56px; /* Zwiększono dla lepszej widoczności */
+            width: 56px;
+            height: 56px;
             margin: 0;
         }
 
@@ -588,7 +590,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             justify-content: flex-end;
             gap: 1rem;
             text-align: right;
-            /* Usunięto flex-grow, aby pozwolić na naturalne centrowanie */
         }
 
         .hourly-forecast__temp {
