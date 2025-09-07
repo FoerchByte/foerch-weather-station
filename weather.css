@@ -222,13 +222,12 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
-/* --- KLUCZOWA ZMIANA / KEY CHANGE --- */
 .hourly-forecast__grid {
-    display: grid; /* ZMIANA: Z `flex` na `grid` dla precyzyjnej kontroli kolumn / CHANGE: From `flex` to `grid` for precise column control */
-    grid-auto-flow: column; /* ZMIANA: Wymusza układ horyzontalny / CHANGE: Forces a horizontal layout */
-    /* ZMIANA: Definiuje szerokość każdej kolumny, aby 8 mieściło się w widoku, uwzględniając odstęp (8px * 7 przerw / 8 elementów = 7px na element) */
-    /* CHANGE: Defines each column's width to fit 8 items in view, accounting for the gap (8px * 7 gaps / 8 items = 7px per item) */
-    grid-auto-columns: calc((100% / 8) - 7px);
+    display: grid;
+    grid-auto-flow: column;
+    /* ZMIANA: Ustawiono stałą szerokość kolumny dla lepszej kontroli */
+    /* CHANGE: Set a fixed column width for better control */
+    grid-auto-columns: 90px;
     gap: 8px;
     padding-bottom: 1rem;
 }
@@ -243,11 +242,12 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     border: 1px solid var(--border-color);
     border-radius: 8px;
     position: relative;
-    padding: 0.6rem 0.2rem;
-    height: 140px;
+    /* ZMIANA: Padding ujednolicony z prognozą 5-dniową */
+    /* CHANGE: Padding unified with 5-day forecast */
+    padding: 1rem;
+    /* ZMIANA: Usunięto stałą wysokość dla elastyczności */
+    /* CHANGE: Removed fixed height for flexibility */
     box-sizing: border-box;
-    /* ZMIANA: Usunięto `flex-shrink` i `flex-basis` - niepotrzebne przy `grid` */
-    /* CHANGE: Removed `flex-shrink` and `flex-basis` - not needed with `grid` */
 }
 
 .hourly-forecast__item--new-day::before {
@@ -303,7 +303,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
 .hourly-forecast__time {
     font-size: 0.8rem;
-    margin: 0;
+    margin: 0 0 0.5rem 0;
 }
 .hourly-forecast__icon {
     width: 40px;
@@ -312,12 +312,14 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 .hourly-forecast__temp {
     font-size: 1rem;
-    margin: 0;
+    margin: 0.5rem 0;
 }
 .hourly-forecast__pop {
     font-size: 0.8rem;
     margin-top: 0.1rem;
     gap: 2px;
+    display: flex;
+    align-items: center;
 }
 .hourly-forecast__pop-icon {
     width: 10px;
@@ -391,10 +393,8 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     .hourly-forecast__header { display: block; } 
     .hourly-forecast__range-switcher { margin: 0.5rem auto 0; } 
     
-    /* ZMIANA: Dopasowanie szerokości kafelków dla tabletów (5 w widoku) */
-    /* CHANGE: Adjust tile width for tablets (5 in view) */
     .hourly-forecast__grid {
-        grid-auto-columns: calc((100% / 5) - 6.4px); /* 8px * 4 / 5 = 6.4px */
+        grid-auto-columns: 90px;
     }
 
     @media (orientation: landscape) {
@@ -420,12 +420,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         .hourly-forecast__slider-container { padding: 0 5px; }
         .weather-app__forecast-wrapper { display: none; }
         .forecast-switcher { display: none; }
-
-        /* ZMIANA: Przywrócenie 8 kafelków dla tabletów w trybie landscape */
-        /* CHANGE: Restore 8 tiles for tablets in landscape mode */
-        .hourly-forecast__grid {
-            grid-auto-columns: calc((100% / 8) - 7px);
-        }
     }
 }
 
@@ -464,8 +458,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             display: block;
          }
 
-        /* ZMIANA: Dla widoku mobilnego-pionowego, wracamy do układu listy (jeden pod drugim) */
-        /* CHANGE: For mobile-portrait view, we revert to a list layout (one below the other) */
         .hourly-forecast__grid {
              display: flex;
              flex-direction: column;
@@ -499,7 +491,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             align-items: center; 
             padding: 0.75rem 1rem;
             flex-basis: auto;
-            height: auto; /* ZMIANA: Reset wysokości */
+            height: auto;
         }
         .hourly-forecast__item > * { flex: 1; }
         .hourly-forecast__time { flex-basis: 25%; font-size: 1rem; }
@@ -515,3 +507,4 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
     }
 }
+
