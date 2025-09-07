@@ -244,9 +244,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     box-sizing: border-box;
 }
 
-/* --- KLUCZOWA ZMIANA / KEY CHANGE --- */
-/* PL: Używamy cienia, aby stworzyć wizualną linię podziału, która NIE wpływa na rozmiar elementu i nie deformuje siatki. */
-/* EN: We use a shadow to create a visual dividing line that does NOT affect the element's size and does not deform the grid. */
 .hourly-forecast__item--new-day {
     box-shadow: -1px 0 0 0 var(--border-color);
 }
@@ -254,23 +251,21 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .hourly-forecast__item--new-day::before {
     content: attr(data-day);
     position: absolute;
-    /* ZMIANA: Pozycjonowanie i transformacja przeniesiona na prawą stronę */
-    /* CHANGE: Positioning and transformation moved to the right side */
-    right: -5px;
-    transform: translateX(50%);
+    /* ZMIANA: Pozycjonowanie na środek przerwy (8px gap -> left: -4px) */
+    /* CHANGE: Positioning to the middle of the gap (8px gap -> left: -4px) */
+    left: -4px;
+    /* ZMIANA: Dodano rotate(180deg) dla odwrócenia tekstu */
+    /* CHANGE: Added rotate(180deg) to flip the text */
+    transform: translateX(-50%) rotate(180deg);
     top: 0;
     bottom: 0;
     width: auto;
     padding: 0 4px;
-    /* ZMIANA: Odwrócenie kierunku tekstu (od dołu do góry) */
-    /* CHANGE: Reversed text direction (bottom to top) */
     writing-mode: vertical-rl; 
     text-orientation: mixed;
     text-align: center;
     font-weight: bold;
     color: var(--completed-text);
-    /* ZMIANA: Usunięto border, jest teraz obsługiwany przez box-shadow na rodzicu */
-    /* CHANGE: Removed border, now handled by box-shadow on the parent */
     border: none;
     display: flex;
     align-items: center;
