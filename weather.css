@@ -553,8 +553,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         
         .hourly-forecast__item { 
             display: grid;
-            /* ZMIANA: Nowa, niezawodna definicja siatki */
-            grid-template-columns: auto 1fr auto auto;
+            grid-template-columns: auto 1fr auto; /* ZMIANA: Prostsza siatka z 3 kolumnami */
             align-items: center; 
             gap: 1rem;
             padding: 0.75rem 1rem;
@@ -576,14 +575,16 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             font-size: 1.1rem;
             font-weight: bold;
             text-align: right;
+            white-space: nowrap; /* Zapobiega łamaniu linii */
         }
 
         .hourly-forecast__pop { 
-            grid-column: 4;
-            justify-content: flex-end;
+            grid-column: 3; /* ZMIANA: Przeniesienie do tej samej kolumny co temperatura */
+            justify-self: end; /* Wyrównanie do prawej w obrębie komórki siatki */
             display: flex;
             align-items: center;
             gap: 4px;
+            padding-left: 0.5rem; /* Odstęp od temperatury */
         }
         
         #forecasts-container.show-hourly .weather-app__forecast-wrapper { display: none; }
