@@ -191,7 +191,7 @@ class WeatherApp {
                     <div class="current-weather__detail-item"><span class="detail-item-header"><span>Nawierzchnia</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0-4.4-3.6-8-8-8s-8 3.6-8 8c0 2 .8 3.8 2 5l-3 7h18l-3-7c1.2-1.2 2-3 2-5Z"/><path d="M12 10h.01"/></svg></span><span class="detail-item-value value-color--${roadCondition.class}">${roadCondition.text}</span></div>
                 </div>
                 <div class="detail-col detail-col--4">
-                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Wschód słońca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg></span><span class="detail-item-value">${formatTime(current.sunrise)}</span></div>
+                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Wschód słońca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 A0 0 0-8 0"/></svg></span><span class="detail-item-value">${formatTime(current.sunrise)}</span></div>
                     <div class="current-weather__detail-item"><span class="detail-item-header"><span>Zachód słońca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/><path d="M16 18a4 4 0 0 1-8 0"/></svg></span><span class="detail-item-value">${formatTime(current.sunset)}</span></div>
                 </div>
                 <div class="detail-col detail-col--5">
@@ -205,25 +205,24 @@ class WeatherApp {
         // --- ZMIANA: Logika filtrowania prognozy ---
         // --- CHANGE: Forecast filtering logic ---
         const now = new Date();
-        
-        // PL: Ustawiamy koniec dzisiejszego dnia na 23:59:59
-        // EN: Set the end of today to 23:59:59
-        const endOfToday = new Date(now);
-        endOfToday.setHours(23, 59, 59, 999);
+        let forecastToShow;
 
-        // PL: Ustawiamy koniec jutrzejszego dnia na 23:59:59
-        // EN: Set the end of tomorrow to 23:59:59
-        const endOfTomorrow = new Date(endOfToday);
-        endOfTomorrow.setDate(endOfTomorrow.getDate() + 1);
-
-        // PL: Wybieramy odpowiedni zakres czasowy na podstawie przełącznika (24h/48h)
-        // EN: Select the appropriate time range based on the switcher (24h/48h)
-        const endTime = this.currentHourlyRange === 24 ? endOfToday : endOfTomorrow;
-
-        const forecastToShow = this.hourlyForecastData.filter(item => {
-            const itemDate = new Date(item.dt * 1000);
-            return itemDate > now && itemDate <= endTime;
-        });
+        if (this.currentHourlyRange === 24) {
+            // PL: Ustawiamy koniec JUTRZEJSZEGO dnia na 23:59:59
+            // EN: Set the end of TOMORROW to 23:59:59
+            const endOfTomorrow = new Date();
+            endOfTomorrow.setDate(now.getDate() + 1);
+            endOfTomorrow.setHours(23, 59, 59, 999);
+            
+            forecastToShow = this.hourlyForecastData.filter(item => {
+                const itemDate = new Date(item.dt * 1000);
+                return itemDate > now && itemDate <= endOfTomorrow;
+            });
+        } else { // 48h
+            // PL: Dla 48h pokazujemy po prostu wszystkie dostępne dane z API (czyli najbliższe 48 godzin)
+            // EN: For 48h, we simply show all available data from the API (i.e., the next 48 hours)
+            forecastToShow = this.hourlyForecastData.slice(0, 48);
+        }
         
         this.dom.hourly.container.innerHTML = ''; 
 
@@ -358,8 +357,6 @@ class WeatherApp {
         const itemWidth = item.offsetWidth;
         const gap = 12; // Zdefiniowane w CSS
         
-        // ZMIANA: Sprawdzamy ile kafelków jest widocznych, aby przewijać o całą "stronę"
-        // CHANGE: Check how many tiles are visible to scroll by a full "page"
         const visibleItems = Math.floor(this.dom.hourly.scrollWrapper.clientWidth / (itemWidth + gap));
         const scrollAmount = (itemWidth + gap) * visibleItems * direction;
         
