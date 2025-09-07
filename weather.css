@@ -266,16 +266,18 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     box-sizing: border-box;
 }
 
-/* ZMIANA: Rysuje pełny separator wyrównany z nagłówkiem i kafelkami */
-/* CHANGE: Draws a full separator aligned with the heading and tiles */
+/* ZMIANA: Rysuje pełny, gradientowy separator wyrównany z nagłówkiem i kafelkami */
+/* CHANGE: Draws a full, gradient separator aligned with the heading and tiles */
 .hourly-forecast__day-group:not(:last-child)::after {
     content: '';
     position: absolute;
     top: 0;
-    bottom: 0; /* ZMIANA: Rozciąga linię do samego dołu */
+    bottom: 0;
     right: 8px; 
     width: 1px;
-    background-color: var(--primary-color);
+    /* ZMIANA: Zastosowanie gradientu zamiast jednolitego koloru */
+    /* CHANGE: Using a gradient instead of a solid color */
+    background: linear-gradient(to bottom, var(--primary-color) 0%, transparent 100%);
 }
 
 
