@@ -275,7 +275,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     bottom: 0; /* ZMIANA: Rozciąga linię do samego dołu */
     right: 8px; 
     width: 1px;
-    background-color: var(--border-color);
+    background-color: var(--primary-color);
 }
 
 
