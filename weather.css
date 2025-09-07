@@ -161,14 +161,13 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     width: 80%; height: 3px; background-color: var(--primary-color);
 }
 
-/* ZMIANA: Przywrócenie stylu "podkreślenia" dla przełącznika 24/48h */
 .hourly-forecast__range-switcher {
     display: flex;
     border: none;
     margin: 0;
     width: auto;
     max-width: 200px;
-    overflow: visible; /* Zezwalamy na widoczność ::after */
+    overflow: visible;
 }
 .hourly-forecast__range-switcher button {
     flex: 1;
@@ -223,7 +222,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
-/* ZMIANA: Powrót do Flexboxa dla siatki prognozy */
 .hourly-forecast__grid {
     display: flex;
     flex-wrap: nowrap;
@@ -236,13 +234,13 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 1rem 0.5rem;
     background-color: var(--background-color);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     position: relative;
-    /* ZMIANA: Precyzyjne obliczenie szerokości kafelka, aby zmieścić 8 */
     flex-shrink: 0;
+    /* ZMIANA: Zmniejszono padding i obliczono nową szerokość kafelka */
+    padding: 0.8rem 0.4rem;
     flex-basis: calc(12.5% - 10.5px);
 }
 
@@ -345,16 +343,23 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     .hourly-forecast__slider-nav { display: flex; }
     .hourly-forecast__slider-container { padding: 0; }
     
+    /* ZMIANA: Układ nagłówka z przyciskami na całą szerokość */
     .hourly-forecast__header {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
+        display: block; /* Powrót do domyślnego zachowania */
     }
     .hourly-forecast__title {
-        justify-self: start;
+        display: none; /* Ukrywamy tytuł "Prognoza godzinowa" */
     }
     .hourly-forecast__range-switcher {
-        justify-self: end;
+        width: 100%; /* Rozciągamy kontener na całą szerokość */
+        max-width: none;
+        border-bottom: 1px solid var(--border-color); /* Linia oddzielająca */
+        padding-bottom: 0.5rem; /* Odstęp od linii */
+        margin-bottom: -0.5rem; /* Korekta, aby linia była blisko przycisków */
+    }
+    .hourly-forecast__range-switcher button {
+        flex-basis: 50%; /* Każdy przycisk zajmuje 50% szerokości kontenera */
+        text-align: center; /* Centrujemy tekst w przycisku */
     }
 }
 
