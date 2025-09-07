@@ -201,7 +201,12 @@ class WeatherApp {
             </div>`;
     }
     
+    // ZMIANA: Całkowita przebudowa funkcji renderującej prognozę godzinową
+    // CHANGE: Complete overhaul of the hourly forecast rendering function
     renderHourlyForecast() {
+        const container = this.dom.hourly.container;
+        container.innerHTML = '';
+
         const now = new Date();
         let forecastToShow;
 
@@ -213,44 +218,60 @@ class WeatherApp {
             forecastToShow = this.hourlyForecastData.filter(item => {
                 const itemDate = new Date(item.dt * 1000);
                 return itemDate > now && itemDate <= endOfTomorrow;
-            }).slice(0, 24); // Ensure we only show a max of 24 hours
+            });
         } else { // 48h
-            forecastToShow = this.hourlyForecastData.slice(1, 49); // Get next 48 hours
+            forecastToShow = this.hourlyForecastData.slice(0, 48);
         }
-        
-        this.dom.hourly.container.innerHTML = ''; 
 
-        let lastDate = '';
-        const tomorrowStr = new Date(Date.now() + 864e5).toLocaleDateString('pl-PL');
-        
-        forecastToShow.forEach((item) => {
+        // 1. Grupujemy dane wg dnia / Group data by day
+        const groupedByDay = forecastToShow.reduce((acc, item) => {
             const itemDateObj = new Date(item.dt * 1000);
-            const itemDate = itemDateObj.toLocaleDateString('pl-PL');
+            const itemDateStr = itemDateObj.toLocaleDateString('pl-PL');
             
-            let dayLabel = '';
-            let newDayClass = '';
-
-            if (itemDate !== lastDate && lastDate !== '') {
-                newDayClass = 'hourly-forecast__item--new-day';
-                if (itemDate === tomorrowStr) {
-                    dayLabel = 'Jutro';
-                } else {
-                    dayLabel = itemDateObj.toLocaleDateString('pl-PL', { weekday: 'long' });
-                }
+            const todayStr = now.toLocaleDateString('pl-PL');
+            const tomorrow = new Date();
+            tomorrow.setDate(now.getDate() + 1);
+            const tomorrowStr = tomorrow.toLocaleDateString('pl-PL');
+            
+            let dayLabel;
+            if (itemDateStr === todayStr) {
+                dayLabel = 'Dzisiaj';
+            } else if (itemDateStr === tomorrowStr) {
+                dayLabel = 'Jutro';
+            } else {
+                dayLabel = itemDateObj.toLocaleDateString('pl-PL', { weekday: 'long' });
             }
-            lastDate = itemDate;
             
-            this.dom.hourly.container.innerHTML += `
-            <div class="hourly-forecast__item ${newDayClass}" data-day="${dayLabel}">
-                <p class="hourly-forecast__time">${itemDateObj.getHours()}:00</p>
-                <div class="hourly-forecast__icon">${this.getWeatherIconHtml(item.weather[0].icon, item.weather[0].description)}</div>
-                <p class="hourly-forecast__temp">${Math.round(item.temp)}°C</p>
-                <div class="hourly-forecast__pop">
-                    <svg class="hourly-forecast__pop-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a5.53 5.53 0 0 0-5.43 6.05L8 16l5.43-9.95A5.53 5.53 0 0 0 8 0zm0 8.87A2.87 2.87 0 1 1 10.87 6 2.87 2.87 0 0 1 8 8.87z"/></svg>
-                    <span>${Math.round(item.pop * 100)}%</span>
+            if (!acc[dayLabel]) acc[dayLabel] = [];
+            acc[dayLabel].push(item);
+            return acc;
+        }, {});
+
+        // 2. Budujemy nową strukturę HTML / Build the new HTML structure
+        for (const dayLabel in groupedByDay) {
+            const dayGroup = document.createElement('div');
+            dayGroup.className = 'hourly-forecast__day-group';
+
+            dayGroup.innerHTML = `
+                <h4 class="hourly-forecast__day-heading">${dayLabel}</h4>
+                <div class="hourly-forecast__items">
+                    ${groupedByDay[dayLabel].map(item => {
+                        const itemDateObj = new Date(item.dt * 1000);
+                        return `
+                        <div class="hourly-forecast__item">
+                            <p class="hourly-forecast__time">${itemDateObj.getHours()}:00</p>
+                            <div class="hourly-forecast__icon">${this.getWeatherIconHtml(item.weather[0].icon, item.weather[0].description)}</div>
+                            <p class="hourly-forecast__temp">${Math.round(item.temp)}°C</p>
+                            <div class="hourly-forecast__pop">
+                                <svg class="hourly-forecast__pop-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a5.53 5.53 0 0 0-5.43 6.05L8 16l5.43-9.95A5.53 5.53 0 0 0 8 0zm0 8.87A2.87 2.87 0 1 1 10.87 6 2.87 2.87 0 0 1 8 8.87z"/></svg>
+                                <span>${Math.round(item.pop * 100)}%</span>
+                            </div>
+                        </div>`;
+                    }).join('')}
                 </div>
-            </div>`;
-        });
+            `;
+            container.appendChild(dayGroup);
+        }
         
         setTimeout(() => this.updateSliderButtons(), 0);
     }
@@ -349,13 +370,10 @@ class WeatherApp {
         if (!item) return;
 
         const itemWidth = item.offsetWidth;
-        // --- KLUCZOWA ZMIANA / KEY CHANGE ---
-        const gap = 8; // ZMIANA: Dopasowano do wartości `gap` w CSS (było 12) / CHANGE: Matched to the `gap` value in CSS (was 12)
+        const gap = 8; // Zdefiniowane w CSS dla .hourly-forecast__items
         
-        // ZMIANA: Przewijamy o stałą liczbę 8 kafelków, a nie o liczbę widocznych elementów
-        // CHANGE: We scroll by a fixed number of 8 tiles, not by the number of visible items
-        const itemsToScroll = 8; 
-        const scrollAmount = (itemWidth + gap) * itemsToScroll * direction;
+        const visibleItems = Math.floor(this.dom.hourly.scrollWrapper.clientWidth / (itemWidth + gap));
+        const scrollAmount = (itemWidth + gap) * visibleItems * direction;
         
         this.dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
@@ -365,3 +383,4 @@ document.addEventListener('DOMContentLoaded', () => {
     const app = new WeatherApp();
     app.init();
 });
+
