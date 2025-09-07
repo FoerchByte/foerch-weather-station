@@ -251,9 +251,9 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .hourly-forecast__item--new-day::before {
     content: attr(data-day);
     position: absolute;
-    /* ZMIANA: Pozycjonowanie na środek przerwy (8px gap -> left: -4px) */
-    /* CHANGE: Positioning to the middle of the gap (8px gap -> left: -4px) */
-    left: -4px;
+    /* ZMIANA: Pozycjonowanie na krawędzi kafelka (linii podziału) */
+    /* CHANGE: Positioning on the tile's edge (the dividing line) */
+    left: 0;
     /* ZMIANA: Dodano rotate(180deg) dla odwrócenia tekstu */
     /* CHANGE: Added rotate(180deg) to flip the text */
     transform: translateX(-50%) rotate(180deg);
