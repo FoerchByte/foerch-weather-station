@@ -178,6 +178,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 /* --- Prognoza godzinowa --- */
 .hourly-forecast__wrapper { 
     position: relative;
+    margin-top: 2rem; /* ZMIANA: Dodano odstęp od mapy */
 }
 .hourly-forecast__header {
     display: flex;
@@ -198,7 +199,8 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
 .hourly-forecast__grid { display: flex; flex-wrap: nowrap; gap: 12px; padding-bottom: 1rem; }
 .hourly-forecast__item {
-    flex: 0 0 calc((100% - (7 * 12px)) / 8);
+    flex-shrink: 0; /* ZMIANA: Zapobiega kurczeniu się elementów */
+    flex-basis: calc((100% - (7 * 12px)) / 8); /* ZMIANA: Przywraca 8 kafelków */
     scroll-snap-align: start;
     display: flex; flex-direction: column; align-items: center;
     padding: 1rem 0.5rem; background-color: var(--background-color);
@@ -209,10 +211,13 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .hourly-forecast__item--new-day::before {
     content: attr(data-day);
     position: absolute;
-    left: -19px;
+    /* ZMIANA: Precyzyjne pozycjonowanie w połowie odstępu (12px) */
+    left: -6px; 
+    transform: translateX(-50%);
     top: 0;
     bottom: 0;
-    width: 25px;
+    width: auto;
+    padding: 0 4px;
     writing-mode: vertical-rl;
     text-orientation: mixed;
     text-align: center;
@@ -223,15 +228,26 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     align-items: center;
     justify-content: center;
     font-size: 0.9em;
+    background-color: var(--card-background);
 }
 
 .hourly-forecast__slider-nav {
-    display: none; position: absolute; top: 50%;
-    transform: translateY(-50%); background-color: var(--card-background);
-    border: 1px solid var(--border-color); border-radius: 50%;
-    width: 40px; height: 40px; cursor: pointer; z-index: 10;
-    align-items: center; justify-content: center; font-size: 1.5rem;
-    line-height: 1; color: var(--text-color);
+    display: none; 
+    position: absolute; 
+    top: 50%;
+    transform: translateY(-50%); 
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color); 
+    border-radius: 50%;
+    width: 40px; 
+    height: 40px; 
+    cursor: pointer; 
+    z-index: 10;
+    align-items: center; 
+    justify-content: center; 
+    font-size: 1.5rem;
+    line-height: 1; 
+    color: var(--text-color);
 }
 .hourly-forecast__slider-nav:disabled { opacity: 0.3; cursor: not-allowed; }
 #hourly-slider-prev { left: -20px; }
@@ -284,43 +300,47 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 @media (min-width: 1025px) {
     .hourly-forecast__slider-nav { display: flex; }
     .hourly-forecast__slider-container { padding: 0 25px; }
-    .hourly-forecast__range-switcher { display: none; }
-    .hourly-forecast__grid { padding-left: 25px; }
+    /* ZMIANA: Przełącznik 24/48h jest teraz widoczny na desktopie */
+    .hourly-forecast__range-switcher { 
+        display: flex; 
+        border: none;
+        flex: 0 0 auto; /* Zapobiega rozciąganiu */
+    }
+     .hourly-forecast__range-switcher button {
+        flex: 0 1 auto;
+     }
 }
 
 @media (max-width: 1024px) {
     .weather-app { padding: 1.5rem 1rem; }
+    
     .hourly-forecast__header { display: none; }
+    .hourly-forecast__item {
+         flex-basis: calc((100% - (4 * 12px)) / 5); /* 5 kafelków na tabletach */
+    }
+
 
     @media (orientation: landscape) {
         .current-weather__extra-details {
-            /* ZMIANA: Wywalczono 5 kolumn. Zmniejszono odstępy i rozmiar czcionki nagłówków, */
-            /* aby zmieścić wszystkie elementy w jednej linii bez zawijania. */
-            /* CHANGE: Fought for and won the 5-column layout. Reduced gaps and header font size */
-            /* to fit all elements in a single line without wrapping. */
             grid-template-columns: repeat(5, 1fr);
-            gap: 1rem 0.4rem; /* Zmniejszony odstęp poziomy */
-            align-items: start; /* Wyrównanie do góry dla spójności */
+            gap: 1rem 0.4rem; 
+            align-items: start;
         }
         
         .current-weather__extra-details .detail-item-header {
-            font-size: 0.85rem; /* Zmniejszona czcionka dla etykiet */
-            min-height: 34px; /* Zapewnia równą wysokość, nawet przy zawijaniu */
+            font-size: 0.85rem;
+            min-height: 34px;
             align-items: start;
         }
 
         .detail-col--3 {
-            align-self: start; /* Wyrównanie do góry */
+            align-self: start;
         }
-
-        /* ZMIANA: Usunięto grid-template-areas, aby uprościć i pozwolić na naturalny przepływ */
-        /* CHANGE: Removed grid-template-areas to simplify and allow natural flow */
         
         .hourly-forecast__slider-nav { display: flex; }
         .hourly-forecast__slider-container { padding: 0 50px; }
         .weather-app__forecast-wrapper { display: none; }
         .forecast-switcher { display: none; }
-        .hourly-forecast__grid { padding-left: 25px; }
     }
 }
 
@@ -338,15 +358,9 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     .detail-col--2 { grid-area: col2; }
     .detail-col--3 {
         grid-area: col3;
-        /* ZMIANA: Cały blok jest centrowany w swojej przestrzeni siatki. */
-        /* CHANGE: The entire block is centered within its grid area. */
         justify-self: center;
-        text-align: left; /* Tekst wewnątrz bloku jest wyrównany do lewej. */
+        text-align: left;
     }
-    
-    /* ZMIANA: Usunięto zbędne reguły, nowa, prostsza implementacja powyżej. */
-    /* CHANGE: Removed redundant rules; the new, simpler implementation is above. */
-
     .detail-col--4 { grid-area: col4; }
     .detail-col--5 { grid-area: col5; }
 
@@ -367,6 +381,8 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             width: 100%;
             display: block;
             order: -1;
+            transform: none; /* Reset transformacji */
+            background-color: transparent;
         }
         .hourly-forecast__item--new-day {
             flex-wrap: wrap;
@@ -379,32 +395,13 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             padding: 0.75rem 1rem;
         }
 
-        /* --- ZMIANA: Precyzyjne sterowanie elementami flexbox dla stabilnego układu --- */
-        /* --- CHANGE: Precise flexbox control for a stable layout --- */
-        .hourly-forecast__item > * { flex: none; } /* PL: Reset właściwości flex / EN: Reset flex properties */
+        /* ZMIANA: Usunięto poprzednią, błędną poprawkę. Problem zostanie rozwiązany w kolejnym kroku. */
+        .hourly-forecast__item > * { flex: 1; }
 
-        .hourly-forecast__time {
-            flex-basis: 50px;
-            font-size: 1rem;
-        }
-        .hourly-forecast__icon {
-            flex-basis: 40px;
-            display: flex;
-            justify-content: center;
-        }
-        .hourly-forecast__temp {
-            flex-grow: 1;
-            text-align: right;
-            font-size: 1.1rem;
-            font-weight: bold;
-            padding: 0 0.5rem;
-        }
-        .hourly-forecast__pop {
-            flex-basis: 60px;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-        }
+        .hourly-forecast__time { flex-basis: 25%; font-size: 1rem; }
+        .hourly-forecast__icon { display: flex; justify-content: center; width: 40px; height: 40px; }
+        .hourly-forecast__temp { text-align: right; font-size: 1.1rem; font-weight: bold; }
+        .hourly-forecast__pop { justify-content: flex-end; }
         
         #forecasts-container.show-hourly .weather-app__forecast-wrapper { display: none; }
         #forecasts-container.show-daily .hourly-forecast__wrapper { display: none; }
@@ -414,3 +411,4 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
     }
 }
+
