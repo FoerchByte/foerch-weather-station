@@ -393,7 +393,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     .weather-app { padding: 1.5rem 1rem; }
 
     @media (orientation: landscape) {
-        /* Przywrócenie widoczności prognoz w trybie landscape */
         .hourly-forecast__wrapper,
         .weather-app__forecast-wrapper {
             display: block !important;
@@ -427,14 +426,15 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
 
         .detail-col--3 {
-            justify-content: center; /* Poprawka centrowania "Nawierzchni" */
+            align-self: center; /* OSTATECZNA POPRAWKA: Centrowanie w pionie */
+            justify-content: center;
         }
 
         .hourly-forecast__slider-nav { display: flex; }
         .hourly-forecast__slider-container { padding: 0 5px; }
 
         .forecast-switcher {
-            display: none; /* Ukrycie przełącznika w landscape */
+            display: none;
         }
 
         .hourly-forecast__grid {
@@ -600,7 +600,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             margin: 0;
         }
         
-        /* Przywrócenie ukrywania prognoz w trybie portrait */
         #forecasts-container:not(.show-hourly):not(.show-daily) .hourly-forecast__wrapper,
         #forecasts-container:not(.show-hourly):not(.show-daily) .weather-app__forecast-wrapper {
             display: none;
