@@ -355,7 +355,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         max-width: none;
         border-bottom: 1px solid var(--border-color); /* Linia oddzielająca */
         padding-bottom: 0.5rem; /* Odstęp od linii */
-        margin-bottom: -0.5rem; /* Korekta, aby linia była blisko przycisków */
+        margin-bottom: 1rem; /* ZMIANA: Zwiększony odstęp od kafelków */
     }
     .hourly-forecast__range-switcher button {
         flex-basis: 50%; /* Każdy przycisk zajmuje 50% szerokości kontenera */
