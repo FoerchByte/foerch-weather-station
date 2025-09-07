@@ -391,17 +391,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
 @media (max-width: 1024px) {
     .weather-app { padding: 1.5rem 1rem; }
-
-    #forecasts-container:not(.show-hourly):not(.show-daily) .hourly-forecast__wrapper,
-    #forecasts-container:not(.show-hourly):not(.show-daily) .weather-app__forecast-wrapper {
-        display: none;
-    }
-
-    #forecasts-container.show-hourly .hourly-forecast__wrapper,
-    #forecasts-container.show-daily .weather-app__forecast-wrapper {
-        display: block;
-    }
-
+    
     @media (orientation: landscape) {
         .hourly-forecast__header {
             display: block;
@@ -419,7 +409,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
 
         .current-weather__extra-details {
-            grid-template-columns: repeat(5, 1fr); /* Przywrócenie 5 kolumn */
+            grid-template-columns: repeat(5, 1fr);
             gap: 1rem 0.4rem;
             align-items: start;
         }
@@ -492,7 +482,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         grid-template-columns: 1fr 1fr;
         grid-template-areas:
             "col1 col2"
-            "col3 col3" /* Ustawienie "Nawierzchni" na środku */
+            "col3 col3"
             "col4 col5";
     }
     .detail-col--1 { grid-area: col1; }
@@ -501,7 +491,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         grid-area: col3;
         justify-self: stretch;
     }
-     /* Dodatkowa reguła centrująca zawartość "Nawierzchni" */
     .detail-col--3 .current-weather__detail-item {
         align-items: center;
     }
