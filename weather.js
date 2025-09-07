@@ -131,9 +131,11 @@ class WeatherApp {
         if (!this.map.hasLayer(targetLayer)) this.map.addLayer(targetLayer);
     }
 
-    updateMap(lat, lon, cityName) {
+    updateMap(lat, lon, cityName, zoomLevel = 13) {
         if (this.map) {
-            this.map.setView([lat, lon], 13);
+            // PL: Używamy flyTo dla płynnej animacji i pewności, że widok się zaktualizuje.
+            // EN: Use flyTo for a smooth animation and to ensure the view updates.
+            this.map.flyTo([lat, lon], zoomLevel);
             if (this.marker) this.map.removeLayer(this.marker);
             this.marker = L.marker([lat, lon]).addTo(this.map).bindPopup(cityName).openPopup();
         }
@@ -277,14 +279,15 @@ class WeatherApp {
             this.dom.mapContainer.style.display = 'block';
             this.dom.forecastsContainer.style.display = 'block';
 
-            // PL: Używamy setTimeout z opóźnieniem 0, aby upewnić się, że DOM został
-            // PL: przerysowany ZANIM odświeżymy mapę. Zapobiega to błędom centrowania.
-            // EN: We use setTimeout with a 0 delay to ensure the DOM has been repainted
-            // EN: BEFORE we invalidate the map size. This prevents centering issues.
+            // PL: Sprawdzamy, czy wyszukiwanie jest oparte na geolokalizacji, aby ustawić odpowiedni zoom.
+            // EN: Check if the search is geolocation-based to set the appropriate zoom level.
+            const isGeoSearch = typeof query === 'object' && query.latitude;
+            const zoomLevel = isGeoSearch ? 16 : 13;
+
             setTimeout(() => {
                 if (this.map) {
                     this.map.invalidateSize();
-                    this.updateMap(data.location.lat, data.location.lon, data.location.name);
+                    this.updateMap(data.location.lat, data.location.lon, data.location.name, zoomLevel);
                 }
             }, 0);
 
