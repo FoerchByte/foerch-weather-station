@@ -266,8 +266,8 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     box-sizing: border-box;
 }
 
-/* ZMIANA: Rysuje pełny, gradientowy separator wyrównany z nagłówkiem i kafelkami */
-/* CHANGE: Draws a full, gradient separator aligned with the heading and tiles */
+/* ZMIANA: Rysuje pełny, odwrócony gradientowy separator */
+/* CHANGE: Draws a full, reversed gradient separator */
 .hourly-forecast__day-group:not(:last-child)::after {
     content: '';
     position: absolute;
@@ -275,9 +275,9 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     bottom: 0;
     right: 8px; 
     width: 1px;
-    /* ZMIANA: Zastosowanie gradientu zamiast jednolitego koloru */
-    /* CHANGE: Using a gradient instead of a solid color */
-    background: linear-gradient(to bottom, var(--primary-color) 0%, transparent 100%);
+    /* ZMIANA: Odwrócenie kierunku gradientu */
+    /* CHANGE: Reversing the gradient direction */
+    background: linear-gradient(to top, var(--primary-color) 0%, transparent 100%);
 }
 
 
