@@ -62,8 +62,6 @@ class WeatherApp {
 
     // --- Metoda do pobierania ikon SVG / Method for fetching SVG icons ---
     getWeatherIconHtml(iconCode, description) {
-        // PL: Definiujemy bazowy URL i mapowanie kodów ikon na nazwy plików SVG.
-        // EN: We define the base URL and a mapping of icon codes to SVG file names.
         const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
         const iconMap = {
             '01d': 'clear-day.svg', '01n': 'clear-night.svg',
@@ -77,8 +75,6 @@ class WeatherApp {
             '50d': 'fog-day.svg', '50n': 'fog-night.svg',
         };
         const iconName = iconMap[iconCode] || 'not-available.svg';
-        // PL: Zwracamy kompletny tag <img> z odpowiednim źródłem i klasą.
-        // EN: We return a complete <img> tag with the appropriate source and class.
         return `<img src="${iconBaseUrl}${iconName}" alt="${description}" class="weather-icon-img">`;
     }
 
@@ -133,8 +129,6 @@ class WeatherApp {
 
     updateMap(lat, lon, cityName, zoomLevel = 13) {
         if (this.map) {
-            // PL: Używamy flyTo dla płynnej animacji i pewności, że widok się zaktualizuje.
-            // EN: Use flyTo for a smooth animation and to ensure the view updates.
             this.map.flyTo([lat, lon], zoomLevel);
             if (this.marker) this.map.removeLayer(this.marker);
             this.marker = L.marker([lat, lon]).addTo(this.map).bindPopup(cityName).openPopup();
@@ -208,7 +202,9 @@ class WeatherApp {
     }
     
     renderHourlyForecast() {
-        const range = this.isMobilePortrait() ? this.currentHourlyRange : 48;
+        // PL: Niezmieniona logika - pokazujemy najbliższe 24 lub 48 godzin z API.
+        // EN: Unchanged logic - we show the next 24 or 48 hours from the API.
+        const range = this.isMobilePortrait() ? this.currentHourlyRange : this.currentHourlyRange;
         const forecastToShow = this.hourlyForecastData.slice(1, range + 1);
 
         this.dom.hourly.container.innerHTML = ''; 
@@ -279,8 +275,6 @@ class WeatherApp {
             this.dom.mapContainer.style.display = 'block';
             this.dom.forecastsContainer.style.display = 'block';
 
-            // PL: Sprawdzamy, czy wyszukiwanie jest oparte na geolokalizacji, aby ustawić odpowiedni zoom.
-            // EN: Check if the search is geolocation-based to set the appropriate zoom level.
             const isGeoSearch = typeof query === 'object' && query.latitude;
             const zoomLevel = isGeoSearch ? 17 : 13;
 
@@ -330,10 +324,15 @@ class WeatherApp {
     }
 
     updateSliderButtons() {
+        // PL: Nie pokazuj przycisków w trybie portretowym na mobile
+        // EN: Do not show buttons in mobile portrait mode
         if (this.isMobilePortrait() || !this.dom.hourly.scrollWrapper) return;
+
         requestAnimationFrame(() => {
             const { scrollLeft, scrollWidth, clientWidth } = this.dom.hourly.scrollWrapper;
             this.dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0;
+            // PL: Mały bufor (1px) na wypadek błędów zaokrąglenia w przeglądarce
+            // EN: A small buffer (1px) for potential browser rounding errors
             this.dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
         });
     }
@@ -341,7 +340,16 @@ class WeatherApp {
     handleSliderScroll(direction) {
         const item = this.dom.hourly.container.querySelector('.hourly-forecast__item');
         if (!item) return;
-        const scrollAmount = (item.offsetWidth + 12) * 8 * direction;
+
+        // PL: Obliczamy szerokość jednego kafelka wraz z odstępem (gap).
+        // EN: We calculate the width of a single tile including the gap.
+        const itemWidth = item.offsetWidth;
+        const gap = 12; // Zdefiniowane w CSS
+
+        // PL: Przewijamy o 8 kafelków. Ta wartość jest stała dla desktopu.
+        // EN: We scroll by 8 tiles. This value is constant for the desktop view.
+        const scrollAmount = (itemWidth + gap) * 8 * direction;
+        
         this.dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
 }
