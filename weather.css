@@ -159,26 +159,35 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     width: 80%; height: 3px; background-color: var(--primary-color);
 }
 
+/* --- ZMIANA: Układ siatki dla przełącznika 24/48h --- */
 .hourly-forecast__range-switcher {
-    display: flex;
-    border-bottom: 1px solid var(--border-color);
-    margin: 0 0 1rem 0;
+    display: grid; /* Używamy siatki */
+    grid-template-columns: 1fr 1fr; /* Dwie równe kolumny */
+    gap: 10px; /* Odstęp między przyciskami */
+    border: none; /* Usuwamy dolną ramkę */
+    margin: 0;
+    width: 100%;
+    max-width: 200px; /* Ograniczamy maksymalną szerokość */
 }
 .hourly-forecast__range-switcher button {
-    flex: 1; background: none; border: none; padding: 0.5rem;
-    font-weight: 500; color: var(--completed-text); cursor: pointer;
-    transition: color 0.2s; position: relative; font-size: 0.9rem;
+    flex: none; /* Resetujemy właściwości flex */
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    transition: background-color 0.2s, border-color 0.2s;
 }
-.hourly-forecast__range-switcher button.active { color: var(--text-color); }
+.hourly-forecast__range-switcher button.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
 .hourly-forecast__range-switcher button.active::after {
-    content: ''; position: absolute; bottom: -1px; left: 15%;
-    width: 70%; height: 2px; background-color: var(--primary-color);
+    display: none; /* Ukrywamy podkreślenie */
 }
 
 /* --- Prognoza godzinowa --- */
 .hourly-forecast__wrapper { 
     position: relative;
-    margin-top: 2rem; /* ZMIANA: Dodano odstęp od mapy */
+    margin-top: 2rem;
 }
 .hourly-forecast__header {
     display: flex;
@@ -197,28 +206,38 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
-.hourly-forecast__grid { display: flex; flex-wrap: nowrap; gap: 12px; padding-bottom: 1rem; }
+/* --- ZMIANA: Użycie CSS Grid dla stabilnego rozmiaru kafelków --- */
+.hourly-forecast__grid {
+    display: grid;
+    grid-auto-flow: column; /* Układamy elementy w kolumnach */
+    /* Definiujemy szerokość każdej kolumny (kafelka) */
+    grid-auto-columns: calc((100% - 7 * 12px) / 8); 
+    gap: 12px;
+    padding-bottom: 1rem;
+}
 .hourly-forecast__item {
-    flex-shrink: 0; /* ZMIANA: Zapobiega kurczeniu się elementów */
-    flex-basis: calc((100% - (7 * 12px)) / 8); /* ZMIANA: Przywraca 8 kafelków */
     scroll-snap-align: start;
-    display: flex; flex-direction: column; align-items: center;
-    padding: 1rem 0.5rem; background-color: var(--background-color);
-    border: 1px solid var(--border-color); border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0.5rem;
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     position: relative;
 }
 
 .hourly-forecast__item--new-day::before {
     content: attr(data-day);
     position: absolute;
-    /* ZMIANA: Precyzyjne pozycjonowanie w połowie odstępu (12px) */
     left: -6px; 
     transform: translateX(-50%);
     top: 0;
     bottom: 0;
     width: auto;
     padding: 0 4px;
-    writing-mode: vertical-rl;
+    /* ZMIANA: Odwrócona orientacja tekstu */
+    writing-mode: vertical-lr; 
     text-orientation: mixed;
     text-align: center;
     font-weight: bold;
@@ -300,27 +319,21 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 @media (min-width: 1025px) {
     .hourly-forecast__slider-nav { display: flex; }
     .hourly-forecast__slider-container { padding: 0 25px; }
-    /* ZMIANA: Przełącznik 24/48h jest teraz widoczny na desktopie */
-    .hourly-forecast__range-switcher { 
-        display: flex; 
-        border: none;
-        flex: 0 0 auto; /* Zapobiega rozciąganiu */
-    }
-     .hourly-forecast__range-switcher button {
-        flex: 0 1 auto;
-     }
 }
 
 @media (max-width: 1024px) {
     .weather-app { padding: 1.5rem 1rem; }
-    
-    .hourly-forecast__header { display: none; }
-    .hourly-forecast__item {
-         flex-basis: calc((100% - (4 * 12px)) / 5); /* 5 kafelków na tabletach */
+    .hourly-forecast__header { display: block; } /* Zmieniamy na block, aby tytuł i przyciski były pod sobą */
+    .hourly-forecast__range-switcher { margin: 0.5rem auto 0; } /* Centrujemy przyciski pod tytułem */
+
+    /* ZMIANA: Użycie CSS Grid dla stabilnego rozmiaru kafelków na tabletach */
+    .hourly-forecast__grid {
+        grid-auto-columns: calc((100% - 4 * 12px) / 5); /* 5 kafelków na tabletach */
     }
 
-
     @media (orientation: landscape) {
+        .hourly-forecast__header { display: flex; } /* Przywracamy flex dla landscape */
+        .hourly-forecast__range-switcher { margin: 0; }
         .current-weather__extra-details {
             grid-template-columns: repeat(5, 1fr);
             gap: 1rem 0.4rem; 
@@ -366,8 +379,41 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
     @media (orientation: portrait) {
         .forecast-switcher { display: flex; }
-        .hourly-forecast__range-switcher { margin-top: -1rem; }
-        .hourly-forecast__grid { flex-direction: column; gap: 8px; }
+        /* Resetujemy style z desktopa dla przycisków 24/48h */
+        .hourly-forecast__header { display: block; }
+        .hourly-forecast__range-switcher {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin: -1rem 0 1rem 0;
+            max-width: none;
+        }
+        .hourly-forecast__range-switcher button {
+             flex: 1;
+             border: none;
+             border-radius: 0;
+        }
+        .hourly-forecast__range-switcher button.active {
+            background-color: transparent;
+            border-color: transparent;
+            color: var(--text-color);
+        }
+         .hourly-forecast__range-switcher button.active::after {
+            display: block;
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 15%;
+            width: 70%;
+            height: 2px;
+            background-color: var(--primary-color);
+         }
+
+        .hourly-forecast__grid {
+             grid-auto-flow: row; /* Zmieniamy przepływ na wiersze */
+             grid-auto-columns: unset; /* Resetujemy szerokość kolumn */
+             flex-direction: column;
+             gap: 8px;
+        }
         
         .hourly-forecast__item--new-day::before {
             content: attr(data-day);
@@ -381,7 +427,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             width: 100%;
             display: block;
             order: -1;
-            transform: none; /* Reset transformacji */
+            transform: none;
             background-color: transparent;
         }
         .hourly-forecast__item--new-day {
@@ -389,15 +435,13 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
 
         .hourly-forecast__item { 
+            display: flex;
             flex-direction: row; 
             justify-content: space-between; 
             align-items: center; 
             padding: 0.75rem 1rem;
         }
-
-        /* ZMIANA: Usunięto poprzednią, błędną poprawkę. Problem zostanie rozwiązany w kolejnym kroku. */
         .hourly-forecast__item > * { flex: 1; }
-
         .hourly-forecast__time { flex-basis: 25%; font-size: 1rem; }
         .hourly-forecast__icon { display: flex; justify-content: center; width: 40px; height: 40px; }
         .hourly-forecast__temp { text-align: right; font-size: 1.1rem; font-weight: bold; }
