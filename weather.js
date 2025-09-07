@@ -284,8 +284,27 @@ class WeatherApp {
             this.renderDailyForecast(data);
             this.renderHourlyForecast();
             
-            if (!this.isMobilePortrait()) {
-                this.dom.forecastsContainer.style.display = 'block';
+            // ZMIANA: Logika wyświetlania prognoz po wyszukaniu
+            // CHANGE: Forecast display logic after search
+            this.dom.forecastsContainer.style.display = 'block'; // Zawsze pokazuj kontener ze switcherem
+
+            if (this.isMobilePortrait()) {
+                // W trybie portretowym, ukryj treść prognoz do czasu kliknięcia
+                // In portrait mode, hide forecast content until clicked
+                this.dom.forecastsContainer.className = '';
+                const activeButton = this.dom.forecastSwitcher.querySelector('.active');
+                if (activeButton) {
+                    activeButton.classList.remove('active');
+                }
+            } else {
+                // W innych trybach, domyślnie pokaż prognozę godzinową
+                // In other modes, show the hourly forecast by default
+                this.dom.forecastsContainer.className = 'show-hourly';
+                // Upewnij się, że odpowiedni przycisk jest aktywny
+                const dailyButton = this.dom.forecastSwitcher.querySelector('[data-forecast="daily"]');
+                if (dailyButton) dailyButton.classList.remove('active');
+                const hourlyButton = this.dom.forecastSwitcher.querySelector('[data-forecast="hourly"]');
+                if (hourlyButton) hourlyButton.classList.add('active');
             }
             
             this.dom.mapContainer.style.display = 'block';
@@ -326,7 +345,8 @@ class WeatherApp {
         if (!btn) return;
         this.dom.forecastsContainer.style.display = 'block';
         this.dom.forecastsContainer.className = `show-${btn.dataset.forecast}`;
-        this.dom.forecastSwitcher.querySelector('.active').classList.remove('active');
+        const currentActive = this.dom.forecastSwitcher.querySelector('.active');
+        if(currentActive) currentActive.classList.remove('active');
         btn.classList.add('active');
     }
 
