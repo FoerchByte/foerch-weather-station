@@ -223,13 +223,14 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
+/* ZMIANA: Powrót do Flexboxa dla siatki prognozy */
 .hourly-forecast__grid {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: calc((100% - 7 * 12px) / 8); 
+    display: flex;
+    flex-wrap: nowrap;
     gap: 12px;
     padding-bottom: 1rem;
 }
+
 .hourly-forecast__item {
     scroll-snap-align: start;
     display: flex;
@@ -240,15 +241,17 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     border: 1px solid var(--border-color);
     border-radius: 8px;
     position: relative;
+    /* ZMIANA: Precyzyjne obliczenie szerokości kafelka, aby zmieścić 8 */
+    flex-shrink: 0;
+    flex-basis: calc(12.5% - 10.5px);
 }
 
-/* ZMIANA: Przywrócenie etykiety dnia po LEWEJ stronie */
 .hourly-forecast__item--new-day::before {
     content: attr(data-day);
     position: absolute;
-    left: -6px; /* Pozycjonowanie po lewej stronie */
+    left: -6px;
     right: auto;
-    transform: translateX(-50%); /* Poprawne centrowanie */
+    transform: translateX(-50%);
     top: 0;
     bottom: 0;
     width: auto;
@@ -258,7 +261,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     text-align: center;
     font-weight: bold;
     color: var(--completed-text);
-    border-left: 1px solid var(--border-color); /* Ramka po lewej */
+    border-left: 1px solid var(--border-color);
     border-right: none;
     display: flex;
     align-items: center;
@@ -360,8 +363,8 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     .hourly-forecast__header { display: block; } 
     .hourly-forecast__range-switcher { margin: 0.5rem auto 0; } 
 
-    .hourly-forecast__grid {
-        grid-auto-columns: calc((100% - 4 * 12px) / 5);
+    .hourly-forecast__item {
+        flex-basis: calc(20% - 10px); /* 5 kafelków na tabletach */
     }
 
     @media (orientation: landscape) {
@@ -456,6 +459,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             justify-content: space-between; 
             align-items: center; 
             padding: 0.75rem 1rem;
+            flex-basis: auto; /* Reset dla widoku mobilnego */
         }
         .hourly-forecast__item > * { flex: 1; }
         .hourly-forecast__time { flex-basis: 25%; font-size: 1rem; }
