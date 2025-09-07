@@ -230,11 +230,9 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
 .hourly-forecast__day-group {
     flex-shrink: 0;
-    position: relative; /* ZMIANA: Pozycja względna dla pseudo-elementu */
+    position: relative;
 }
 
-/* ZMIANA: Dodaje odstęp po każdej grupie oprócz ostatniej */
-/* CHANGE: Adds spacing after each group except the last one */
 .hourly-forecast__day-group:not(:last-child) {
     padding-right: 16px;
 }
@@ -268,17 +266,15 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     box-sizing: border-box;
 }
 
-/* ZMIANA: Rysuje krótki separator wyrównany z nagłówkiem dnia */
-/* CHANGE: Draws a short separator aligned with the day heading */
+/* ZMIANA: Rysuje pełny separator wyrównany z nagłówkiem i kafelkami */
+/* CHANGE: Draws a full separator aligned with the heading and tiles */
 .hourly-forecast__day-group:not(:last-child)::after {
     content: '';
     position: absolute;
     top: 0;
-    /* Pozycjonuje linię na środku 16px przerwy */
-    /* Positions the line in the middle of the 16px gap */
+    bottom: 0; /* ZMIANA: Rozciąga linię do samego dołu */
     right: 8px; 
     width: 1px;
-    height: 1.2rem; /* Wysokość dopasowana do nagłówka */
     background-color: var(--border-color);
 }
 
