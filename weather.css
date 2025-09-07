@@ -230,6 +230,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
 .hourly-forecast__day-group {
     flex-shrink: 0;
+    position: relative; /* ZMIANA: Pozycja względna dla pseudo-elementu */
 }
 
 /* ZMIANA: Dodaje odstęp po każdej grupie oprócz ostatniej */
@@ -267,21 +268,17 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     box-sizing: border-box;
 }
 
-/* NOWOŚĆ: Rysuje separator idealnie pomiędzy kafelkami dni */
-/* NEW: Draws a separator perfectly between the daily tiles */
-.hourly-forecast__item:last-of-type {
-    position: relative;
-}
-
-.hourly-forecast__day-group:not(:last-child) .hourly-forecast__item:last-of-type::after {
+/* ZMIANA: Rysuje krótki separator wyrównany z nagłówkiem dnia */
+/* CHANGE: Draws a short separator aligned with the day heading */
+.hourly-forecast__day-group:not(:last-child)::after {
     content: '';
     position: absolute;
     top: 0;
-    bottom: 0;
-    /* Pozycjonuje linię na środku 16px przerwy (8px od krawędzi kafelka) */
-    /* Positions the line in the middle of the 16px gap (8px from the tile's edge) */
-    right: -8px; 
+    /* Pozycjonuje linię na środku 16px przerwy */
+    /* Positions the line in the middle of the 16px gap */
+    right: 8px; 
     width: 1px;
+    height: 1.2rem; /* Wysokość dopasowana do nagłówka */
     background-color: var(--border-color);
 }
 
@@ -482,7 +479,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
         /* ZMIANA: Ukrycie separatora na mobilnym widoku pionowym */
         /* CHANGE: Hide separator on mobile portrait view */
-        .hourly-forecast__day-group:not(:last-child) .hourly-forecast__item:last-of-type::after {
+        .hourly-forecast__day-group:not(:last-child)::after {
             display: none;
         }
 
