@@ -442,7 +442,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         .hourly-forecast__items {
             display: grid;
             grid-auto-flow: column;
-            grid-auto-columns: 83px; /* ZMIANA: Korekta dla idealnego dopasowania 8 kafelków */
+            grid-auto-columns: 85px; /* ZMIANA: Korekta dla idealnego dopasowania 8 kafelków */
             gap: 8px;
         }
 
