@@ -222,23 +222,23 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
-/* ZMIANA: Główny kontener jest teraz flexboxem dla grup dziennych */
-/* CHANGE: The main container is now a flexbox for day groups */
 .hourly-forecast__grid {
     display: flex;
     flex-wrap: nowrap;
     padding-bottom: 1rem;
 }
 
-/* NOWOŚĆ: Kontener na grupę jednego dnia */
-/* NEW: Container for a single day's group */
 .hourly-forecast__day-group {
     flex-shrink: 0;
-    padding-right: 16px; /* Odstęp oddzielający dni */
 }
 
-/* NOWOŚĆ: Nagłówek dnia (Dzisiaj, Jutro, etc.) */
-/* NEW: Day heading (Today, Tomorrow, etc.) */
+/* ZMIANA: Dodaje separator i odstęp po każdej grupie oprócz ostatniej */
+/* CHANGE: Adds a separator and spacing after each group except the last one */
+.hourly-forecast__day-group:not(:last-child) {
+    padding-right: 16px; 
+    border-right: 1px solid var(--border-color);
+}
+
 .hourly-forecast__day-heading {
     margin: 0 0 0.5rem 0;
     font-size: 0.9rem;
@@ -247,8 +247,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     text-transform: capitalize;
 }
 
-/* NOWOŚĆ: Siatka na kafelki wewnątrz grupy dziennej */
-/* NEW: Grid for tiles inside a day group */
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
@@ -460,11 +458,13 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
              gap: 8px;
         }
         
-        /* ZMIANA: Modyfikacja dla widoku mobilnego */
-        /* CHANGE: Modification for mobile view */
         .hourly-forecast__day-group {
             padding-right: 0;
+            /* ZMIANA: Usunięcie separatora na mobilnym widoku pionowym */
+            /* CHANGE: Remove separator on mobile portrait view */
+            border-right: none;
         }
+
         .hourly-forecast__items {
              display: flex;
              flex-direction: column;
