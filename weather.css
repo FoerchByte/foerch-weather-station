@@ -161,7 +161,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     width: 80%; height: 3px; background-color: var(--primary-color);
 }
 
-/* --- ZMIANA: Przywrócenie stylu "podkreślenia" dla przycisków 24/48h --- */
 .hourly-forecast__range-switcher {
     display: flex;
     border: none;
@@ -184,7 +183,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 .hourly-forecast__range-switcher button.active {
     color: var(--text-color);
-    background-color: transparent; /* Upewniamy się, że nie ma tła */
+    background-color: transparent;
 }
 .hourly-forecast__range-switcher button.active::after {
     display: block;
@@ -239,11 +238,13 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     position: relative;
 }
 
+/* --- ZMIANA: Odwrócenie etykiety dnia --- */
 .hourly-forecast__item--new-day::before {
     content: attr(data-day);
     position: absolute;
-    left: -6px; 
-    transform: translateX(-50%);
+    right: -6px; /* Pozycjonowanie po prawej stronie */
+    left: auto; /* Usunięcie pozycjonowania z lewej */
+    transform: translateX(50%); /* Poprawne centrowanie */
     top: 0;
     bottom: 0;
     width: auto;
@@ -253,7 +254,8 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     text-align: center;
     font-weight: bold;
     color: var(--completed-text);
-    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color); /* Ramka po prawej */
+    border-left: none; /* Usunięcie ramki z lewej */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -261,7 +263,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     background-color: var(--card-background);
 }
 
-/* --- ZMIANA: Mniejsze przyciski slidera, nakładające się na treść --- */
 .hourly-forecast__slider-nav {
     display: none; 
     position: absolute; 
@@ -335,8 +336,20 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 /* --- Media Queries --- */
 @media (min-width: 1025px) {
     .hourly-forecast__slider-nav { display: flex; }
-    /* ZMIANA: Usunięto padding, aby slider zajmował 100% szerokości */
     .hourly-forecast__slider-container { padding: 0; }
+    
+    /* ZMIANA: Przyciski 24h/48h zajmują 50% dostępnego miejsca */
+    .hourly-forecast__header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    .hourly-forecast__title {
+        justify-self: start;
+    }
+    .hourly-forecast__range-switcher {
+        justify-self: end;
+    }
 }
 
 @media (max-width: 1024px) {
@@ -368,7 +381,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
         
         .hourly-forecast__slider-nav { display: flex; }
-        .hourly-forecast__slider-container { padding: 0 5px; } /* Zmniejszony padding */
+        .hourly-forecast__slider-container { padding: 0 5px; }
         .weather-app__forecast-wrapper { display: none; }
         .forecast-switcher { display: none; }
     }
@@ -397,7 +410,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     @media (orientation: portrait) {
         .forecast-switcher { display: flex; }
         .hourly-forecast__header { display: block; }
-        /* Style dla przycisków 24/48h w trybie portretowym mobile */
+
         .hourly-forecast__range-switcher {
             display: flex;
             border-bottom: 1px solid var(--border-color);
@@ -405,11 +418,11 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             max-width: none;
         }
          .hourly-forecast__range-switcher button.active::after {
-            display: block; /* Przywracamy podkreślenie */
+            display: block;
          }
 
         .hourly-forecast__grid {
-             display: flex; /* Zmieniamy z powrotem na flex dla układu wierszowego */
+             display: flex;
              flex-direction: column;
              gap: 8px;
         }
@@ -420,6 +433,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             writing-mode: horizontal-tb;
             text-orientation: initial;
             border-left: none;
+            border-right: none;
             border-top: 1px solid var(--border-color);
             padding: 10px 0;
             margin: 8px 0 0 0;
