@@ -161,15 +161,14 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     width: 80%; height: 3px; background-color: var(--primary-color);
 }
 
-/* --- ZMIANA: Styl "pigułki" dla przełącznika 24/48h --- */
+/* ZMIANA: Przywrócenie stylu "podkreślenia" dla przełącznika 24/48h */
 .hourly-forecast__range-switcher {
     display: flex;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border: none;
     margin: 0;
     width: auto;
     max-width: 200px;
-    overflow: hidden;
+    overflow: visible; /* Zezwalamy na widoczność ::after */
 }
 .hourly-forecast__range-switcher button {
     flex: 1;
@@ -180,19 +179,26 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     font-weight: 500;
     color: var(--completed-text);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: color 0.2s;
     position: relative;
     font-size: 0.9rem;
 }
 .hourly-forecast__range-switcher button:first-child {
-    border-right: 1px solid var(--border-color);
+    border-right: none;
 }
 .hourly-forecast__range-switcher button.active {
-    color: white;
-    background-color: var(--primary-color);
+    color: var(--text-color);
+    background-color: transparent;
 }
 .hourly-forecast__range-switcher button.active::after {
-    display: none; /* Ukrywamy podkreślenie */
+    display: block;
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 15%;
+    width: 70%;
+    height: 2px;
+    background-color: var(--primary-color);
 }
 
 /* --- Prognoza godzinowa --- */
@@ -236,12 +242,13 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     position: relative;
 }
 
+/* ZMIANA: Przywrócenie etykiety dnia po LEWEJ stronie */
 .hourly-forecast__item--new-day::before {
     content: attr(data-day);
     position: absolute;
-    right: -6px;
-    left: auto;
-    transform: translateX(50%);
+    left: -6px; /* Pozycjonowanie po lewej stronie */
+    right: auto;
+    transform: translateX(-50%); /* Poprawne centrowanie */
     top: 0;
     bottom: 0;
     width: auto;
@@ -251,8 +258,8 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     text-align: center;
     font-weight: bold;
     color: var(--completed-text);
-    border-right: 1px solid var(--border-color);
-    border-left: none;
+    border-left: 1px solid var(--border-color); /* Ramka po lewej */
+    border-right: none;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -407,23 +414,12 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         .forecast-switcher { display: flex; }
         .hourly-forecast__header { display: block; }
 
-        /* ZMIANA: Przywrócenie stylu "podkreślenia" dla trybu mobilnego */
         .hourly-forecast__range-switcher {
             display: flex;
             border-bottom: 1px solid var(--border-color);
-            border: none;
-            border-radius: 0;
             margin: -1rem 0 1rem 0;
             max-width: none;
-            overflow: visible;
         }
-         .hourly-forecast__range-switcher button {
-             border-right: none;
-         }
-         .hourly-forecast__range-switcher button.active {
-            background-color: transparent;
-            color: var(--text-color);
-         }
          .hourly-forecast__range-switcher button.active::after {
             display: block;
          }
