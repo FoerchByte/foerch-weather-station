@@ -248,7 +248,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: 88px; /* ZMIANA: Delikatna korekta dla idealnego dopasowania na desktopie */
+    grid-auto-columns: 91px; /* ZMIANA: Zwiększenie szerokości kafelków na desktopie */
     gap: 8px;
 }
 
@@ -438,7 +438,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         .hourly-forecast__items {
             display: grid;
             grid-auto-flow: column;
-            grid-auto-columns: 86px;
+            grid-auto-columns: 85px;
             gap: 8px;
         }
 
