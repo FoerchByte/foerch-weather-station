@@ -527,12 +527,12 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
         .hourly-forecast__grid {
              display: block;
-             flex-wrap: wrap; /* Dodano dla pewności */
+             flex-wrap: wrap;
              padding-bottom: 0;
         }
 
         .hourly-forecast__day-group {
-            width: 100%; /* Kluczowa zmiana */
+            width: 100%;
             padding-right: 0;
             margin-bottom: 1rem;
         }
@@ -570,15 +570,15 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
 
         .hourly-forecast__time {
-            width: 50px; /* Stała szerokość dla równego ułożenia */
+            /* Usunięto stałą szerokość dla elastyczności */
             text-align: left;
             font-size: 1rem;
             margin: 0;
         }
 
         .hourly-forecast__icon {
-            width: 48px; /* Wyraźnie powiększono */
-            height: 48px; /* Wyraźnie powiększono */
+            width: 56px; /* Zwiększono dla lepszej widoczności */
+            height: 56px; /* Zwiększono dla lepszej widoczności */
             margin: 0;
         }
 
@@ -588,7 +588,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             justify-content: flex-end;
             gap: 1rem;
             text-align: right;
-            flex-grow: 1; /* Elastyczne dopasowanie do reszty miejsca */
+            /* Usunięto flex-grow, aby pozwolić na naturalne centrowanie */
         }
 
         .hourly-forecast__temp {
