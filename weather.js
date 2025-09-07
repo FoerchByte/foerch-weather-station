@@ -282,7 +282,7 @@ class WeatherApp {
             // PL: Sprawdzamy, czy wyszukiwanie jest oparte na geolokalizacji, aby ustawić odpowiedni zoom.
             // EN: Check if the search is geolocation-based to set the appropriate zoom level.
             const isGeoSearch = typeof query === 'object' && query.latitude;
-            const zoomLevel = isGeoSearch ? 16 : 13;
+            const zoomLevel = isGeoSearch ? 17 : 13;
 
             setTimeout(() => {
                 if (this.map) {
