@@ -225,7 +225,8 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .hourly-forecast__grid {
     display: flex;
     flex-wrap: nowrap;
-    gap: 12px;
+    /* ZMIANA: Zmniejszono odstęp między kafelkami */
+    gap: 8px;
     padding-bottom: 1rem;
 }
 
@@ -240,14 +241,14 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     position: relative;
     flex-shrink: 0;
     /* ZMIANA: Zmniejszono padding i obliczono nową szerokość kafelka */
-    padding: 0.8rem 0.4rem;
-    flex-basis: calc(12.5% - 10.5px);
+    padding: 0.6rem 0.2rem;
+    flex-basis: calc(12.5% - 7px);
 }
 
 .hourly-forecast__item--new-day::before {
     content: attr(data-day);
     position: absolute;
-    left: -6px;
+    left: -5px; /* ZMIANA: Dopasowano do nowego odstępu */
     right: auto;
     transform: translateX(-50%);
     top: 0;
@@ -295,11 +296,12 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 #hourly-slider-prev { left: 5px; }
 #hourly-slider-next { right: 5px; }
 
-.hourly-forecast__time { font-size: 0.9rem; font-weight: 500; margin: 0 0 0.5rem 0; }
-.hourly-forecast__icon { width: 48px; height: 48px; }
-.hourly-forecast__temp { font-size: 1.1rem; font-weight: bold; margin-top: 0.5rem; }
-.hourly-forecast__pop { display: flex; align-items: center; gap: 4px; font-size: 0.9rem; margin-top: 0.5rem; color: var(--completed-text); }
-.hourly-forecast__pop-icon { width: 14px; height: 14px; fill: var(--info-color); }
+/* ZMIANA: Zmniejszono rozmiary czcionek i ikon w kafelku */
+.hourly-forecast__time { font-size: 0.8rem; font-weight: 500; margin: 0 0 0.25rem 0; }
+.hourly-forecast__icon { width: 40px; height: 40px; }
+.hourly-forecast__temp { font-size: 1rem; font-weight: bold; margin-top: 0.25rem; }
+.hourly-forecast__pop { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; margin-top: 0.25rem; color: var(--completed-text); }
+.hourly-forecast__pop-icon { width: 12px; height: 12px; fill: var(--info-color); }
 
 /* --- Prognoza 5-dniowa --- */
 .weather-app__forecast-wrapper {
@@ -343,23 +345,24 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     .hourly-forecast__slider-nav { display: flex; }
     .hourly-forecast__slider-container { padding: 0; }
     
-    /* ZMIANA: Układ nagłówka z przyciskami na całą szerokość */
     .hourly-forecast__header {
-        display: block; /* Powrót do domyślnego zachowania */
+        display: block;
     }
     .hourly-forecast__title {
-        display: none; /* Ukrywamy tytuł "Prognoza godzinowa" */
+        display: none;
     }
     .hourly-forecast__range-switcher {
-        width: 100%; /* Rozciągamy kontener na całą szerokość */
+        width: 100%;
         max-width: none;
-        border-bottom: 1px solid var(--border-color); /* Linia oddzielająca */
-        padding-bottom: 0.5rem; /* Odstęp od linii */
-        margin-bottom: 1rem; /* ZMIANA: Zwiększony odstęp od kafelków */
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+        /* ZMIANA: Dodano odstęp między przyciskami */
+        gap: 10px;
     }
     .hourly-forecast__range-switcher button {
-        flex-basis: 50%; /* Każdy przycisk zajmuje 50% szerokości kontenera */
-        text-align: center; /* Centrujemy tekst w przycisku */
+        flex-basis: 50%;
+        text-align: center;
     }
 }
 
@@ -369,7 +372,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     .hourly-forecast__range-switcher { margin: 0.5rem auto 0; } 
 
     .hourly-forecast__item {
-        flex-basis: calc(20% - 10px); /* 5 kafelków na tabletach */
+        flex-basis: calc(20% - 10px);
     }
 
     @media (orientation: landscape) {
@@ -427,6 +430,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             border-bottom: 1px solid var(--border-color);
             margin: -1rem 0 1rem 0;
             max-width: none;
+            gap: 0; /* Reset odstępu dla mobile */
         }
          .hourly-forecast__range-switcher button.active::after {
             display: block;
@@ -464,7 +468,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             justify-content: space-between; 
             align-items: center; 
             padding: 0.75rem 1rem;
-            flex-basis: auto; /* Reset dla widoku mobilnego */
+            flex-basis: auto;
         }
         .hourly-forecast__item > * { flex: 1; }
         .hourly-forecast__time { flex-basis: 25%; font-size: 1rem; }
