@@ -520,8 +520,14 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             display: block;
          }
 
+        .hourly-forecast__scroll-wrapper {
+            display: block;
+            overflow-x: hidden;
+        }
+
         .hourly-forecast__grid {
-             display: block; /* ZMIANA: z flex na block */
+             display: block;
+             padding-bottom: 0;
         }
 
         .hourly-forecast__day-group {
