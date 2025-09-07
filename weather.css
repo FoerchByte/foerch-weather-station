@@ -5,6 +5,7 @@
     --text-color: #212529;
     --background-color: #f8f9fa;
     --card-background: #ffffff;
+    --card-background-rgb: 255, 255, 255;
     --border-color: #dee2e6;
     --success-color: #28a745;
     --danger-color: #dc3545;
@@ -17,6 +18,7 @@ body.dark-mode {
     --text-color: #e9ecef;
     --background-color: #121212;
     --card-background: #1e1e1e;
+    --card-background-rgb: 30, 30, 30;
     --border-color: #495057;
     --completed-text: #adb5bd;
 }
@@ -159,30 +161,42 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     width: 80%; height: 3px; background-color: var(--primary-color);
 }
 
-/* --- ZMIANA: Układ siatki dla przełącznika 24/48h --- */
+/* --- ZMIANA: Przywrócenie stylu "podkreślenia" dla przycisków 24/48h --- */
 .hourly-forecast__range-switcher {
-    display: grid; /* Używamy siatki */
-    grid-template-columns: 1fr 1fr; /* Dwie równe kolumny */
-    gap: 10px; /* Odstęp między przyciskami */
-    border: none; /* Usuwamy dolną ramkę */
+    display: flex;
+    border: none;
     margin: 0;
-    width: 100%;
-    max-width: 200px; /* Ograniczamy maksymalną szerokość */
+    width: auto;
+    max-width: 200px;
 }
 .hourly-forecast__range-switcher button {
-    flex: none; /* Resetujemy właściwości flex */
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    transition: background-color 0.2s, border-color 0.2s;
+    flex: 1;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0.5rem;
+    font-weight: 500;
+    color: var(--completed-text);
+    cursor: pointer;
+    transition: color 0.2s;
+    position: relative;
+    font-size: 0.9rem;
 }
 .hourly-forecast__range-switcher button.active {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-    color: white;
+    color: var(--text-color);
+    background-color: transparent; /* Upewniamy się, że nie ma tła */
 }
 .hourly-forecast__range-switcher button.active::after {
-    display: none; /* Ukrywamy podkreślenie */
+    display: block;
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 15%;
+    width: 70%;
+    height: 2px;
+    background-color: var(--primary-color);
 }
+
 
 /* --- Prognoza godzinowa --- */
 .hourly-forecast__wrapper { 
@@ -206,11 +220,9 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
-/* --- ZMIANA: Użycie CSS Grid dla stabilnego rozmiaru kafelków --- */
 .hourly-forecast__grid {
     display: grid;
-    grid-auto-flow: column; /* Układamy elementy w kolumnach */
-    /* Definiujemy szerokość każdej kolumny (kafelka) */
+    grid-auto-flow: column;
     grid-auto-columns: calc((100% - 7 * 12px) / 8); 
     gap: 12px;
     padding-bottom: 1rem;
@@ -236,7 +248,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     bottom: 0;
     width: auto;
     padding: 0 4px;
-    /* ZMIANA: Odwrócona orientacja tekstu */
     writing-mode: vertical-lr; 
     text-orientation: mixed;
     text-align: center;
@@ -250,27 +261,33 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     background-color: var(--card-background);
 }
 
+/* --- ZMIANA: Mniejsze przyciski slidera, nakładające się na treść --- */
 .hourly-forecast__slider-nav {
     display: none; 
     position: absolute; 
     top: 50%;
     transform: translateY(-50%); 
-    background-color: var(--card-background);
+    background-color: rgba(var(--card-background-rgb), 0.8);
+    backdrop-filter: blur(2px);
     border: 1px solid var(--border-color); 
     border-radius: 50%;
-    width: 40px; 
-    height: 40px; 
+    width: 36px; 
+    height: 36px; 
     cursor: pointer; 
     z-index: 10;
     align-items: center; 
     justify-content: center; 
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     line-height: 1; 
     color: var(--text-color);
+    transition: background-color 0.2s;
 }
-.hourly-forecast__slider-nav:disabled { opacity: 0.3; cursor: not-allowed; }
-#hourly-slider-prev { left: -20px; }
-#hourly-slider-next { right: -20px; }
+.hourly-forecast__slider-nav:hover {
+    background-color: var(--card-background);
+}
+.hourly-forecast__slider-nav:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+#hourly-slider-prev { left: 5px; }
+#hourly-slider-next { right: 5px; }
 
 .hourly-forecast__time { font-size: 0.9rem; font-weight: 500; margin: 0 0 0.5rem 0; }
 .hourly-forecast__icon { width: 48px; height: 48px; }
@@ -318,21 +335,21 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 /* --- Media Queries --- */
 @media (min-width: 1025px) {
     .hourly-forecast__slider-nav { display: flex; }
-    .hourly-forecast__slider-container { padding: 0 25px; }
+    /* ZMIANA: Usunięto padding, aby slider zajmował 100% szerokości */
+    .hourly-forecast__slider-container { padding: 0; }
 }
 
 @media (max-width: 1024px) {
     .weather-app { padding: 1.5rem 1rem; }
-    .hourly-forecast__header { display: block; } /* Zmieniamy na block, aby tytuł i przyciski były pod sobą */
-    .hourly-forecast__range-switcher { margin: 0.5rem auto 0; } /* Centrujemy przyciski pod tytułem */
+    .hourly-forecast__header { display: block; } 
+    .hourly-forecast__range-switcher { margin: 0.5rem auto 0; } 
 
-    /* ZMIANA: Użycie CSS Grid dla stabilnego rozmiaru kafelków na tabletach */
     .hourly-forecast__grid {
-        grid-auto-columns: calc((100% - 4 * 12px) / 5); /* 5 kafelków na tabletach */
+        grid-auto-columns: calc((100% - 4 * 12px) / 5);
     }
 
     @media (orientation: landscape) {
-        .hourly-forecast__header { display: flex; } /* Przywracamy flex dla landscape */
+        .hourly-forecast__header { display: flex; } 
         .hourly-forecast__range-switcher { margin: 0; }
         .current-weather__extra-details {
             grid-template-columns: repeat(5, 1fr);
@@ -351,7 +368,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
         
         .hourly-forecast__slider-nav { display: flex; }
-        .hourly-forecast__slider-container { padding: 0 50px; }
+        .hourly-forecast__slider-container { padding: 0 5px; } /* Zmniejszony padding */
         .weather-app__forecast-wrapper { display: none; }
         .forecast-switcher { display: none; }
     }
@@ -379,38 +396,20 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
     @media (orientation: portrait) {
         .forecast-switcher { display: flex; }
-        /* Resetujemy style z desktopa dla przycisków 24/48h */
         .hourly-forecast__header { display: block; }
+        /* Style dla przycisków 24/48h w trybie portretowym mobile */
         .hourly-forecast__range-switcher {
             display: flex;
             border-bottom: 1px solid var(--border-color);
             margin: -1rem 0 1rem 0;
             max-width: none;
         }
-        .hourly-forecast__range-switcher button {
-             flex: 1;
-             border: none;
-             border-radius: 0;
-        }
-        .hourly-forecast__range-switcher button.active {
-            background-color: transparent;
-            border-color: transparent;
-            color: var(--text-color);
-        }
          .hourly-forecast__range-switcher button.active::after {
-            display: block;
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 15%;
-            width: 70%;
-            height: 2px;
-            background-color: var(--primary-color);
+            display: block; /* Przywracamy podkreślenie */
          }
 
         .hourly-forecast__grid {
-             grid-auto-flow: row; /* Zmieniamy przepływ na wiersze */
-             grid-auto-columns: unset; /* Resetujemy szerokość kolumn */
+             display: flex; /* Zmieniamy z powrotem na flex dla układu wierszowego */
              flex-direction: column;
              gap: 8px;
         }
