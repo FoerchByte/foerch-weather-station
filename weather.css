@@ -552,39 +552,38 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
         
         .hourly-forecast__item { 
-            display: grid;
-            grid-template-columns: auto 1fr auto; /* ZMIANA: Prostsza siatka z 3 kolumnami */
+            display: flex;
+            justify-content: space-between;
             align-items: center; 
-            gap: 1rem;
             padding: 0.75rem 1rem;
+            position: relative;
         }
 
-        .hourly-forecast__time { 
-            grid-column: 1;
-            font-size: 1rem;
-            text-align: left;
+        .hourly-forecast__item-left, .hourly-forecast__item-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .hourly-forecast__icon {
-            grid-column: 2;
-            justify-self: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .hourly-forecast__time { 
+            font-size: 1rem;
         }
 
         .hourly-forecast__temp {
-            grid-column: 3;
             font-size: 1.1rem;
             font-weight: bold;
-            text-align: right;
-            white-space: nowrap; /* Zapobiega łamaniu linii */
         }
 
         .hourly-forecast__pop { 
-            grid-column: 3; /* ZMIANA: Przeniesienie do tej samej kolumny co temperatura */
-            justify-self: end; /* Wyrównanie do prawej w obrębie komórki siatki */
             display: flex;
             align-items: center;
             gap: 4px;
-            padding-left: 0.5rem; /* Odstęp od temperatury */
         }
         
         #forecasts-container.show-hourly .weather-app__forecast-wrapper { display: none; }
