@@ -275,10 +275,18 @@ class WeatherApp {
             this.renderHourlyForecast();
             
             this.dom.mapContainer.style.display = 'block';
-            this.updateMap(data.location.lat, data.location.lon, data.location.name);
-            setTimeout(() => this.map.invalidateSize(), 200);
-
             this.dom.forecastsContainer.style.display = 'block';
+
+            // PL: Używamy setTimeout z opóźnieniem 0, aby upewnić się, że DOM został
+            // PL: przerysowany ZANIM odświeżymy mapę. Zapobiega to błędom centrowania.
+            // EN: We use setTimeout with a 0 delay to ensure the DOM has been repainted
+            // EN: BEFORE we invalidate the map size. This prevents centering issues.
+            setTimeout(() => {
+                if (this.map) {
+                    this.map.invalidateSize();
+                    this.updateMap(data.location.lat, data.location.lon, data.location.name);
+                }
+            }, 0);
 
         } catch (error) {
             this.showError(`Błąd: ${error.message}`);
@@ -339,3 +347,4 @@ document.addEventListener('DOMContentLoaded', () => {
     const app = new WeatherApp();
     app.init();
 });
+
