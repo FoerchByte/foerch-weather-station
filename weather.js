@@ -202,16 +202,34 @@ class WeatherApp {
     }
     
     renderHourlyForecast() {
-        // PL: Niezmieniona logika - pokazujemy najbliższe 24 lub 48 godzin z API.
-        // EN: Unchanged logic - we show the next 24 or 48 hours from the API.
-        const range = this.isMobilePortrait() ? this.currentHourlyRange : this.currentHourlyRange;
-        const forecastToShow = this.hourlyForecastData.slice(1, range + 1);
+        // --- ZMIANA: Logika filtrowania prognozy ---
+        // --- CHANGE: Forecast filtering logic ---
+        const now = new Date();
+        
+        // PL: Ustawiamy koniec dzisiejszego dnia na 23:59:59
+        // EN: Set the end of today to 23:59:59
+        const endOfToday = new Date(now);
+        endOfToday.setHours(23, 59, 59, 999);
 
+        // PL: Ustawiamy koniec jutrzejszego dnia na 23:59:59
+        // EN: Set the end of tomorrow to 23:59:59
+        const endOfTomorrow = new Date(endOfToday);
+        endOfTomorrow.setDate(endOfTomorrow.getDate() + 1);
+
+        // PL: Wybieramy odpowiedni zakres czasowy na podstawie przełącznika (24h/48h)
+        // EN: Select the appropriate time range based on the switcher (24h/48h)
+        const endTime = this.currentHourlyRange === 24 ? endOfToday : endOfTomorrow;
+
+        const forecastToShow = this.hourlyForecastData.filter(item => {
+            const itemDate = new Date(item.dt * 1000);
+            return itemDate > now && itemDate <= endTime;
+        });
+        
         this.dom.hourly.container.innerHTML = ''; 
 
         let lastDate = '';
-        const today = new Date().toLocaleDateString('pl-PL');
-        const tomorrow = new Date(Date.now() + 864e5).toLocaleDateString('pl-PL');
+        const todayStr = new Date().toLocaleDateString('pl-PL');
+        const tomorrowStr = new Date(Date.now() + 864e5).toLocaleDateString('pl-PL');
         
         forecastToShow.forEach((item) => {
             const itemDateObj = new Date(item.dt * 1000);
@@ -221,8 +239,8 @@ class WeatherApp {
             let newDayClass = '';
 
             if (itemDate !== lastDate) {
-                if (itemDate === today) dayLabel = 'Dziś';
-                else if (itemDate === tomorrow) dayLabel = 'Jutro';
+                if (itemDate === todayStr) dayLabel = 'Dziś';
+                else if (itemDate === tomorrowStr) dayLabel = 'Jutro';
                 else dayLabel = itemDateObj.toLocaleDateString('pl-PL', { weekday: 'long' });
                 
                 newDayClass = 'hourly-forecast__item--new-day';
@@ -324,15 +342,11 @@ class WeatherApp {
     }
 
     updateSliderButtons() {
-        // PL: Nie pokazuj przycisków w trybie portretowym na mobile
-        // EN: Do not show buttons in mobile portrait mode
         if (this.isMobilePortrait() || !this.dom.hourly.scrollWrapper) return;
 
         requestAnimationFrame(() => {
             const { scrollLeft, scrollWidth, clientWidth } = this.dom.hourly.scrollWrapper;
             this.dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0;
-            // PL: Mały bufor (1px) na wypadek błędów zaokrąglenia w przeglądarce
-            // EN: A small buffer (1px) for potential browser rounding errors
             this.dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
         });
     }
@@ -341,14 +355,13 @@ class WeatherApp {
         const item = this.dom.hourly.container.querySelector('.hourly-forecast__item');
         if (!item) return;
 
-        // PL: Obliczamy szerokość jednego kafelka wraz z odstępem (gap).
-        // EN: We calculate the width of a single tile including the gap.
         const itemWidth = item.offsetWidth;
         const gap = 12; // Zdefiniowane w CSS
-
-        // PL: Przewijamy o 8 kafelków. Ta wartość jest stała dla desktopu.
-        // EN: We scroll by 8 tiles. This value is constant for the desktop view.
-        const scrollAmount = (itemWidth + gap) * 8 * direction;
+        
+        // ZMIANA: Sprawdzamy ile kafelków jest widocznych, aby przewijać o całą "stronę"
+        // CHANGE: Check how many tiles are visible to scroll by a full "page"
+        const visibleItems = Math.floor(this.dom.hourly.scrollWrapper.clientWidth / (itemWidth + gap));
+        const scrollAmount = (itemWidth + gap) * visibleItems * direction;
         
         this.dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
