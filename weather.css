@@ -248,7 +248,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: 90px;
+    grid-auto-columns: 88px; /* ZMIANA: Delikatna korekta dla idealnego dopasowania na desktopie */
     gap: 8px;
 }
 
@@ -393,14 +393,10 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     .weather-app { padding: 1.5rem 1rem; }
     .hourly-forecast__header { display: block; } 
     .hourly-forecast__range-switcher { margin: 0.5rem auto 0; } 
-    
-    .hourly-forecast__items {
-        grid-auto-columns: 90px;
-    }
 
     @media (orientation: landscape) {
         .hourly-forecast__header {
-            display: block; /* ZMIANA: Przywrócenie widoczności nagłówka */
+            display: block;
         }
         .hourly-forecast__range-switcher {
             width: 100%;
@@ -442,7 +438,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         .hourly-forecast__items {
             display: grid;
             grid-auto-flow: column;
-            grid-auto-columns: 85px; /* ZMIANA: Korekta dla idealnego dopasowania 8 kafelków */
+            grid-auto-columns: 86px;
             gap: 8px;
         }
 
