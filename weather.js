@@ -238,10 +238,12 @@ class WeatherApp {
                 <div class="hourly-forecast__item">
                     <p class="hourly-forecast__time">${new Date(item.dt * 1000).getHours()}:00</p>
                     <div class="hourly-forecast__icon">${this.getWeatherIconHtml(item.weather[0].icon, item.weather[0].description)}</div>
-                    <p class="hourly-forecast__temp">${Math.round(item.temp)}°C</p>
-                    <div class="hourly-forecast__pop">
-                        <svg class="hourly-forecast__pop-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a5.53 5.53 0 0 0-5.43 6.05L8 16l5.43-9.95A5.53 5.53 0 0 0 8 0zm0 8.87A2.87 2.87 0 1 1 10.87 6 2.87 2.87 0 0 1 8 8.87z"/></svg>
-                        <span>${Math.round(item.pop * 100)}%</span>
+                    <div class="hourly-forecast__item-right">
+                        <p class="hourly-forecast__temp">${Math.round(item.temp)}°C</p>
+                        <div class="hourly-forecast__pop">
+                            <svg class="hourly-forecast__pop-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a5.53 5.53 0 0 0-5.43 6.05L8 16l5.43-9.95A5.53 5.53 0 0 0 8 0zm0 8.87A2.87 2.87 0 1 1 10.87 6 2.87 2.87 0 0 1 8 8.87z"/></svg>
+                            <span>${Math.round(item.pop * 100)}%</span>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -285,23 +287,16 @@ class WeatherApp {
             this.renderDailyForecast(data);
             this.renderHourlyForecast();
             
-            // ZMIANA: Logika wyświetlania prognoz po wyszukaniu
-            // CHANGE: Forecast display logic after search
-            this.dom.forecastsContainer.style.display = 'block'; // Zawsze pokazuj kontener ze switcherem
+            this.dom.forecastsContainer.style.display = 'block';
 
             if (this.isMobile()) {
-                // Na mobile (portrait i landscape), ukryj treść prognoz do czasu kliknięcia
-                // On mobile (portrait and landscape), hide forecast content until clicked
                 this.dom.forecastsContainer.className = '';
                 const activeButton = this.dom.forecastSwitcher.querySelector('.active');
                 if (activeButton) {
                     activeButton.classList.remove('active');
                 }
             } else {
-                // Na desktopie, domyślnie pokaż prognozę godzinową
-                // On desktop, show the hourly forecast by default
                 this.dom.forecastsContainer.className = 'show-hourly';
-                // Upewnij się, że odpowiedni przycisk jest aktywny
                 const dailyButton = this.dom.forecastSwitcher.querySelector('[data-forecast="daily"]');
                 if (dailyButton) dailyButton.classList.remove('active');
                 const hourlyButton = this.dom.forecastSwitcher.querySelector('[data-forecast="hourly"]');
