@@ -239,7 +239,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     border-radius: 8px;
     position: relative;
     flex-shrink: 0;
-    padding: 0.4rem 0.2rem;
+    padding: 0.2rem;
     flex-basis: calc(12.5% - 7px);
 }
 
@@ -295,24 +295,26 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 #hourly-slider-next { right: 5px; }
 
 .hourly-forecast__time {
-    font-size: 0.75rem;
-    margin: 0 0 0.1rem 0;
+    font-size: 0.7rem;
+    margin: 0;
 }
 .hourly-forecast__icon {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
+    margin: 0.1rem 0;
 }
 .hourly-forecast__temp {
-    font-size: 0.9rem;
-    margin-top: 0.1rem;
+    font-size: 0.85rem;
+    margin: 0;
 }
 .hourly-forecast__pop {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     margin-top: 0.1rem;
+    gap: 2px;
 }
 .hourly-forecast__pop-icon {
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
 }
 
 /* --- Prognoza 5-dniowa --- */
