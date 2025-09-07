@@ -79,6 +79,7 @@ class WeatherApp {
     }
 
     // --- Funkcje Pomocnicze / Helper Functions ---
+    isMobile = () => window.matchMedia("(max-width: 1024px)").matches;
     isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
 
     setTheme(theme) {
@@ -288,17 +289,17 @@ class WeatherApp {
             // CHANGE: Forecast display logic after search
             this.dom.forecastsContainer.style.display = 'block'; // Zawsze pokazuj kontener ze switcherem
 
-            if (this.isMobilePortrait()) {
-                // W trybie portretowym, ukryj treść prognoz do czasu kliknięcia
-                // In portrait mode, hide forecast content until clicked
+            if (this.isMobile()) {
+                // Na mobile (portrait i landscape), ukryj treść prognoz do czasu kliknięcia
+                // On mobile (portrait and landscape), hide forecast content until clicked
                 this.dom.forecastsContainer.className = '';
                 const activeButton = this.dom.forecastSwitcher.querySelector('.active');
                 if (activeButton) {
                     activeButton.classList.remove('active');
                 }
             } else {
-                // W innych trybach, domyślnie pokaż prognozę godzinową
-                // In other modes, show the hourly forecast by default
+                // Na desktopie, domyślnie pokaż prognozę godzinową
+                // On desktop, show the hourly forecast by default
                 this.dom.forecastsContainer.className = 'show-hourly';
                 // Upewnij się, że odpowiedni przycisk jest aktywny
                 const dailyButton = this.dom.forecastSwitcher.querySelector('[data-forecast="daily"]');
