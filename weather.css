@@ -248,7 +248,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: 91px; /* ZMIANA: Zwiększenie szerokości kafelków na desktopie */
+    grid-auto-columns: 91px;
     gap: 8px;
 }
 
@@ -497,7 +497,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
     @media (orientation: portrait) {
         .forecast-switcher { display: flex; }
-        .hourly-forecast__header { display: block; }
+        .hourly-forecast__header { display: none; }
 
         .hourly-forecast__range-switcher {
             display: flex;
@@ -513,15 +513,24 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         .hourly-forecast__grid {
              display: flex;
              flex-direction: column;
-             gap: 8px;
+             gap: 0;
         }
         
         .hourly-forecast__day-group {
             padding-right: 0;
+            margin-bottom: 1rem;
         }
 
         .hourly-forecast__day-group:not(:last-child)::after {
             display: none;
+        }
+        
+        .hourly-forecast__day-heading {
+            text-align: center;
+            padding: 0.5rem;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            margin: 0.5rem 0;
         }
 
         .hourly-forecast__items {
@@ -536,14 +545,31 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             justify-content: space-between; 
             align-items: center; 
             padding: 0.75rem 1rem;
-            flex-basis: auto;
             height: auto;
         }
-        .hourly-forecast__item > * { flex: 1; }
-        .hourly-forecast__time { flex-basis: 25%; font-size: 1rem; }
-        .hourly-forecast__icon { display: flex; justify-content: center; width: 40px; height: 40px; }
-        .hourly-forecast__temp { text-align: right; font-size: 1.1rem; font-weight: bold; }
-        .hourly-forecast__pop { justify-content: flex-end; }
+        .hourly-forecast__item > * { 
+            flex: none; 
+        }
+        .hourly-forecast__time { 
+            flex-basis: 25%;
+            font-size: 1rem;
+            text-align: left;
+        }
+        .hourly-forecast__icon {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+        }
+        .hourly-forecast__temp {
+            flex-basis: 20%;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-align: right;
+        }
+        .hourly-forecast__pop { 
+            flex-basis: 20%;
+            text-align: right;
+        }
         
         #forecasts-container.show-hourly .weather-app__forecast-wrapper { display: none; }
         #forecasts-container.show-daily .hourly-forecast__wrapper { display: none; }
