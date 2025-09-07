@@ -27,11 +27,6 @@ class WeatherApp {
                 container: document.getElementById('forecast-container'),
             },
         };
-        
-        // --- Obiekt z ikonami / Icons Object ---
-        this.weatherIcons = {
-            getIcon: (iconCode) => `https://openweathermap.org/img/wn/${iconCode}@4x.png`
-        };
     }
 
     // --- Inicjalizacja Aplikacji / Application Initialization ---
@@ -63,6 +58,28 @@ class WeatherApp {
             this.renderHourlyForecast();
             this.updateSliderButtons();
         });
+    }
+
+    // --- Metoda do pobierania ikon SVG / Method for fetching SVG icons ---
+    getWeatherIconHtml(iconCode, description) {
+        // PL: Definiujemy bazowy URL i mapowanie kodów ikon na nazwy plików SVG.
+        // EN: We define the base URL and a mapping of icon codes to SVG file names.
+        const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
+        const iconMap = {
+            '01d': 'clear-day.svg', '01n': 'clear-night.svg',
+            '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg',
+            '03d': 'cloudy.svg', '03n': 'cloudy.svg',
+            '04d': 'overcast-day.svg', '04n': 'overcast-night.svg',
+            '09d': 'rain.svg', '09n': 'rain.svg',
+            '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg',
+            '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg',
+            '13d': 'snow.svg', '13n': 'snow.svg',
+            '50d': 'fog-day.svg', '50n': 'fog-night.svg',
+        };
+        const iconName = iconMap[iconCode] || 'not-available.svg';
+        // PL: Zwracamy kompletny tag <img> z odpowiednim źródłem i klasą.
+        // EN: We return a complete <img> tag with the appropriate source and class.
+        return `<img src="${iconBaseUrl}${iconName}" alt="${description}" class="weather-icon-img">`;
     }
 
     // --- Funkcje Pomocnicze / Helper Functions ---
@@ -159,7 +176,7 @@ class WeatherApp {
         this.dom.weatherResultContainer.innerHTML = `
             <h3 class="current-weather__city">${location.name}</h3>
             <div class="current-weather__main">
-                <div class="current-weather__icon"><img src="${this.weatherIcons.getIcon(current.weather[0].icon)}" alt="${current.weather[0].description}" class="weather-icon-img"></div>
+                <div class="current-weather__icon">${this.getWeatherIconHtml(current.weather[0].icon, current.weather[0].description)}</div>
                 <div class="current-weather__details">
                     <span class="current-weather__temp">${Math.round(current.temp)}°C</span>
                     <span>${current.weather[0].description}</span>
@@ -217,7 +234,7 @@ class WeatherApp {
             this.dom.hourly.container.innerHTML += `
             <div class="hourly-forecast__item ${newDayClass}" data-day="${dayLabel}">
                 <p class="hourly-forecast__time">${itemDateObj.getHours()}:00</p>
-                <div class="hourly-forecast__icon"><img src="${this.weatherIcons.getIcon(item.weather[0].icon)}" alt="${item.weather[0].description}" class="weather-icon-img"></div>
+                <div class="hourly-forecast__icon">${this.getWeatherIconHtml(item.weather[0].icon, item.weather[0].description)}</div>
                 <p class="hourly-forecast__temp">${Math.round(item.temp)}°C</p>
                 <div class="hourly-forecast__pop">
                     <svg class="hourly-forecast__pop-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a5.53 5.53 0 0 0-5.43 6.05L8 16l5.43-9.95A5.53 5.53 0 0 0 8 0zm0 8.87A2.87 2.87 0 1 1 10.87 6 2.87 2.87 0 0 1 8 8.87z"/></svg>
@@ -233,7 +250,7 @@ class WeatherApp {
         this.dom.daily.container.innerHTML = data.daily.slice(1, 6).map(day => `
             <div class="weather-app__forecast-day">
                 <h4>${new Date(day.dt * 1000).toLocaleDateString('pl-PL', { weekday: 'long' })}</h4>
-                <div class="weather-app__forecast-icon"><img src="${this.weatherIcons.getIcon(day.weather[0].icon)}" alt="${day.weather[0].description}" class="weather-icon-img"></div>
+                <div class="weather-app__forecast-icon">${this.getWeatherIconHtml(day.weather[0].icon, day.weather[0].description)}</div>
                 <p>${Math.round(day.temp.max)}° / ${Math.round(day.temp.min)}°</p>
             </div>`).join('');
     }
@@ -322,4 +339,3 @@ document.addEventListener('DOMContentLoaded', () => {
     const app = new WeatherApp();
     app.init();
 });
-
