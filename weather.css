@@ -135,7 +135,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     color: var(--completed-text);
 }
 .current-weather__detail-item .detail-item-header svg {
-    width: 18px; height: 18px;
+    width: 22px; height: 22px; /* Zwiększono dla lepszej czytelności */
     stroke: var(--completed-text);
 }
 .detail-item-value { font-size: 1.1rem; font-weight: 500; }
@@ -419,8 +419,8 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
 
         .current-weather__extra-details {
-            grid-template-columns: repeat(5, 1fr);
-            gap: 1rem 0.4rem;
+            grid-template-columns: repeat(3, 1fr); /* Zmieniono na 3 kolumny dla przejrzystości */
+            gap: 1.5rem 1rem; /* Zwiększono odstępy */
             align-items: start;
         }
 
@@ -492,15 +492,15 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         grid-template-columns: 1fr 1fr;
         grid-template-areas:
             "col1 col2"
-            "col4 col5"
-            "col3 col3";
+            "col3 col3" /* Przeniesiono na środek */
+            "col4 col5";
     }
     .detail-col--1 { grid-area: col1; }
     .detail-col--2 { grid-area: col2; }
     .detail-col--3 {
         grid-area: col3;
-        justify-self: center;
-        text-align: left;
+        justify-self: stretch; /* Rozciągnięcie na całą szerokość */
+        text-align: center; /* Wyśrodkowanie tekstu wewnątrz */
     }
     .detail-col--4 { grid-area: col4; }
     .detail-col--5 { grid-area: col5; }
