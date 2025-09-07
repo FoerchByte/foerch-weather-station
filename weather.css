@@ -225,8 +225,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .hourly-forecast__grid {
     display: grid;
     grid-auto-flow: column;
-    /* ZMIANA: Ustawiono stałą szerokość kolumny dla lepszej kontroli */
-    /* CHANGE: Set a fixed column width for better control */
     grid-auto-columns: 90px;
     gap: 8px;
     padding-bottom: 1rem;
@@ -242,31 +240,38 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     border: 1px solid var(--border-color);
     border-radius: 8px;
     position: relative;
-    /* ZMIANA: Padding ujednolicony z prognozą 5-dniową */
-    /* CHANGE: Padding unified with 5-day forecast */
     padding: 1rem;
-    /* ZMIANA: Usunięto stałą wysokość dla elastyczności */
-    /* CHANGE: Removed fixed height for flexibility */
     box-sizing: border-box;
+}
+
+/* --- KLUCZOWA ZMIANA / KEY CHANGE --- */
+/* PL: Używamy cienia, aby stworzyć wizualną linię podziału, która NIE wpływa na rozmiar elementu i nie deformuje siatki. */
+/* EN: We use a shadow to create a visual dividing line that does NOT affect the element's size and does not deform the grid. */
+.hourly-forecast__item--new-day {
+    box-shadow: -1px 0 0 0 var(--border-color);
 }
 
 .hourly-forecast__item--new-day::before {
     content: attr(data-day);
     position: absolute;
-    left: -5px;
-    right: auto;
-    transform: translateX(-50%);
+    /* ZMIANA: Pozycjonowanie i transformacja przeniesiona na prawą stronę */
+    /* CHANGE: Positioning and transformation moved to the right side */
+    right: -5px;
+    transform: translateX(50%);
     top: 0;
     bottom: 0;
     width: auto;
     padding: 0 4px;
-    writing-mode: vertical-lr; 
+    /* ZMIANA: Odwrócenie kierunku tekstu (od dołu do góry) */
+    /* CHANGE: Reversed text direction (bottom to top) */
+    writing-mode: vertical-rl; 
     text-orientation: mixed;
     text-align: center;
     font-weight: bold;
     color: var(--completed-text);
-    border-left: 1px solid var(--border-color);
-    border-right: none;
+    /* ZMIANA: Usunięto border, jest teraz obsługiwany przez box-shadow na rodzicu */
+    /* CHANGE: Removed border, now handled by box-shadow on the parent */
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
