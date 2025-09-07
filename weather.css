@@ -555,6 +555,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
         .hourly-forecast__item {
             display: flex;
+            flex-direction: row; /* KLUCZOWA ZMIANA */
             justify-content: space-between;
             align-items: center;
             padding: 0.75rem 1rem;
@@ -562,12 +563,14 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
 
         .hourly-forecast__time {
+            flex-basis: 20%; /* Dostosowanie szerokości */
             text-align: left;
             font-size: 1rem;
+            margin: 0; /* Usunięcie marginesów */
         }
-
+        
         .hourly-forecast__icon {
-            /* Centered by space-between on parent */
+            margin: 0; /* Usunięcie marginesów */
         }
 
         .hourly-forecast__item-right {
@@ -576,18 +579,22 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
             justify-content: flex-end;
             gap: 1rem;
             text-align: right;
+            flex-basis: 45%; /* Dostosowanie szerokości */
         }
 
         .hourly-forecast__temp {
             font-size: 1.1rem;
             font-weight: bold;
+            margin: 0; /* Usunięcie marginesów */
         }
-
+        
         .hourly-forecast__pop {
             display: flex;
             align-items: center;
             gap: 4px;
+            margin: 0; /* Usunięcie marginesów */
         }
+
 
         #forecasts-container.show-hourly .weather-app__forecast-wrapper { display: none; }
         #forecasts-container.show-daily .hourly-forecast__wrapper { display: none; }
@@ -596,7 +603,6 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
              grid-template-columns: 1fr;
         }
 
-        /* Added this to fix daily forecast layout on mobile portrait */
         .weather-app__forecast-day {
             flex-direction: row;
             justify-content: space-between;
