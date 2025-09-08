@@ -1,4 +1,4 @@
-/* --- Style globalne i motywy --- */
+/* --- Style globalne i motywy / Global Styles & Themes --- */
 :root {
     --primary-color: #007bff;
     --primary-hover-color: #0056b3;
@@ -38,7 +38,7 @@ body {
     padding: 2rem 1.5rem;
 }
 
-/* --- Nagłówek i przełącznik motywu --- */
+/* --- Nagłówek i przełącznik motywu / Header & Theme Toggle --- */
 .standalone-header {
     background-color: var(--card-background);
     border-bottom: 1px solid var(--border-color);
@@ -61,7 +61,7 @@ body {
 body.dark-mode .theme-toggle .moon-icon { display: block; }
 body.dark-mode .theme-toggle .sun-icon { display: none; }
 
-/* --- Główny kontener aplikacji --- */
+/* --- Główny kontener aplikacji / Main App Container --- */
 .weather-app {
     background-color: var(--card-background);
     padding: 2rem;
@@ -72,7 +72,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     overflow-x: hidden;
 }
 
-/* --- Wyszukiwanie, przyciski i błędy --- */
+/* --- Wyszukiwanie, przyciski i błędy / Search, Buttons & Errors --- */
 .weather-app__search {
     display: flex; flex-wrap: wrap; gap: 10px;
     justify-content: center; margin-bottom: 2rem;
@@ -100,7 +100,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* --- Wyniki bieżącej pogody --- */
+/* --- Wyniki bieżącej pogody / Current Weather Results --- */
 .weather-app__result { text-align: center; }
 .current-weather__city { font-size: 1.8rem; margin-bottom: 0.5rem; }
 .current-weather__main {
@@ -140,11 +140,41 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 .detail-item-value { font-size: 1.1rem; font-weight: 500; }
 
-/* --- Mapa --- */
-#map-container { padding: 0; margin-top: 2rem; }
+/* --- Mapa / Map --- */
+#map-container {
+    padding: 0;
+    margin-top: 2rem;
+    position: relative; /* Potrzebne do pozycjonowania kontrolek / Needed for positioning controls */
+}
 #map { height: 300px; width: 100%; border-radius: 8px; z-index: 1; }
 
-/* --- Przełączniki prognoz --- */
+.map-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 401; /* Wyżej niż kafelki mapy / Higher than map tiles */
+    background-color: rgba(var(--card-background-rgb), 0.8);
+    backdrop-filter: blur(4px);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.map-controls__toggle {
+    margin: 0;
+    cursor: pointer;
+}
+
+.map-controls__label {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* --- Przełączniki prognoz / Forecast Switchers --- */
 .forecast-switcher {
     display: none;
     border-bottom: 1px solid var(--border-color);
@@ -200,7 +230,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     background-color: var(--primary-color);
 }
 
-/* --- Prognoza godzinowa --- */
+/* --- Prognoza godzinowa / Hourly Forecast --- */
 .hourly-forecast__wrapper {
     position: relative;
     margin-top: 2rem;
@@ -329,7 +359,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     height: 10px;
 }
 
-/* --- Prognoza 5-dniowa --- */
+/* --- Prognoza 5-dniowa / 5-Day Forecast --- */
 .weather-app__forecast-wrapper {
     margin-top: 2rem;
 }
@@ -352,7 +382,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .weather-app__forecast-day h4 { margin: 0; font-size: 1rem; text-transform: capitalize; }
 .weather-app__forecast-icon { width: 72px; height: 72px; }
 
-/* --- Skeleton loader & Kolory --- */
+/* --- Skeleton loader & Kolory / Skeleton Loader & Colors --- */
 .skeleton { display: inline-block; background-color: var(--border-color); border-radius: 4px; animation: pulse 1.5s infinite ease-in-out; }
 @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
 .value-color--roadDry { color: var(--success-color); }
@@ -426,7 +456,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
         }
 
         .detail-col--3 {
-            align-self: center; /* OSTATECZNA POPRAWKA: Centrowanie w pionie */
+            align-self: center; /* OSTATECZNA POPRAWKA: Centrowanie w pionie / FINAL FIX: Vertical centering */
             justify-content: center;
         }
 
