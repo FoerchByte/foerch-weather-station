@@ -58,7 +58,8 @@ class WeatherApp {
         this.dom.hourly.sliderNextBtn.addEventListener('click', () => this.handleSliderScroll(1));
         this.dom.hourly.scrollWrapper.addEventListener('scroll', () => this.updateSliderButtons(), { passive: true });
         window.addEventListener('resize', () => {
-            this.renderHourlyForecast();
+            // Usunięto zbędne wywołania, CSS sam zarządza layoutem
+            // Removed unnecessary calls, CSS manages the layout by itself
             this.updateSliderButtons();
         });
     }
@@ -82,7 +83,6 @@ class WeatherApp {
     }
 
     // --- Funkcje Pomocnicze / Helper Functions ---
-    isMobile = () => window.matchMedia("(max-width: 1024px)").matches;
     isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
 
     setTheme(theme) {
@@ -116,14 +116,6 @@ class WeatherApp {
     // --- Obsługa Mapy / Map Handling ---
     
     getPrecipitationLayer() {
-        // --- PL ---
-        // Zamiast odwoływać się bezpośrednio do API OpenWeatherMap z kluczem,
-        // odwołujemy się do naszej własnej funkcji bezserwerowej, która działa jako proxy.
-        // Klucz API jest teraz bezpiecznie dodawany po stronie serwera.
-        // --- EN ---
-        // Instead of calling the OpenWeatherMap API directly with the key,
-        // we call our own serverless function that acts as a proxy.
-        // The API key is now securely added on the server side.
         const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`;
         
         return L.tileLayer(proxyUrl, {
@@ -324,18 +316,19 @@ class WeatherApp {
             
             this.dom.forecastsContainer.style.display = 'block';
 
-            if (this.isMobile()) {
-                this.dom.forecastsContainer.className = '';
-                const activeButton = this.dom.forecastSwitcher.querySelector('.active');
-                if (activeButton) {
-                    activeButton.classList.remove('active');
-                }
+            // Uproszczona logika - CSS sam zarządza widocznością
+            // Simplified logic - CSS manages visibility on its own
+            const isPortrait = this.isMobilePortrait();
+            this.dom.forecastsContainer.className = isPortrait ? '' : 'show-hourly';
+            
+            const activeSwitcher = this.dom.forecastSwitcher.querySelector('.active');
+            if (activeSwitcher) activeSwitcher.classList.remove('active');
+            
+            if (isPortrait) {
+                // Nie ustawiamy aktywnego przycisku w portrecie na starcie
+                // We don't set an active button in portrait on start
             } else {
-                this.dom.forecastsContainer.className = 'show-hourly';
-                const dailyButton = this.dom.forecastSwitcher.querySelector('[data-forecast="daily"]');
-                if (dailyButton) dailyButton.classList.remove('active');
-                const hourlyButton = this.dom.forecastSwitcher.querySelector('[data-forecast="hourly"]');
-                if (hourlyButton) hourlyButton.classList.add('active');
+                 this.dom.forecastSwitcher.querySelector('[data-forecast="hourly"]').classList.add('active');
             }
             
             this.dom.mapContainer.style.display = 'block';
