@@ -3,6 +3,7 @@ class WeatherApp {
         // --- Stan aplikacji / Application State ---
         this.map = null;
         this.marker = null;
+        this.precipitationLayer = null; // Warstwa opadów / Precipitation Layer
         this.hourlyForecastData = [];
         this.currentHourlyRange = 24;
 
@@ -15,6 +16,7 @@ class WeatherApp {
             weatherResultContainer: document.getElementById('weather-result-container'),
             forecastsContainer: document.getElementById('forecasts-container'),
             mapContainer: document.getElementById('map-container'),
+            precipitationToggle: document.getElementById('precipitation-toggle'), // Przełącznik opadów / Precipitation Toggle
             forecastSwitcher: document.getElementById('forecast-switcher'),
             hourly: {
                 container: document.getElementById('hourly-forecast-container'),
@@ -47,6 +49,7 @@ class WeatherApp {
         this.dom.searchBtn?.addEventListener('click', () => this.handleSearch(this.dom.cityInput.value.trim(), this.dom.searchBtn));
         this.dom.cityInput?.addEventListener('keyup', e => { if (e.key === 'Enter') this.handleSearch(this.dom.cityInput.value.trim(), this.dom.searchBtn); });
         this.dom.geoBtn?.addEventListener('click', () => this.handleGeolocation());
+        this.dom.precipitationToggle?.addEventListener('change', () => this.togglePrecipitationLayer());
         
         this.dom.forecastSwitcher?.addEventListener('click', (e) => this.handleForecastSwitch(e));
         this.dom.hourly.rangeSwitcher?.addEventListener('click', (e) => this.handleHourlyRangeSwitch(e));
@@ -111,6 +114,38 @@ class WeatherApp {
     }
 
     // --- Obsługa Mapy / Map Handling ---
+    
+    getPrecipitationLayer() {
+        // --- PL ---
+        // Zamiast odwoływać się bezpośrednio do API OpenWeatherMap z kluczem,
+        // odwołujemy się do naszej własnej funkcji bezserwerowej, która działa jako proxy.
+        // Klucz API jest teraz bezpiecznie dodawany po stronie serwera.
+        // --- EN ---
+        // Instead of calling the OpenWeatherMap API directly with the key,
+        // we call our own serverless function that acts as a proxy.
+        // The API key is now securely added on the server side.
+        const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`;
+        
+        return L.tileLayer(proxyUrl, {
+            attribution: '&copy; OpenWeatherMap'
+        });
+    }
+
+    togglePrecipitationLayer() {
+        if (!this.map) return;
+
+        if (this.dom.precipitationToggle.checked) {
+            if (!this.precipitationLayer) {
+                this.precipitationLayer = this.getPrecipitationLayer();
+            }
+            this.map.addLayer(this.precipitationLayer);
+        } else {
+            if (this.precipitationLayer && this.map.hasLayer(this.precipitationLayer)) {
+                this.map.removeLayer(this.precipitationLayer);
+            }
+        }
+    }
+    
     initMap() {
         if (!this.map) {
             this.map = L.map('map').setView([51.75, 19.45], 10);
@@ -382,3 +417,4 @@ document.addEventListener('DOMContentLoaded', () => {
     const app = new WeatherApp();
     app.init();
 });
+
