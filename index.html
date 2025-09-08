@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stacja Pogody - Aplikacja Vanilla JS</title>
-    <link rel="stylesheet" href="weather.css?v=1.6">
+    <link rel="stylesheet" href="weather.css?v=1.7">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -33,6 +33,10 @@
             
             <div id="map-container" style="display: none;">
                 <div id="map"></div>
+                <div class="map-controls">
+                    <input type="checkbox" id="precipitation-toggle" class="map-controls__toggle">
+                    <label for="precipitation-toggle" class="map-controls__label">Pokaż opady</label>
+                </div>
             </div>
             
             <div id="forecasts-container" style="display: none;" class="show-hourly">
@@ -69,7 +73,7 @@
     </main>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="weather.js?v=1.6"></script>
+    <script src="weather.js?v=1.7"></script>
 
 </body>
 </html>
