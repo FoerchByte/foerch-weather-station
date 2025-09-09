@@ -14,6 +14,9 @@ class WeatherApp {
             geoBtn: document.getElementById('geolocation-btn'),
             themeToggle: document.getElementById('theme-toggle'),
             weatherResultContainer: document.getElementById('weather-result-container'),
+            // ZMIANA: Dodajemy referencję do kontenera alertów
+            // CHANGE: Adding a reference to the alerts container
+            weatherAlertsContainer: null, // zostanie zainicjowany po renderowaniu / will be initialized after rendering
             forecastsContainer: document.getElementById('forecasts-container'),
             mapContainer: document.getElementById('map-container'),
             precipitationToggle: document.getElementById('precipitation-toggle'),
@@ -183,19 +186,34 @@ class WeatherApp {
 
     // --- Renderowanie UI / UI Rendering ---
     renderCurrentWeather(data) {
-        const { current, daily, air_quality, location } = data;
-        const roadCondition = current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(current.weather[0].main)
-            ? { text: "Sucha", class: 'roadDry' }
-            : (current.temp <= 2 ? { text: "Możliwe oblodzenie", class: 'roadIcy' } : { text: "Mokra", class: 'roadWet' });
-        const aqiMap = ["Dobra", "Umiark.", "Średnia", "Zła", "B. zła"];
-        const uvMap = { low: "Niski", moderate: "Umiark.", high: "Wysoki", "very-high": "B. wysoki", extreme: "Ekstrem." };
-        const uvIndex = Math.round(current.uvi);
-        let uvCategory = 'low';
-        if (uvIndex >= 11) uvCategory = 'extreme'; else if (uvIndex >= 8) uvCategory = 'very-high';
-        else if (uvIndex >= 6) uvCategory = 'high'; else if (uvIndex >= 3) uvCategory = 'moderate';
+        const { current, location } = data;
         
-        const today = daily[0];
-        const formatTime = (timestamp) => new Date(timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        // ZMIANA: Przenosimy renderowanie szczegółów do osobnego bloku HTML,
+        // aby zachować strukturę nawet po dodaniu alertów.
+        // CHANGE: Moving the details rendering to a separate HTML block
+        // to maintain structure after adding alerts.
+        const detailsHtml = `
+            <div class="current-weather__extra-details">
+                 <div class="detail-col detail-col--1">
+                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Wiatr</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1-3.54 3.54l-6.85 6.85a2.5 2.5 0 1 1-3.54-3.54l6.85-6.85a2.5 2.5 0 1 1 3.54 3.54z"/></svg></span><span class="detail-item-value">${data.current.wind_speed.toFixed(1)} m/s</span></div>
+                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Ciśnienie</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 12H19a2.5 2.5 0 0 0-5 0H2.5"/><path d="M21.5 12v-6a2.5 2.5 0 0 0-5 0v6"/><path d="M2.5 12v6a2.5 2.5 0 0 0 5 0v-6"/></svg></span><span class="detail-item-value">${data.current.pressure} hPa</span></div>
+                </div>
+                <div class="detail-col detail-col--2">
+                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Jakość pow.</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5a8.45 8.45 0 0 0-5.04 1.94 8.45 8.45 0 0 0-2.02 5.07 8.45 8.45 0 0 0 .5 3.51 8.45 8.45 0 0 0 3.51 .5h8.55a8.45 8.45 0 0 0 2.02-5.07 8.45 8.45 0 0 0-5.04-1.94Z"/><path d="M8 15h8"/></svg></span><span class="detail-item-value value-color--aqi-${data.air_quality.main.aqi}">${["Dobra", "Umiark.", "Średnia", "Zła", "B. zła"][data.air_quality.main.aqi - 1]}</span></div>
+                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Indeks UV</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m4.93 19.07 1.41-1.41"/><path d="m17.66 6.34 1.41-1.41"/></svg></span><span class="detail-item-value value-color--uv-${data.uvCategory}">${{"low": "Niski", "moderate": "Umiark.", "high": "Wysoki", "very-high": "B. wysoki", "extreme": "Ekstrem."}[data.uvCategory]}</span></div>
+                </div>
+                <div class="detail-col detail-col--3">
+                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Nawierzchnia</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0-4.4-3.6-8-8-8s-8 3.6-8 8c0 2 .8 3.8 2 5l-3 7h18l-3-7c1.2-1.2 2-3 2-5Z"/><path d="M12 10h.01"/></svg></span><span class="detail-item-value value-color--${data.roadCondition.class}">${data.roadCondition.text}</span></div>
+                </div>
+                <div class="detail-col detail-col--4">
+                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Wschód słońca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg></span><span class="detail-item-value">${data.formattedTimes.sunrise}</span></div>
+                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Zachód słońca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/><path d="M16 18a4 4 0 0 1-8 0"/></svg></span><span class="detail-item-value">${data.formattedTimes.sunset}</span></div>
+                </div>
+                <div class="detail-col detail-col--5">
+                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Wschód księżyca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M18 12h-6"/><path d="M12 18s-4-3-4-6 4-6 4-6"/><path d="M12 6s4 3 4 6-4 6-4 6"/></svg></span><span class="detail-item-value">${data.formattedTimes.moonrise}</span></div>
+                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Zachód księżyca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18V6"/><path d="M6 12h6"/><path d="M12 6s-4 3-4-6 4 6 4 6"/><path d="M12 18s4-3 4-6-4-6-4-6"/></svg></span><span class="detail-item-value">${data.formattedTimes.moonset}</span></div>
+                </div>
+            </div>`;
 
         this.dom.weatherResultContainer.innerHTML = `
             <h3 class="current-weather__city">${location.name}</h3>
@@ -206,30 +224,45 @@ class WeatherApp {
                     <span>${current.weather[0].description}</span>
                 </div>
             </div>
-            <div class="current-weather__extra-details">
-                 <div class="detail-col detail-col--1">
-                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Wiatr</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1-3.54 3.54l-6.85 6.85a2.5 2.5 0 1 1-3.54-3.54l6.85-6.85a2.5 2.5 0 1 1 3.54 3.54z"/></svg></span><span class="detail-item-value">${current.wind_speed.toFixed(1)} m/s</span></div>
-                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Ciśnienie</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 12H19a2.5 2.5 0 0 0-5 0H2.5"/><path d="M21.5 12v-6a2.5 2.5 0 0 0-5 0v6"/><path d="M2.5 12v6a2.5 2.5 0 0 0 5 0v-6"/></svg></span><span class="detail-item-value">${current.pressure} hPa</span></div>
+            <div id="weather-alerts-container"></div>
+            ${detailsHtml}
+        `;
+        // ZMIANA: Inicjujemy referencję DOM po wyrenderowaniu kontenera
+        // CHANGE: Initializing the DOM reference after rendering the container
+        this.dom.weatherAlertsContainer = document.getElementById('weather-alerts-container');
+    }
+    
+    // NOWA METODA: Renderowanie alertów pogodowych
+    // NEW METHOD: Rendering weather alerts
+    renderWeatherAlerts(data) {
+        const container = this.dom.weatherAlertsContainer;
+        if (!container) return;
+
+        if (data.alerts && data.alerts.length > 0) {
+            const alert = data.alerts[0]; // Dla uproszczenia wyświetlamy pierwszy alert / Displaying the first alert for simplicity
+            const startTime = new Date(alert.start * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+            const endTime = new Date(alert.end * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+
+            container.className = 'weather-alert weather-alert--warning';
+            container.innerHTML = `
+                <div class="alert__header">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <strong>${alert.event}</strong>
                 </div>
-                <div class="detail-col detail-col--2">
-                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Jakość pow.</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5a8.45 8.45 0 0 0-5.04 1.94 8.45 8.45 0 0 0-2.02 5.07 8.45 8.45 0 0 0 .5 3.51 8.45 8.45 0 0 0 3.51 .5h8.55a8.45 8.45 0 0 0 2.02-5.07 8.45 8.45 0 0 0-5.04-1.94Z"/><path d="M8 15h8"/></svg></span><span class="detail-item-value value-color--aqi-${air_quality.main.aqi}">${aqiMap[air_quality.main.aqi - 1]}</span></div>
-                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Indeks UV</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m4.93 19.07 1.41-1.41"/><path d="m17.66 6.34 1.41-1.41"/></svg></span><span class="detail-item-value value-color--uv-${uvCategory}">${uvMap[uvCategory]}</span></div>
-                </div>
-                <div class="detail-col detail-col--3">
-                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Nawierzchnia</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0-4.4-3.6-8-8-8s-8 3.6-8 8c0 2 .8 3.8 2 5l-3 7h18l-3-7c1.2-1.2 2-3 2-5Z"/><path d="M12 10h.01"/></svg></span><span class="detail-item-value value-color--${roadCondition.class}">${roadCondition.text}</span></div>
-                </div>
-                <div class="detail-col detail-col--4">
-                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Wschód słońca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg></span><span class="detail-item-value">${formatTime(current.sunrise)}</span></div>
-                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Zachód słońca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/><path d="M16 18a4 4 0 0 1-8 0"/></svg></span><span class="detail-item-value">${formatTime(current.sunset)}</span></div>
-                </div>
-                <div class="detail-col detail-col--5">
-                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Wschód księżyca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M18 12h-6"/><path d="M12 18s-4-3-4-6 4-6 4-6"/><path d="M12 6s4 3 4 6-4 6-4 6"/></svg></span><span class="detail-item-value">${formatTime(today.moonrise)}</span></div>
-                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Zachód księżyca</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18V6"/><path d="M6 12h6"/><path d="M12 6s-4 3-4-6 4 6 4 6"/><path d="M12 18s4-3 4-6-4-6-4-6"/></svg></span><span class="detail-item-value">${formatTime(today.moonset)}</span></div>
-                </div>
-            </div>`;
+                <p class="alert__source">Wydane przez: ${alert.sender_name}</p>
+                <p class="alert__time">Obowiązuje od ${startTime} do ${endTime}</p>
+            `;
+        } else {
+            container.className = 'weather-alert weather-alert--safe';
+            container.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <span>Brak alertów pogodowych w bieżącej lokalizacji</span>
+            `;
+        }
     }
     
     renderHourlyForecast() {
+        // ... (bez zmian / no changes) ...
         const now = new Date();
         let forecastToShow;
 
@@ -310,8 +343,32 @@ class WeatherApp {
             if (typeof query === 'string') localStorage.setItem('lastCity', query.trim());
             this.hourlyForecastData = data.hourly;
             
-            this.renderCurrentWeather(data);
-            this.renderDailyForecast(data);
+            // Przygotowanie przetworzonych danych, aby nie duplikować logiki
+            // Preparing processed data to avoid duplicating logic
+            const processedData = {
+                ...data,
+                roadCondition: data.current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(data.current.weather[0].main)
+                    ? { text: "Sucha", class: 'roadDry' }
+                    : (data.current.temp <= 2 ? { text: "Możliwe oblodzenie", class: 'roadIcy' } : { text: "Mokra", class: 'roadWet' }),
+                uvCategory: (() => {
+                    const uvIndex = Math.round(data.current.uvi);
+                    if (uvIndex >= 11) return 'extreme';
+                    if (uvIndex >= 8) return 'very-high';
+                    if (uvIndex >= 6) return 'high';
+                    if (uvIndex >= 3) return 'moderate';
+                    return 'low';
+                })(),
+                formattedTimes: {
+                    sunrise: new Date(data.current.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    sunset: new Date(data.current.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    moonrise: new Date(data.daily[0].moonrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    moonset: new Date(data.daily[0].moonset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                }
+            };
+
+            this.renderCurrentWeather(processedData);
+            this.renderWeatherAlerts(processedData); // Wywołanie nowej metody / Calling the new method
+            this.renderDailyForecast(processedData);
             this.renderHourlyForecast();
             
             this.dom.forecastsContainer.style.display = 'block';
