@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stacja Pogody - Aplikacja Vanilla JS</title>
-    <link rel="stylesheet" href="weather.css?v=1.7">
+    <link rel="stylesheet" href="weather.css?v=1.6">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -29,7 +29,10 @@
                 <button id="search-weather-btn" class="weather-app__button"><span>Szukaj</span></button>
                 <button id="geolocation-btn" class="weather-app__button weather-app__button--geo"><span>Użyj mojej lokalizacji</span></button>
             </div>
-            <div id="weather-result-container" class="weather-app__result" aria-live="polite"></div>
+            <div id="weather-result-container" class="weather-app__result" aria-live="polite">
+                <!-- Treść bieżącej pogody będzie renderowana tutaj przez JS -->
+                <!-- Current weather content will be rendered here by JS -->
+            </div>
             
             <div id="map-container" style="display: none;">
                 <div id="map"></div>
@@ -73,7 +76,7 @@
     </main>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="weather.js?v=1.7"></script>
+    <script src="weather.js?v=1.6"></script>
 
 </body>
 </html>
