@@ -3,7 +3,7 @@ class WeatherApp {
         // --- Stan aplikacji / Application State ---
         this.map = null;
         this.marker = null;
-        this.precipitationLayer = null; // Warstwa opadów / Precipitation Layer
+        this.precipitationLayer = null;
         this.hourlyForecastData = [];
         this.currentHourlyRange = 24;
 
@@ -16,7 +16,7 @@ class WeatherApp {
             weatherResultContainer: document.getElementById('weather-result-container'),
             forecastsContainer: document.getElementById('forecasts-container'),
             mapContainer: document.getElementById('map-container'),
-            precipitationToggle: document.getElementById('precipitation-toggle'), // Przełącznik opadów / Precipitation Toggle
+            precipitationToggle: document.getElementById('precipitation-toggle'),
             forecastSwitcher: document.getElementById('forecast-switcher'),
             hourly: {
                 container: document.getElementById('hourly-forecast-container'),
@@ -58,8 +58,7 @@ class WeatherApp {
         this.dom.hourly.sliderNextBtn.addEventListener('click', () => this.handleSliderScroll(1));
         this.dom.hourly.scrollWrapper.addEventListener('scroll', () => this.updateSliderButtons(), { passive: true });
         window.addEventListener('resize', () => {
-            // Usunięto zbędne wywołania, CSS sam zarządza layoutem
-            // Removed unnecessary calls, CSS manages the layout by itself
+            this.renderHourlyForecast();
             this.updateSliderButtons();
         });
     }
@@ -83,6 +82,7 @@ class WeatherApp {
     }
 
     // --- Funkcje Pomocnicze / Helper Functions ---
+    isMobile = () => window.matchMedia("(max-width: 1024px)").matches;
     isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
 
     setTheme(theme) {
@@ -316,19 +316,18 @@ class WeatherApp {
             
             this.dom.forecastsContainer.style.display = 'block';
 
-            // Uproszczona logika - CSS sam zarządza widocznością
-            // Simplified logic - CSS manages visibility on its own
-            const isPortrait = this.isMobilePortrait();
-            this.dom.forecastsContainer.className = isPortrait ? '' : 'show-hourly';
-            
-            const activeSwitcher = this.dom.forecastSwitcher.querySelector('.active');
-            if (activeSwitcher) activeSwitcher.classList.remove('active');
-            
-            if (isPortrait) {
-                // Nie ustawiamy aktywnego przycisku w portrecie na starcie
-                // We don't set an active button in portrait on start
+            if (this.isMobile()) {
+                this.dom.forecastsContainer.className = '';
+                const activeButton = this.dom.forecastSwitcher.querySelector('.active');
+                if (activeButton) {
+                    activeButton.classList.remove('active');
+                }
             } else {
-                 this.dom.forecastSwitcher.querySelector('[data-forecast="hourly"]').classList.add('active');
+                this.dom.forecastsContainer.className = 'show-hourly';
+                const dailyButton = this.dom.forecastSwitcher.querySelector('[data-forecast="daily"]');
+                if (dailyButton) dailyButton.classList.remove('active');
+                const hourlyButton = this.dom.forecastSwitcher.querySelector('[data-forecast="hourly"]');
+                if (hourlyButton) hourlyButton.classList.add('active');
             }
             
             this.dom.mapContainer.style.display = 'block';
