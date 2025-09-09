@@ -114,6 +114,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 
 /* --- Alerty pogodowe (ZMIANA STYLU) / Weather Alerts (STYLE CHANGE) --- */
 .weather-alert {
+    position: relative; /* Niezbędne do pozycjonowania pseudo-elementu */
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -122,33 +123,47 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     border-radius: 8px;
     text-align: left;
     font-size: 0.95rem;
-    border: 1px solid transparent; /* Usuwamy widoczną ramkę / Removing the visible border */
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); /* Subtelny cień wewnętrzny / Subtle inner shadow */
+    background-color: transparent; /* Tło głównego elementu jest przezroczyste */
+    border: 1px solid var(--border-color); /* Dodajemy subtelną ramkę */
+    overflow: hidden; /* Ukrywa wszystko, co wychodzi poza kontener */
 }
-.weather-alert svg {
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
+
+.weather-alert::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none; /* Pozwala na klikanie elementów pod spodem */
+    filter: blur(20px); /* Rozmycie krawędzi gradientu */
 }
+
+.weather-alert > * {
+    position: relative; /* Umieszcza zawartość ponad pseudo-elementem */
+    z-index: 2;
+}
+
 .weather-alert--safe {
     color: var(--success-color);
-    /* ZMIANA: Zastosowanie gradientu radialnego dla gładszego przejścia */
-    /* CHANGE: Applying a radial gradient for a smoother transition */
-    background: radial-gradient(ellipse 200% 100% at 0% 50%, rgba(40, 167, 69, 0.15), transparent 70%);
+    border-color: rgba(40, 167, 69, 0.3);
 }
+.weather-alert--safe::before {
+    background: radial-gradient(ellipse 120% 100% at 0% 50%, rgba(40, 167, 69, 0.25), transparent 60%);
+}
+
 .weather-alert--warning {
     flex-direction: column;
     align-items: flex-start;
     color: var(--warning-color);
-    /* ZMIANA: Zastosowanie gradientu radialnego dla gładszego przejścia */
-    /* CHANGE: Applying a radial gradient for a smoother transition */
-    background: radial-gradient(ellipse 200% 100% at 0% 50%, rgba(255, 193, 7, 0.15), transparent 70%);
+    border-color: rgba(255, 193, 7, 0.3);
+}
+.weather-alert--warning::before {
+     background: radial-gradient(ellipse 120% 100% at 0% 50%, rgba(255, 193, 7, 0.25), transparent 60%);
 }
 body.dark-mode .weather-alert--warning {
     color: #ffc107;
-}
-body.dark-mode .weather-alert {
-    box-shadow: inset 0 1px 4px rgba(0,0,0,0.3);
 }
 
 .alert__header {
