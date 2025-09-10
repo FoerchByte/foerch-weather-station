@@ -452,4 +452,3 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
         .weather-app__forecast-day { flex-direction: row; justify-content: space-between; }
     }
 }
-
