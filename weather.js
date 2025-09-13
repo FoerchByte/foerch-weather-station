@@ -1,5 +1,8 @@
 class WeatherApp {
     constructor() {
+        // --- Stałe konfiguracyjne / Configuration Constants ---
+        this.MAX_FAVORITES = 5;
+
         // --- Stan aplikacji / Application State ---
         this.map = null;
         this.marker = null;
@@ -16,7 +19,7 @@ class WeatherApp {
             geoBtn: document.getElementById('geolocation-btn'),
             themeToggle: document.getElementById('theme-toggle'),
             weatherResultContainer: document.getElementById('weather-result-container'),
-            weatherAlertsContainer: null, 
+            weatherAlertsContainer: null,
             forecastsContainer: document.getElementById('forecasts-container'),
             mapContainer: document.getElementById('map-container'),
             precipitationToggle: document.getElementById('precipitation-toggle'),
@@ -47,7 +50,7 @@ class WeatherApp {
             this.dom.cityInput.value = lastCity;
             this.handleSearch(lastCity, this.dom.searchBtn);
         } else if (this.favorites.length > 0) {
-            this.handleSearch(this.favorites[0].name, this.dom.searchBtn);
+            this.handleSearch(this.favorites[0].name, null); // Nie pokazuj loadera dla pierwszego ulubionego
         }
     }
 
@@ -81,19 +84,32 @@ class WeatherApp {
     }
 
     renderFavorites() {
-        this.dom.favoritesContainer.innerHTML = this.favorites.map(fav => 
-            `<button class="favorite-location-btn" data-city="${fav.name}">${fav.name}</button>`
-        ).join('');
+        if (this.favorites.length === 0) {
+            this.dom.favoritesContainer.innerHTML = `<p class="favorites-empty-state">Dodaj swoje pierwsze ulubione miasto, używając ikony gwiazdki ⭐</p>`;
+        } else {
+            this.dom.favoritesContainer.innerHTML = this.favorites.map(fav =>
+                `<button class="favorite-location-btn" data-city="${fav.name}">${fav.name}</button>`
+            ).join('');
+        }
     }
 
     toggleFavorite() {
         if (!this.currentLocation) return;
         const locationId = `${this.currentLocation.lat},${this.currentLocation.lon}`;
         const index = this.favorites.findIndex(fav => `${fav.lat},${fav.lon}` === locationId);
+
         if (index > -1) {
+            // Usuń z ulubionych / Remove from favorites
             this.favorites.splice(index, 1);
         } else {
-            this.favorites.push(this.currentLocation);
+            // Dodaj do ulubionych, jeśli limit nie jest osiągnięty / Add to favorites if the limit is not reached
+            if (this.favorites.length < this.MAX_FAVORITES) {
+                this.favorites.push(this.currentLocation);
+            } else {
+                // Prosta informacja dla użytkownika, można rozbudować o ładniejszy modal / Simple feedback for the user, can be expanded to a nicer modal
+                alert(`Możesz dodać maksymalnie ${this.MAX_FAVORITES} ulubionych lokalizacji.`);
+                return;
+            }
         }
         this.saveFavorites();
         this.renderFavorites();
@@ -104,8 +120,18 @@ class WeatherApp {
         if (!this.currentLocation || !this.dom.addFavoriteBtn) return;
         const locationId = `${this.currentLocation.lat},${this.currentLocation.lon}`;
         const isFav = this.favorites.some(fav => `${fav.lat},${fav.lon}` === locationId);
+
         this.dom.addFavoriteBtn.classList.toggle('is-favorite', isFav);
         this.dom.addFavoriteBtn.setAttribute('aria-label', isFav ? 'Usuń z ulubionych' : 'Dodaj do ulubionych');
+        
+        // Wyłącz przycisk dodawania, jeśli limit został osiągnięty i miasto nie jest już w ulubionych
+        // Disable the add button if the limit is reached and the city is not already a favorite
+        if (!isFav && this.favorites.length >= this.MAX_FAVORITES) {
+            this.dom.addFavoriteBtn.disabled = true;
+            this.dom.addFavoriteBtn.setAttribute('aria-label', 'Osiągnięto limit ulubionych');
+        } else {
+            this.dom.addFavoriteBtn.disabled = false;
+        }
     }
 
     handleFavoriteClick(event) {
@@ -120,7 +146,7 @@ class WeatherApp {
     // --- Renderowanie UI / UI Rendering ---
     renderCurrentWeather(data) {
         const { location } = data;
-        
+
         const headerHtml = `
             <div class="current-weather__header">
                 <h3 class="current-weather__city">${location.name}</h3>
@@ -130,9 +156,7 @@ class WeatherApp {
                     </svg>
                 </button>
             </div>`;
-
-        // ZMIANA: Zastąpienie starych ikon nowymi, estetycznymi SVG
-        // CHANGE: Replacing old icons with new, aesthetic SVGs
+        
         const detailsHtml = `
             <div class="current-weather__extra-details">
                 <div class="detail-col detail-col--1">
@@ -172,7 +196,7 @@ class WeatherApp {
         this.dom.addFavoriteBtn = document.getElementById('add-favorite-btn');
         this.dom.addFavoriteBtn.addEventListener('click', () => this.toggleFavorite());
     }
-    
+
     // --- Główna Logika / Main Logic ---
     async handleSearch(query, buttonToLoad) {
         if (!query) return;
@@ -184,14 +208,14 @@ class WeatherApp {
         try {
             const data = await this.getWeatherData(query);
             if (!data) { this.showError("Wpisz miasto lub zezwól na geolokalizację."); return; }
-            
+
             if (typeof query === 'string') {
                 localStorage.setItem('lastCity', query.trim());
             }
 
             this.currentLocation = data.location;
             this.hourlyForecastData = data.hourly;
-            
+
             const processedData = {
                 ...data,
                 roadCondition: data.current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(data.current.weather[0].main)
@@ -216,7 +240,7 @@ class WeatherApp {
             this.renderWeatherAlerts(processedData);
             this.renderDailyForecast(processedData);
             this.renderHourlyForecast();
-            
+
             this.dom.forecastsContainer.style.display = 'block';
 
             if (this.isMobile()) {
@@ -230,7 +254,7 @@ class WeatherApp {
                 const hourlyButton = this.dom.forecastSwitcher.querySelector('[data-forecast="hourly"]');
                 if (hourlyButton) hourlyButton.classList.add('active');
             }
-            
+
             this.dom.mapContainer.style.display = 'block';
             const isGeoSearch = typeof query === 'object' && query.latitude;
             const zoomLevel = isGeoSearch ? 17 : 13;
@@ -247,7 +271,7 @@ class WeatherApp {
             if (buttonToLoad) this.toggleButtonLoading(buttonToLoad, false);
         }
     }
-    
+
     // --- Pozostałe metody (bez istotnych zmian) ---
     getWeatherIconHtml(iconCode, description) {
         const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
@@ -258,7 +282,7 @@ class WeatherApp {
     isMobile = () => window.matchMedia("(max-width: 1024px)").matches;
     isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
     setTheme(theme) { document.body.classList.toggle('dark-mode', theme === 'dark'); localStorage.setItem('theme', theme); if (this.map) this.updateMapTileLayer(); }
-    toggleButtonLoading(button, isLoading) { const span = button.querySelector('span'); if (isLoading) { span.style.display = 'none'; if (!button.querySelector('.loader')) { button.insertAdjacentHTML('beforeend', '<div class="loader"></div>'); } button.disabled = true; } else { span.style.display = 'inline'; const loader = button.querySelector('.loader'); if (loader) loader.remove(); button.disabled = false; } }
+    toggleButtonLoading(button, isLoading) { if(!button) return; const span = button.querySelector('span'); if (isLoading) { span.style.display = 'none'; if (!button.querySelector('.loader')) { button.insertAdjacentHTML('beforeend', '<div class="loader"></div>'); } button.disabled = true; } else { span.style.display = 'inline'; const loader = button.querySelector('.loader'); if (loader) loader.remove(); button.disabled = false; } }
     showError(message) { this.dom.weatherResultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`; this.dom.forecastsContainer.style.display = 'none'; this.dom.mapContainer.style.display = 'none'; }
     getPrecipitationLayer() { const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`; return L.tileLayer(proxyUrl, { attribution: '&copy; OpenWeatherMap' }); }
     togglePrecipitationLayer() { if (!this.map) return; if (this.dom.precipitationToggle.checked) { if (!this.precipitationLayer) { this.precipitationLayer = this.getPrecipitationLayer(); } this.map.addLayer(this.precipitationLayer); } else { if (this.precipitationLayer && this.map.hasLayer(this.precipitationLayer)) { this.map.removeLayer(this.precipitationLayer); } } }
@@ -280,4 +304,3 @@ document.addEventListener('DOMContentLoaded', () => {
     const app = new WeatherApp();
     app.init();
 });
-
