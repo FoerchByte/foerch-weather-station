@@ -93,7 +93,6 @@ class WeatherApp {
     toggleFavorite() {
         if (!this.currentLocation) return;
 
-        // Ograniczenie do 5 ulubionych
         const locationId = `${this.currentLocation.lat},${this.currentLocation.lon}`;
         const index = this.favorites.findIndex(fav => `${fav.lat},${fav.lon}` === locationId);
         
@@ -101,7 +100,6 @@ class WeatherApp {
             this.favorites.splice(index, 1);
         } else {
             if (this.favorites.length >= 5) {
-                // Prosta informacja dla użytkownika - w przyszłości można zrobić ładniejszy modal
                 alert("Możesz dodać maksymalnie 5 ulubionych lokalizacji.");
                 return;
             }
@@ -119,8 +117,6 @@ class WeatherApp {
         const isFav = this.favorites.some(fav => `${fav.lat},${fav.lon}` === locationId);
         this.dom.addFavoriteBtn.classList.toggle('is-favorite', isFav);
         this.dom.addFavoriteBtn.setAttribute('aria-label', isFav ? 'Usuń z ulubionych' : 'Dodaj do ulubionych');
-        
-        // Zablokuj przycisk, jeśli nie jest ulubiony i osiągnięto limit
         this.dom.addFavoriteBtn.disabled = !isFav && this.favorites.length >= 5;
     }
 
@@ -134,41 +130,31 @@ class WeatherApp {
         }
     }
 
-    // NOWA METODA: Tłumaczenie nazw alertów / NEW METHOD: Translating alert names
     translateAlertEvent(eventName) {
-        // Mapa znanych alertów z API OpenWeatherMap na polskie nazwy.
-        // Można ją łatwo rozbudować o kolejne typy alertów w przyszłości.
-        // Map of known alerts from the OpenWeatherMap API to Polish names.
-        // It can be easily extended with more alert types in the future.
         const alertTranslations = {
             'Yellow Rain warning': 'Ostrzeżenie: Intensywne opady deszczu',
             'Orange Rain warning': 'Ostrzeżenie 2. stopnia: Ulewne opady deszczu',
             'Red Rain warning': 'Ostrzeżenie 3. stopnia: Ekstremalne opady deszczu',
-            
             'Yellow Snow warning': 'Ostrzeżenie: Intensywne opady śniegu',
             'Orange Snow warning': 'Ostrzeżenie 2. stopnia: Zamiecie/zawieje śnieżne',
             'Red Snow warning': 'Ostrzeżenie 3. stopnia: Ekstremalne opady śniegu',
-
             'Yellow Wind warning': 'Ostrzeżenie: Silny wiatr',
             'Orange Wind warning': 'Ostrzeżenie 2. stopnia: Bardzo silny wiatr',
             'Red Wind warning': 'Ostrzeżenie 3. stopnia: Ekstremalnie silny wiatr',
-
             'Yellow Thunderstorm warning': 'Ostrzeżenie: Burze z gradem',
             'Orange Thunderstorm warning': 'Ostrzeżenie 2. stopnia: Gwałtowne burze',
             'Red Thunderstorm warning': 'Ostrzeżenie 3. stopnia: Ekstremalne zjawiska burzowe',
-
             'Yellow Fog warning': 'Ostrzeżenie: Gęsta mgła',
             'Orange Fog warning': 'Ostrzeżenie 2. stopnia: Bardzo gęsta mgła',
-            
             'Yellow High temperature warning': 'Ostrzeżenie: Upał',
             'Orange High temperature warning': 'Ostrzeżenie 2. stopnia: Upał',
             'Red High temperature warning': 'Ostrzeżenie 3. stopnia: Ekstremalny upał',
-            
             'Yellow Low temperature warning': 'Ostrzeżenie: Mróz',
             'Orange Low temperature warning': 'Ostrzeżenie 2. stopnia: Silny mróz',
             'Red Low temperature warning': 'Ostrzeżenie 3. stopnia: Ekstremalny mróz',
         };
-
+        // POPRAWKA: Usunięcie dodatkowych spacji i enterów z tłumaczeń
+        // FIX: Removing extra spaces and newlines from translations
         return alertTranslations[eventName] || eventName;
     }
 
@@ -187,12 +173,11 @@ class WeatherApp {
                 </button>
             </div>`;
 
-        // ZMIANA: Zastąpienie starych ikon nowymi, estetycznymi SVG w stylu "Duotone"
-        // CHANGE: Replacing old icons with new, aesthetic "Duotone" style SVGs
         const detailsHtml = `
             <div class="current-weather__extra-details">
                 <div class="detail-col detail-col--1">
-                    <div class.current-weather__detail-item"><span class="detail-item-header"><span>Wiatr</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 6H6C4.89543 6 4 6.89543 4 8C4 9.10457 4.89543 10 6 10H10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 12H7C5.34315 12 4 13.3431 4 15C4 16.6569 5.34315 18 7 18H14" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 14H16C14.8954 14 14 14.8954 14 16C14 17.1046 14.8954 18 16 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.current.wind_speed.toFixed(1)} m/s</span></div>
+                    {/* POPRAWKA: Usunięto kropkę przed 'current-weather__detail-item' / FIX: Removed dot before 'current-weather__detail-item' */}
+                    <div class="current-weather__detail-item"><span class="detail-item-header"><span>Wiatr</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 6H6C4.89543 6 4 6.89543 4 8C4 9.10457 4.89543 10 6 10H10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 12H7C5.34315 12 4 13.3431 4 15C4 16.6569 5.34315 18 7 18H14" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 14H16C14.8954 14 14 14.8954 14 16C14 17.1046 14.8954 18 16 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.current.wind_speed.toFixed(1)} m/s</span></div>
                     <div class="current-weather__detail-item"><span class="detail-item-header"><span>Ciśnienie</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 12L15 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.current.pressure} hPa</span></div>
                 </div>
                 <div class="detail-col detail-col--2">
@@ -229,6 +214,9 @@ class WeatherApp {
         this.dom.addFavoriteBtn.addEventListener('click', () => this.toggleFavorite());
     }
     
+    // ... reszta metod bez zmian ...
+    // ... rest of the methods without changes ...
+    
     renderWeatherAlerts(data) {
         const container = this.dom.weatherAlertsContainer;
         if (!container) return;
@@ -238,7 +226,6 @@ class WeatherApp {
             const startTime = new Date(alert.start * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
             const endTime = new Date(alert.end * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
             
-            // ZMIANA: Użycie metody tłumaczącej / CHANGE: Using the translation method
             const translatedEventName = this.translateAlertEvent(alert.event);
 
             container.className = 'weather-alert weather-alert--warning';
@@ -325,7 +312,6 @@ class WeatherApp {
             </div>`).join('');
     }
 
-    // --- Główna Logika / Main Logic ---
     async handleSearch(query, buttonToLoad) {
         if (!query) return;
         this.dom.weatherResultContainer.innerHTML = `<div class="weather-app__skeleton"><div class="skeleton" style="width: 200px; height: 2.2rem;"></div><div class="skeleton" style="width: 150px; height: 4rem;"></div></div>`;
@@ -400,7 +386,6 @@ class WeatherApp {
         }
     }
     
-    // --- Pozostałe metody (bez istotnych zmian) ---
     getWeatherIconHtml(iconCode, description) {
         const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
         const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg', };
