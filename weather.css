@@ -72,7 +72,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     overflow-x: hidden;
 }
 
-/* --- NOWE STYLE: Ulubione lokalizacje / NEW STYLES: Favorite Locations --- */
+/* --- STYLE: Ulubione lokalizacje / STYLES: Favorite Locations --- */
 .favorites-container {
     display: flex;
     flex-wrap: wrap;
@@ -81,6 +81,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--border-color);
+    min-height: 34px; /* Zapewnia stałą wysokość kontenera */
 }
 .favorite-location-btn {
     background-color: var(--background-color);
@@ -94,6 +95,12 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 .favorite-location-btn:hover {
     background-color: var(--border-color);
+}
+
+.favorites-empty-state {
+    font-size: 0.9rem;
+    color: var(--completed-text);
+    align-self: center;
 }
 
 .current-weather__header {
@@ -115,6 +122,11 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .favorite-btn:hover {
     color: var(--warning-color);
     transform: scale(1.1);
+}
+.favorite-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
 }
 .favorite-btn.is-favorite {
     color: var(--warning-color);
