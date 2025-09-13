@@ -250,9 +250,17 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     white-space: nowrap;
 }
 .current-weather__detail-item .detail-item-header svg {
-    width: 22px; height: 22px; stroke: var(--text-color);
+    width: 22px; height: 22px; 
+    stroke: var(--text-color); /* Domyślny kolor dla ścieżek bez koloru */
+    transition: color 0.3s;
 }
-.detail-item-value { font-size: 1.1rem; font-weight: 500; }
+
+.detail-item-value { 
+    font-size: 1.1rem; 
+    font-weight: 500; 
+    transition: color 0.3s;
+}
+
 
 /* --- Pozostałe style (mapa, prognozy, etc.) --- */
 #map-container { padding: 0; margin-top: 2rem; position: relative; }
@@ -366,45 +374,46 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
 
 /* --- Kolory wartości i ikon / Value & Icon Colors --- */
-.value-color--roadDry { color: var(--success-color); }
-.value-color--roadWet { color: var(--primary-color); }
-.value-color--roadIcy { color: var(--danger-color); }
+.value-color--roadDry .detail-item-value { color: var(--success-color); }
+.value-color--roadWet .detail-item-value { color: var(--primary-color); }
+.value-color--roadIcy .detail-item-value { color: var(--danger-color); }
 
-.value-color--aqi-1, .value-color--aqi-2 { color: var(--success-color); }
-.value-color--aqi-3 { color: var(--warning-color); }
-.value-color--aqi-4, .value-color--aqi-5 { color: var(--danger-color); }
+.value-color--aqi-1 .detail-item-value,
+.value-color--aqi-2 .detail-item-value { color: var(--success-color); }
+.value-color--aqi-3 .detail-item-value { color: var(--warning-color); }
+.value-color--aqi-4 .detail-item-value,
+.value-color--aqi-5 .detail-item-value { color: var(--danger-color); }
 
-.value-color--uv-low { color: var(--success-color); }
-.value-color--uv-moderate { color: var(--warning-color); }
-.value-color--uv-high, .value-color--uv-very-high, .value-color--uv-extreme { color: var(--danger-color); }
+.value-color--uv-low .detail-item-value { color: var(--success-color); }
+.value-color--uv-moderate .detail-item-value { color: var(--warning-color); }
+.value-color--uv-high .detail-item-value, 
+.value-color--uv-very-high .detail-item-value, 
+.value-color--uv-extreme .detail-item-value { color: var(--danger-color); }
 
 /* NOWE STYLE: Kolory dla ikon Duotone / NEW STYLES: Colors for Duotone Icons */
-.value-color--roadDry .detail-item-header svg path[stroke-opacity="0.5"],
-.value-color--aqi-1 .detail-item-header svg path[stroke-opacity="0.5"],
-.value-color--aqi-2 .detail-item-header svg path[stroke-opacity="0.5"],
-.value-color--uv-low .detail-item-header svg path[fill-opacity="0.5"] {
-    stroke: var(--success-color);
-    fill: var(--success-color);
+.value-color--roadDry .detail-item-header svg,
+.value-color--aqi-1 .detail-item-header svg,
+.value-color--aqi-2 .detail-item-header svg,
+.value-color--uv-low .detail-item-header svg {
+    color: var(--success-color);
 }
 
-.value-color--roadWet .detail-item-header svg path[stroke-opacity="0.5"] {
-    stroke: var(--primary-color);
+.value-color--roadWet .detail-item-header svg {
+    color: var(--primary-color);
 }
 
-.value-color--roadIcy .detail-item-header svg path[stroke-opacity="0.5"],
-.value-color--aqi-4 .detail-item-header svg path[stroke-opacity="0.5"],
-.value-color--aqi-5 .detail-item-header svg path[stroke-opacity="0.5"],
-.value-color--uv-high .detail-item-header svg path[fill-opacity="0.5"],
-.value-color--uv-very-high .detail-item-header svg path[fill-opacity="0.5"],
-.value-color--uv-extreme .detail-item-header svg path[fill-opacity="0.5"] {
-    stroke: var(--danger-color);
-    fill: var(--danger-color);
+.value-color--roadIcy .detail-item-header svg,
+.value-color--aqi-4 .detail-item-header svg,
+.value-color--aqi-5 .detail-item-header svg,
+.value-color--uv-high .detail-item-header svg,
+.value-color--uv-very-high .detail-item-header svg,
+.value-color--uv-extreme .detail-item-header svg {
+    color: var(--danger-color);
 }
 
-.value-color--aqi-3 .detail-item-header svg path[stroke-opacity="0.5"],
-.value-color--uv-moderate .detail-item-header svg path[fill-opacity="0.5"] {
-    stroke: var(--warning-color);
-    fill: var(--warning-color);
+.value-color--aqi-3 .detail-item-header svg,
+.value-color--uv-moderate .detail-item-header svg {
+    color: var(--warning-color);
 }
 
 
