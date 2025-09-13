@@ -403,7 +403,7 @@ class WeatherApp {
         const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
         const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg', };
         const iconName = iconMap[iconCode] || 'not-available.svg';
-        return `<img src="${iconBaseUrl}" alt="${description}" class="weather-icon-img">`;
+        return `<img src="${iconBaseUrl}${iconName}" alt="${description}" class="weather-icon-img">`;
     }
     isMobile = () => window.matchMedia("(max-width: 1024px)").matches;
     isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
