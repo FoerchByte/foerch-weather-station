@@ -416,6 +416,20 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     color: var(--warning-color);
 }
 
+/* NOWE STYLE: Kolory dla ikon neutralnych i Słońca/Księżyca */
+/* NEW STYLES: Colors for neutral and Sun/Moon icons */
+.value-color--neutral-info .detail-item-header svg {
+    color: var(--info-color);
+}
+
+.value-color--sun .detail-item-header svg {
+    color: var(--warning-color);
+}
+
+.value-color--moon .detail-item-header svg {
+    color: var(--completed-text); 
+}
+
 
 /* --- Media Queries --- */
 @media (min-width: 1025px) { .hourly-forecast__slider-nav { display: flex; } }
