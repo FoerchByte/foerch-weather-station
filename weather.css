@@ -248,6 +248,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     display: flex; align-items: center; gap: 0.5rem;
     font-size: 0.9rem; color: var(--completed-text);
     transition: font-size 0.2s;
+    white-space: nowrap; /* ZMIANA: Ostateczne rozwiązanie - zakaz zawijania tekstu */
 }
 .current-weather__detail-item .detail-item-header svg {
     width: 22px; height: 22px; stroke: var(--completed-text);
