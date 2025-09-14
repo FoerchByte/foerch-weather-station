@@ -5,7 +5,7 @@ class WeatherApp {
         this.marker = null;
         this.precipitationLayer = null;
         this.hourlyForecastData = [];
-        this.dailyForecastData = []; // NOWY STAN: Przechowujemy pełne dane dzienne
+        this.dailyForecastData = [];
         this.currentHourlyRange = 24;
         this.favorites = [];
         this.currentLocation = null;
@@ -41,8 +41,6 @@ class WeatherApp {
                 wrapper: document.querySelector('.daily-forecast__wrapper'),
                 container: document.getElementById('daily-forecast-container'),
             },
-            // ZMIANA: Uogólniona nazwa modala
-            // CHANGE: Generic modal name
             modal: {
                 container: document.getElementById('details-modal'),
                 title: document.getElementById('modal-title'),
@@ -86,8 +84,6 @@ class WeatherApp {
         this.dom.favoritesContainer.addEventListener('click', (e) => this.handleFavoriteClick(e));
         this.dom.hourly.container.addEventListener('click', (e) => this.handleHourlyItemClick(e));
         
-        // NOWE ZDARZENIE: Obsługa kliknięć na kafelki dzienne
-        // NEW EVENT: Handling clicks on daily tiles
         this.dom.daily.container.addEventListener('click', (e) => this.handleDailyItemClick(e));
 
         document.addEventListener('click', (e) => {
@@ -376,7 +372,6 @@ class WeatherApp {
     }
     
     renderHourlyForecast() {
-        // ... (logika filtrowania i grupowania bez zmian) ...
         const now = new Date();
         let forecastToShow;
         if (this.currentHourlyRange === 24) {
@@ -444,7 +439,7 @@ class WeatherApp {
             if (typeof query === 'string') localStorage.setItem('lastCity', query.trim());
             this.currentLocation = data.location;
             this.hourlyForecastData = data.hourly;
-            this.dailyForecastData = data.daily; // Zapisujemy pełne dane dzienne
+            this.dailyForecastData = data.daily;
             const processedData = {
                 ...data,
                 overview: data.overview,
@@ -644,6 +639,4 @@ document.addEventListener('DOMContentLoaded', () => {
     const app = new WeatherApp();
     app.init();
 });
-
-" with my request to "Napraw chociaż pogodę godzinową jak była, dokładanie jak była z 92px w konkretnej linii, potem zaczniemy dalej z 8 dniówką"
 
