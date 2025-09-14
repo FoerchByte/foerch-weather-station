@@ -6,9 +6,9 @@ class WeatherApp {
         this.precipitationLayer = null;
         this.hourlyForecastData = [];
         this.currentHourlyRange = 24;
-        this.favorites = [];
+        this.favorites = []; // POPRAWKA: Zawsze inicjalizuj jako pustą tablicę / FIX: Always initialize as an empty array
         this.currentLocation = null;
-        this.minutelyChart = null; // NOWY STAN: Instancja wykresu / NEW STATE: Chart instance
+        this.minutelyChart = null;
 
         // --- Referencje DOM / DOM References ---
         this.dom = {
@@ -24,7 +24,7 @@ class WeatherApp {
             forecastSwitcher: document.getElementById('forecast-switcher'),
             favoritesContainer: document.getElementById('favorites-container'),
             addFavoriteBtn: null,
-            minutely: { // NOWE REFERENCJE: Prognoza minutowa / NEW REFERENCES: Minutely Forecast
+            minutely: {
                 chartCanvas: document.getElementById('minutely-chart'),
             },
             hourly: {
@@ -251,7 +251,7 @@ class WeatherApp {
     
     // NOWA METODA: Renderowanie prognozy minutowej / NEW METHOD: Rendering minutely forecast
     renderMinutelyForecast(data) {
-        const hasPrecipitation = data.minutely.some(minute => minute.precipitation > 0);
+        const hasPrecipitation = data.minutely && data.minutely.some(minute => minute.precipitation > 0);
         const wrapper = this.dom.minutely.chartCanvas.closest('.minutely-forecast__wrapper');
 
         if (!hasPrecipitation) {
@@ -469,6 +469,7 @@ class WeatherApp {
                 this.dom.forecastsContainer.className = '';
                 const activeButton = this.dom.forecastSwitcher.querySelector('.active');
                 if (activeButton) activeButton.classList.remove('active');
+                this.dom.forecastSwitcher.querySelector('[data-forecast="minutely"]').classList.add('active');
             } else {
                 this.dom.forecastsContainer.className = 'show-minutely';
                 this.dom.forecastSwitcher.querySelector('[data-forecast="hourly"]').classList.remove('active');
@@ -512,7 +513,22 @@ class WeatherApp {
     updateMap(lat, lon, cityName, zoomLevel = 13) { if (this.map) { this.map.flyTo([lat, lon], zoomLevel); if (this.marker) this.map.removeLayer(this.marker); this.marker = L.marker([lat, lon]).addTo(this.map).bindPopup(cityName).openPopup(); } }
     async getWeatherData(query) { let url; if (typeof query === 'string' && query) { url = `/.netlify/functions/weather?city=${encodeURIComponent(query.trim())}`; } else if (typeof query === 'object' && query.latitude) { url = `/.netlify/functions/weather?lat=${query.latitude}&lon=${query.longitude}`; } else { return null; } const response = await fetch(url); const data = await response.json(); if (!response.ok) { throw new Error(data.message || "Błąd serwera"); } return data; }
     handleGeolocation() { if (navigator.geolocation) { this.toggleButtonLoading(this.dom.geoBtn, true); navigator.geolocation.getCurrentPosition( pos => this.handleSearch({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }, this.dom.geoBtn), () => { this.showError("Nie udało się pobrać lokalizacji."); this.toggleButtonLoading(this.dom.geoBtn, false); } ); } }
-    handleForecastSwitch(event) { const btn = event.target.closest('button'); if (!btn) return; this.dom.forecastsContainer.style.display = 'block'; this.dom.forecastsContainer.className = `show-${btn.dataset.forecast}`; const currentActive = this.dom.forecastSwitcher.querySelector('.active'); if(currentActive) currentActive.classList.remove('active'); btn.classList.add('active'); }
+    handleForecastSwitch(event) {
+        const btn = event.target.closest('button');
+        if (!btn) return;
+
+        // Pokaż odpowiedni kontener i ukryj resztę
+        document.querySelectorAll('.minutely-forecast__wrapper, .hourly-forecast__wrapper, .weather-app__forecast-wrapper').forEach(el => {
+            el.style.display = 'none';
+        });
+        const targetClass = btn.dataset.forecast;
+        document.querySelector(`.${targetClass}-forecast__wrapper, .weather-app__forecast-wrapper[data-forecast-type="${targetClass}"]`).style.display = 'block';
+
+        this.dom.forecastsContainer.className = `show-${btn.dataset.forecast}`;
+        const currentActive = this.dom.forecastSwitcher.querySelector('.active');
+        if(currentActive) currentActive.classList.remove('active');
+        btn.classList.add('active');
+    }
     handleHourlyRangeSwitch(event) { const btn = event.target.closest('button'); if (!btn || btn.classList.contains('active')) return; this.currentHourlyRange = parseInt(btn.dataset.range, 10); this.dom.hourly.rangeSwitcher.querySelector('.active').classList.remove('active'); btn.classList.add('active'); this.renderHourlyForecast(); }
     updateSliderButtons() { if (this.isMobilePortrait() || !this.dom.hourly.scrollWrapper) return; requestAnimationFrame(() => { const { scrollLeft, scrollWidth, clientWidth } = this.dom.hourly.scrollWrapper; this.dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0; this.dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1; }); }
     handleSliderScroll(direction) { const item = this.dom.hourly.container.querySelector('.hourly-forecast__item'); if (!item) return; const itemWidth = item.offsetWidth; const gap = 8; const scrollAmount = (itemWidth + gap) * 8 * direction; this.dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' }); }
