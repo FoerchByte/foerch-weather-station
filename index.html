@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stacja Pogody - Aplikacja Vanilla JS</title>
-    <link rel="stylesheet" href="weather.css?v=1.8">
+    <link rel="stylesheet" href="weather.css?v=1.9">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -37,10 +37,8 @@
             
             <div id="map-container" style="display: none;">
                 <div id="map"></div>
-                <div class="map-controls">
-                    <input type="checkbox" id="precipitation-toggle" class="map-controls__toggle">
-                    <label for="precipitation-toggle" class="map-controls__label">Pokaż opady</label>
-                </div>
+                <!-- ZMIANA: Usunięto kontrolki mapy (przycisk Pokaż opady) -->
+                <!-- CHANGE: Removed map controls (Show precipitation button) -->
             </div>
             
             <div id="forecasts-container" style="display: none;">
@@ -50,7 +48,6 @@
                     <button data-forecast="daily">Prognoza na 8 dni</button>
                 </div>
 
-                <!-- NOWY KONTENER: Prognoza minutowa / NEW CONTAINER: Minutely Forecast -->
                 <div class="minutely-forecast__wrapper">
                     <h3 class="minutely-forecast__title">Prognoza opadów w ciągu najbliższej godziny</h3>
                     <div class="minutely-forecast__chart-container">
@@ -77,19 +74,17 @@
                     </div>
                 </div>
 
-                <div class="weather-app__forecast-wrapper">
-                    <h3 class="weather-app__forecast-title">Prognoza na 8 dni</h3>
-                    <div class="weather-app__forecast-grid" id="forecast-container"></div>
+                <div class="daily-forecast__wrapper">
+                    <h3 class="daily-forecast__title">Prognoza na 8 dni</h3>
+                    <div class="daily-forecast__grid" id="forecast-container"></div>
                 </div>
             </div>
         </div>
     </main>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- NOWY SKRYPT: Biblioteka Chart.js / NEW SCRIPT: Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="weather.js?v=1.8"></script>
+    <script src="weather.js?v=1.9"></script>
 
 </body>
 </html>
-
