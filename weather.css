@@ -1,7 +1,7 @@
 /* --- Style globalne i motywy / Global Styles & Themes --- */
 :root {
     --primary-color: #007bff;
-    --primary-color-rgb: 0, 123, 255; /* Dodana zmienna / Added variable */
+    --primary-color-rgb: 0, 123, 255;
     --primary-hover-color: #0056b3;
     --text-color: #212529;
     --background-color: #f8f9fa;
@@ -82,7 +82,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--border-color);
-    min-height: 34px; /* Aby uniknąć "skakania" layoutu */
+    min-height: 34px;
 }
 .favorites-empty-state {
     margin: 0;
@@ -98,10 +98,18 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     padding: 6px 14px;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: background-color 0.2s, border-color 0.2s;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 .favorite-location-btn:hover {
     background-color: var(--border-color);
+}
+/* ZMIANA: Styl dla aktywnego przycisku ulubionej lokalizacji */
+/* CHANGE: Style for the active favorite location button */
+.favorite-location-btn.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #ffffff;
+    font-weight: 500;
 }
 
 .current-weather__header {
@@ -281,7 +289,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 }
 .current-weather__detail-item .detail-item-header svg {
     width: 22px; height: 22px; 
-    stroke: var(--text-color); /* Domyślny kolor dla ścieżek bez koloru */
+    stroke: var(--text-color);
     transition: color 0.3s;
 }
 
@@ -362,7 +370,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: 92px; /* POPRAWKA: Precyzyjna szerokość / FIX: Precise width */
+    grid-auto-columns: 92px;
     gap: 8px;
 }
 .hourly-forecast__item {
@@ -572,4 +580,3 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
         justify-content: space-between;
     }
 }
-
