@@ -40,6 +40,13 @@ class WeatherApp {
                 wrapper: document.querySelector('.daily-forecast__wrapper'),
                 container: document.getElementById('forecast-container'),
             },
+            // NOWA SEKCJA: Referencje do okna modalnego
+            // NEW SECTION: Modal window references
+            modal: {
+                container: document.getElementById('hourly-details-modal'),
+                title: document.getElementById('modal-title'),
+                body: document.getElementById('modal-body'),
+            }
         };
     }
 
@@ -76,6 +83,24 @@ class WeatherApp {
             this.updateSliderButtons();
         });
         this.dom.favoritesContainer.addEventListener('click', (e) => this.handleFavoriteClick(e));
+
+        // NOWA SEKCJA: Bindowanie zdarzeń dla okna modalnego
+        // NEW SECTION: Event binding for the modal window
+        this.dom.hourly.scrollWrapper.addEventListener('click', (e) => this.handleHourlyItemClick(e));
+        
+        // Używamy `document` dla globalnych listenerów, co jest bardziej niezawodne
+        // Using `document` for global listeners is more robust
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('[data-close-modal]')) {
+                this.hideHourlyDetailsModal();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.dom.modal.container.classList.contains('is-visible')) {
+                this.hideHourlyDetailsModal();
+            }
+        });
     }
 
     // --- Logika Ulubionych (bez zmian) ---
@@ -151,37 +176,33 @@ class WeatherApp {
         }
         return translated;
     }
-
-    // --- Obsługa Mapy / Map Handling ---
-    getPrecipitationLayer() {
-        const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`;
-        // ZMIANA: Przypisujemy warstwę do stworzonej "szybki" (pane)
-        // CHANGE: Assigning the layer to the created pane
-        return L.tileLayer(proxyUrl, {
-            attribution: '&copy; OpenWeatherMap',
-            pane: 'precipitationPane' // Mówimy Leaflet, aby rysował tę warstwę na naszej specjalnej "szybce"
-        });
+    // NOWA FUNKCJA POMOCNICZA: Konwersja stopni na kierunek wiatru
+    // NEW HELPER FUNCTION: Convert degrees to wind direction
+    convertWindDirection(deg) {
+        const directions = ['Pn', 'Pn-Wsch', 'Wsch', 'Pd-Wsch', 'Pd', 'Pd-Zach', 'Zach', 'Pn-Zach'];
+        return directions[Math.round(deg / 45) % 8];
     }
 
+    // --- Obsługa Mapy (bez zmian) ---
+    getPrecipitationLayer() {
+        const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`;
+        return L.tileLayer(proxyUrl, {
+            attribution: '&copy; OpenWeatherMap',
+            pane: 'precipitationPane'
+        });
+    }
     initMap() {
         if (!this.map) {
             this.map = L.map('map').setView([51.75, 19.45], 10);
-            
-            // ZMIANA: Tworzymy dedykowaną "szybkę" dla opadów
-            // CHANGE: Creating a dedicated pane for precipitation
             this.map.createPane('precipitationPane');
-            this.map.getPane('precipitationPane').style.zIndex = 650; // Ustawiamy ją ponad innymi warstwami
-
+            this.map.getPane('precipitationPane').style.zIndex = 650; 
             this.lightTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
             this.darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO' });
-            
-            this.updateMapTileLayer(); // Najpierw dodajemy mapę bazową
-
+            this.updateMapTileLayer();
             this.precipitationLayer = this.getPrecipitationLayer();
-            this.map.addLayer(this.precipitationLayer); // Następnie dodajemy warstwę opadów, która dzięki "szybce" będzie na wierzchu
+            this.map.addLayer(this.precipitationLayer);
         }
     }
-
     updateMapTileLayer() {
         const isDarkMode = document.body.classList.contains('dark-mode');
         const targetLayer = isDarkMode ? this.darkTileLayer : this.lightTileLayer;
@@ -189,7 +210,6 @@ class WeatherApp {
         if (this.map.hasLayer(otherLayer)) this.map.removeLayer(otherLayer);
         if (!this.map.hasLayer(targetLayer)) this.map.addLayer(targetLayer);
     }
-
     updateMap(lat, lon, cityName, zoomLevel = 13) {
         if (this.map) {
             this.map.flyTo([lat, lon], zoomLevel);
@@ -198,7 +218,7 @@ class WeatherApp {
         }
     }
     
-    // --- Renderowanie UI / UI Rendering ---
+    // --- Renderowanie UI ---
     renderCurrentWeather(data) {
         const { location } = data;
         const headerHtml = `
@@ -268,7 +288,7 @@ class WeatherApp {
 
         if (!document.getElementById('minutely-chart')) {
             this.dom.minutely.wrapper.innerHTML = `
-                <h3 class="minutely-forecast__title">Prognoza opadów w ciągu najbliższej godziny</h3>
+                <h3 class="minutely-forecast__title">Prognoza na najbliższą godzinę</h3>
                 <div class="minutely-forecast__chart-container">
                     <canvas id="minutely-chart"></canvas>
                 </div>`;
@@ -356,6 +376,7 @@ class WeatherApp {
     }
     
     renderHourlyForecast() {
+        // ... (logika filtrowania i grupowania bez zmian) ...
         const now = new Date();
         let forecastToShow;
         if (this.currentHourlyRange === 24) {
@@ -370,11 +391,12 @@ class WeatherApp {
         }, {});
         const todayKey = new Date().toLocaleDateString('pl-PL', { weekday: 'long' });
         const tomorrowKey = new Date(Date.now() + 864e5).toLocaleDateString('pl-PL', { weekday: 'long' });
+
         this.dom.hourly.container.innerHTML = Object.entries(groupedByDay).map(([day, items]) => {
             let dayLabel = day;
             if (day === todayKey) dayLabel = 'Dzisiaj'; if (day === tomorrowKey) dayLabel = 'Jutro';
             const itemsHtml = items.map(item => `
-                <div class="hourly-forecast__item">
+                <div class="hourly-forecast__item" data-timestamp="${item.dt}">
                     <p class="hourly-forecast__time">${new Date(item.dt * 1000).getHours()}:00</p>
                     <div class="hourly-forecast__icon">${this.getWeatherIconHtml(item.weather[0].icon, item.weather[0].description)}</div>
                     <div class="hourly-forecast__item-right">
@@ -399,7 +421,7 @@ class WeatherApp {
             </div>`).join('');
     }
 
-    // --- Główna Logika / Main Logic ---
+    // --- Główna Logika / Main Logic (bez zmian) ---
     async handleSearch(query, buttonToLoad) {
         if (!query) return;
         this.dom.weatherResultContainer.innerHTML = `<div class="weather-app__skeleton"><div class="skeleton" style="width: 200px; height: 2.2rem;"></div><div class="skeleton" style="width: 150px; height: 4rem;"></div></div>`;
@@ -456,7 +478,7 @@ class WeatherApp {
         }
     }
     
-    // --- Handlery i Funkcje Pomocnicze / Handlers & Helper Functions ---
+    // --- Handlery i Funkcje Pomocnicze ---
     handleGeolocation() { if (navigator.geolocation) { this.toggleButtonLoading(this.dom.geoBtn, true); navigator.geolocation.getCurrentPosition( pos => this.handleSearch({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }, this.dom.geoBtn), () => { this.showError("Nie udało się pobrać lokalizacji."); this.toggleButtonLoading(this.dom.geoBtn, false); } ); } }
     handleForecastSwitch(event) {
         const btn = event.target.closest('button');
@@ -473,6 +495,73 @@ class WeatherApp {
     handleHourlyRangeSwitch(event) { const btn = event.target.closest('button'); if (!btn || btn.classList.contains('active')) return; this.currentHourlyRange = parseInt(btn.dataset.range, 10); this.dom.hourly.rangeSwitcher.querySelector('.active').classList.remove('active'); btn.classList.add('active'); this.renderHourlyForecast(); }
     updateSliderButtons() { if (this.isMobilePortrait() || !this.dom.hourly.scrollWrapper) return; requestAnimationFrame(() => { const { scrollLeft, scrollWidth, clientWidth } = this.dom.hourly.scrollWrapper; this.dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0; this.dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1; }); }
     handleSliderScroll(direction) { const item = this.dom.hourly.container.querySelector('.hourly-forecast__item'); if (!item) return; const itemWidth = item.offsetWidth; const gap = 8; const scrollAmount = (itemWidth + gap) * 8 * direction; this.dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' }); }
+    
+    // NOWA SEKCJA: Metody do obsługi okna modalnego
+    // NEW SECTION: Methods for handling the modal window
+    handleHourlyItemClick(event) {
+        const itemEl = event.target.closest('.hourly-forecast__item');
+        if (!itemEl) return;
+
+        const timestamp = parseInt(itemEl.dataset.timestamp, 10);
+        const hourData = this.hourlyForecastData.find(item => item.dt === timestamp);
+
+        if (hourData) {
+            this.showHourlyDetailsModal(hourData);
+        }
+    }
+    showHourlyDetailsModal(hourData) {
+        const date = new Date(hourData.dt * 1000);
+        this.dom.modal.title.textContent = `Prognoza na ${date.toLocaleDateString('pl-PL', { weekday: 'long' })}, ${date.getHours()}:00`;
+
+        this.dom.modal.body.innerHTML = `
+            <div class="modal-detail">
+                <span class="modal-detail__label">Temperatura odczuwalna</span>
+                <span class="modal-detail__value">${Math.round(hourData.feels_like)}°C</span>
+            </div>
+            <div class="modal-detail">
+                <span class="modal-detail__label">Wilgotność</span>
+                <span class="modal-detail__value">${hourData.humidity}%</span>
+            </div>
+            <div class="modal-detail">
+                <span class="modal-detail__label">Ciśnienie</span>
+                <span class="modal-detail__value">${hourData.pressure} hPa</span>
+            </div>
+             <div class="modal-detail">
+                <span class="modal-detail__label">Zachmurzenie</span>
+                <span class="modal-detail__value">${hourData.clouds}%</span>
+            </div>
+            <div class="modal-detail">
+                <span class="modal-detail__label">Wiatr</span>
+                <span class="modal-detail__value">${hourData.wind_speed.toFixed(1)} m/s, ${this.convertWindDirection(hourData.wind_deg)}</span>
+            </div>
+            <div class="modal-detail">
+                <span class="modal-detail__label">Porywy wiatru</span>
+                <span class="modal-detail__value">${(hourData.wind_gust || 0).toFixed(1)} m/s</span>
+            </div>
+            <div class="modal-detail">
+                <span class="modal-detail__label">Indeks UV</span>
+                <span class="modal-detail__value">${Math.round(hourData.uvi)}</span>
+            </div>
+            <div class="modal-detail">
+                <span class="modal-detail__label">Widoczność</span>
+                <span class="modal-detail__value">${hourData.visibility / 1000} km</span>
+            </div>
+        `;
+
+        this.dom.modal.container.removeAttribute('hidden');
+        // Krótkie opóźnienie, aby przeglądarka zdążyła zastosować 'display', zanim doda klasę do animacji
+        setTimeout(() => {
+            this.dom.modal.container.classList.add('is-visible');
+        }, 10);
+    }
+    hideHourlyDetailsModal() {
+        this.dom.modal.container.classList.remove('is-visible');
+        // Ukrywamy element po zakończeniu animacji, dla lepszej dostępności
+        setTimeout(() => {
+            this.dom.modal.container.setAttribute('hidden', true);
+        }, 300); // Czas musi pasować do transition w CSS
+    }
+
     getWeatherIconHtml(iconCode, description) { const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/'; const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg', }; const iconName = iconMap[iconCode] || 'not-available.svg'; return `<img src="${iconBaseUrl}${iconName}" alt="${description}" class="weather-icon-img">`; }
     isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
     setTheme(theme) { document.body.classList.toggle('dark-mode', theme === 'dark'); localStorage.setItem('theme', theme); if (this.map) this.updateMapTileLayer(); if (this.minutelyChart) this.renderMinutelyForecast({ minutely: this.minutelyData }); }
