@@ -362,7 +362,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: 90.5px; /* POPRAWKA: Precyzyjna szerokość / FIX: Precise width */
+    grid-auto-columns: 92px; /* POPRAWKA: Precyzyjna szerokość / FIX: Precise width */
     gap: 8px;
 }
 .hourly-forecast__item {
