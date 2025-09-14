@@ -328,25 +328,42 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__title { margin: 0; }
 .hourly-forecast__slider-container { position: relative; }
 
+/* --- POPRAWKI DLA PROGNOZY GODZINOWEJ / FIXES FOR HOURLY FORECAST --- */
+
 .hourly-forecast__scroll-wrapper {
-    display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    display: flex; 
+    overflow-x: auto; 
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; 
+    scrollbar-width: none;
+    /* 1. Dodajemy padding, aby efekt hover nie był "obcinany" */
+    /* 1. Add padding so the hover effect isn't "cut off" */
     padding: 0.5rem 0.25rem 1rem 0.25rem;
+    /* 2. Kompensujemy padding ujemnym marginesem, aby zachować oryginalne wymiary */
+    /* 2. Compensate padding with a negative margin to maintain original dimensions */
     margin: -0.5rem -0.25rem -1rem -0.25rem;
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
-.hourly-forecast__grid { display: flex; flex-wrap: nowrap; }
+.hourly-forecast__grid { 
+    display: flex; 
+    flex-wrap: nowrap; 
+}
 
 .hourly-forecast__day-group { 
     flex-shrink: 0; 
     position: relative; 
 }
-.hourly-forecast__day-group:not(:last-child) { padding-right: 16px; }
+.hourly-forecast__day-group:not(:last-child) { 
+    padding-right: 16px; 
+}
 .hourly-forecast__day-heading {
     margin: 0 0 0.5rem 0; font-size: 0.9rem; font-weight: 500;
     color: var(--completed-text); text-transform: capitalize;
 }
+
+/* 3. Przywracamy kluczową regułę o szerokości 92px */
+/* 3. Restore the key 92px width rule */
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
@@ -421,6 +438,8 @@ body.dark-mode .hourly-forecast__item:hover {
     border-radius: 8px;
 }
 
+/* Przywracamy stabilny layout dla prognozy 8-dniowej */
+/* Restore stable layout for 8-day forecast */
 .daily-forecast__grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -696,3 +715,4 @@ body.dark-mode .daily-forecast__day:hover {
         justify-content: space-between;
     }
 }
+
