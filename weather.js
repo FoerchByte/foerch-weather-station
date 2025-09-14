@@ -84,10 +84,6 @@ class WeatherApp {
         this.dom.hourly.scrollWrapper.addEventListener('click', (e) => this.handleHourlyItemClick(e));
         
         document.addEventListener('click', (e) => {
-            // ZMIANA: Używamy .closest() zamiast .matches()
-            // To sprawdza kliknięty element ORAZ jego rodziców.
-            // CHANGE: Using .closest() instead of .matches()
-            // This checks the clicked element AND its parents.
             if (e.target.closest('[data-close-modal]')) {
                 this.hideHourlyDetailsModal();
             }
@@ -100,7 +96,7 @@ class WeatherApp {
         });
     }
 
-    // --- Logika Ulubionych (bez zmian) ---
+    // --- Logika Ulubionych / Favorites Logic ---
     loadFavorites() {
         this.favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
         this.renderFavorites();
@@ -111,7 +107,11 @@ class WeatherApp {
     renderFavorites() {
         if (this.favorites.length > 0) {
             this.dom.favoritesContainer.innerHTML = this.favorites.map(fav => {
-                const isActive = this.currentLocation && fav.name === this.currentLocation.name;
+                // POPRAWKA: Porównujemy współrzędne zamiast nazw dla większej niezawodności
+                // FIX: Comparing coordinates instead of names for more reliability
+                const isActive = this.currentLocation && 
+                                 fav.lat.toFixed(4) === this.currentLocation.lat.toFixed(4) &&
+                                 fav.lon.toFixed(4) === this.currentLocation.lon.toFixed(4);
                 return `<button class="favorite-location-btn ${isActive ? 'active' : ''}" data-city="${fav.name}">${fav.name}</button>`;
             }).join('');
         } else {
@@ -213,7 +213,7 @@ class WeatherApp {
         }
     }
     
-    // --- Renderowanie UI (bez zmian) ---
+    // --- Renderowanie UI ---
     renderCurrentWeather(data) {
         const { location } = data;
         const headerHtml = `
@@ -271,6 +271,106 @@ class WeatherApp {
         this.dom.addFavoriteBtn = document.getElementById('add-favorite-btn');
         this.dom.addFavoriteBtn.addEventListener('click', () => this.toggleFavorite());
     }
+    
+    // PRZYWRÓCONA FUNKCJA / RESTORED FUNCTION
+    renderWeatherAlerts(data) {
+        const container = this.dom.weatherAlertsContainer;
+        if (!container) return;
+        if (data.alerts && data.alerts.length > 0) {
+            const alert = data.alerts[0];
+            const startTime = new Date(alert.start * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+            const endTime = new Date(alert.end * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+            const translatedEventName = this.translateAlertEvent(alert.event);
+            container.className = 'weather-alert weather-alert--warning';
+            container.innerHTML = `
+                <div class="alert__header">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <strong>${translatedEventName}</strong>
+                </div>
+                <p class="alert__source">Wydane przez: ${alert.sender_name}</p>
+                <p class="alert__time">Obowiązuje od ${startTime} do ${endTime}</p>
+            `;
+        } else {
+            container.className = 'weather-alert weather-alert--safe';
+            container.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <span>Brak alertów pogodowych w bieżącej lokalizacji</span>
+            `;
+        }
+    }
+
+    renderMinutelyForecast(data) {
+        this.minutelyData = data.minutely || [];
+        const hasPrecipitation = this.minutelyData.some(minute => minute.precipitation > 0);
+        
+        if (!hasPrecipitation) {
+            this.dom.minutely.wrapper.innerHTML = `<div class="minutely-forecast__no-data">Brak opadów w ciągu najbliższej godziny.</div>`;
+            return;
+        }
+
+        if (!document.getElementById('minutely-chart')) {
+            this.dom.minutely.wrapper.innerHTML = `
+                <h3 class="minutely-forecast__title">Prognoza na najbliższą godzinę</h3>
+                <div class="minutely-forecast__chart-container">
+                    <canvas id="minutely-chart"></canvas>
+                </div>`;
+            this.dom.minutely.chartCanvas = document.getElementById('minutely-chart');
+        }
+
+        const labels = this.minutelyData.map((_, index) => (index % 10 === 0 ? `${index}'` : ''));
+        const precipitationData = this.minutelyData.map(minute => minute.precipitation);
+        const maxPrecipitation = Math.max(...precipitationData, 0);
+
+        const getBackgroundColor = (context) => {
+            const chart = context.chart;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return null;
+            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+            let colorStops = { start: 'rgba(0, 123, 255, 0.05)', end: 'rgba(0, 123, 255, 0.4)' };
+            if (maxPrecipitation > 2.5) { 
+                colorStops = { start: 'rgba(65, 105, 225, 0.1)', end: 'rgba(65, 105, 225, 0.6)' };
+            } else if (maxPrecipitation > 0.5) {
+                colorStops = { start: 'rgba(30, 144, 255, 0.1)', end: 'rgba(30, 144, 255, 0.5)' };
+            }
+            gradient.addColorStop(0, colorStops.start);
+            gradient.addColorStop(1, colorStops.end);
+            return gradient;
+        };
+        
+        const chartData = {
+            labels: labels,
+            datasets: [{
+                label: 'Intensywność opadów (mm/h)',
+                data: precipitationData,
+                borderColor: 'rgba(0, 123, 255, 0.8)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                backgroundColor: getBackgroundColor,
+            }]
+        };
+
+        if (this.minutelyChart) this.minutelyChart.destroy();
+        
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+        const fontColor = isDarkMode ? '#e9ecef' : '#212529';
+
+        this.minutelyChart = new Chart(this.dom.minutely.chartCanvas, {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: fontColor } },
+                    x: { grid: { color: gridColor }, ticks: { color: fontColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+    
     renderHourlyForecast() {
         // ... (logika filtrowania i grupowania bez zmian) ...
         const now = new Date();
@@ -307,6 +407,7 @@ class WeatherApp {
         }).join('');
         setTimeout(() => this.updateSliderButtons(), 0);
     }
+    
     renderDailyForecast(data) {
         this.dom.daily.container.innerHTML = data.daily.slice(0, 8).map(day => `
             <div class="daily-forecast__day">
@@ -316,7 +417,7 @@ class WeatherApp {
             </div>`).join('');
     }
 
-    // --- Główna Logika / Main Logic (bez zmian) ---
+    // --- Główna Logika / Main Logic ---
     async handleSearch(query, buttonToLoad) {
         if (!query) return;
         this.dom.weatherResultContainer.innerHTML = `<div class="weather-app__skeleton"><div class="skeleton" style="width: 200px; height: 2.2rem;"></div><div class="skeleton" style="width: 150px; height: 4rem;"></div></div>`;
