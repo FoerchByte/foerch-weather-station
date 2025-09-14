@@ -99,7 +99,7 @@ class WeatherApp {
         });
     }
 
-    // --- Logika Ulubionych (bez zmian) ---
+    // --- Logika Ulubionych ---
     loadFavorites() {
         this.favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
         this.renderFavorites();
@@ -110,9 +110,17 @@ class WeatherApp {
     renderFavorites() {
         if (this.favorites.length > 0) {
             this.dom.favoritesContainer.innerHTML = this.favorites.map(fav => {
-                const isActive = this.currentLocation && 
-                                 fav.lat.toFixed(4) === this.currentLocation.lat.toFixed(4) &&
-                                 fav.lon.toFixed(4) === this.currentLocation.lon.toFixed(4);
+                // POPRAWKA: Defensywne sprawdzanie typów i porównywanie
+                // FIX: Defensive type checking and comparison
+                const clat = this.currentLocation ? parseFloat(this.currentLocation.lat) : NaN;
+                const clon = this.currentLocation ? parseFloat(this.currentLocation.lon) : NaN;
+                const flat = parseFloat(fav.lat);
+                const flon = parseFloat(fav.lon);
+
+                const isActive = !isNaN(clat) && !isNaN(clon) && !isNaN(flat) && !isNaN(flon) &&
+                                 flat.toFixed(4) === clat.toFixed(4) &&
+                                 flon.toFixed(4) === clon.toFixed(4);
+
                 return `<button class="favorite-location-btn ${isActive ? 'active' : ''}" data-city="${fav.name}">${fav.name}</button>`;
             }).join('');
         } else {
