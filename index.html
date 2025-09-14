@@ -24,11 +24,7 @@
 
     <main class="container">
         <div class="weather-app">
-            <!-- SEKCJA: Ulubione lokalizacje -->
-            <!-- SECTION: Favorite locations -->
             <div id="favorites-container" class="favorites-container">
-                <!-- Przyciski ulubionych lokalizacji lub komunikat będą renderowane tutaj przez JS -->
-                <!-- Favorite location buttons or a message will be rendered here by JS -->
             </div>
 
             <div class="weather-app__search">
@@ -37,8 +33,6 @@
                 <button id="geolocation-btn" class="weather-app__button weather-app__button--geo"><span>Użyj mojej lokalizacji</span></button>
             </div>
             <div id="weather-result-container" class="weather-app__result" aria-live="polite">
-                <!-- Treść bieżącej pogody będzie renderowana tutaj przez JS -->
-                <!-- Current weather content will be rendered here by JS -->
             </div>
             
             <div id="map-container" style="display: none;">
@@ -49,10 +43,19 @@
                 </div>
             </div>
             
-            <div id="forecasts-container" style="display: none;" class="show-hourly">
+            <div id="forecasts-container" style="display: none;">
                  <div class="forecast-switcher" id="forecast-switcher">
-                    <button data-forecast="hourly" class="active">Prognoza godzinowa</button>
+                    <button data-forecast="minutely" class="active">Opady w ciągu godziny</button>
+                    <button data-forecast="hourly">Prognoza godzinowa</button>
                     <button data-forecast="daily">Prognoza na 5 dni</button>
+                </div>
+
+                <!-- NOWY KONTENER: Prognoza minutowa / NEW CONTAINER: Minutely Forecast -->
+                <div class="minutely-forecast__wrapper">
+                    <h3 class="minutely-forecast__title">Prognoza opadów w ciągu najbliższej godziny</h3>
+                    <div class="minutely-forecast__chart-container">
+                        <canvas id="minutely-chart"></canvas>
+                    </div>
                 </div>
 
                 <div class="hourly-forecast__wrapper">
@@ -83,7 +86,10 @@
     </main>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- NOWY SKRYPT: Biblioteka Chart.js / NEW SCRIPT: Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="weather.js?v=1.8"></script>
 
 </body>
 </html>
+
