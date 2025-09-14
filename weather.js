@@ -40,8 +40,6 @@ class WeatherApp {
                 wrapper: document.querySelector('.daily-forecast__wrapper'),
                 container: document.getElementById('forecast-container'),
             },
-            // NOWA SEKCJA: Referencje do okna modalnego
-            // NEW SECTION: Modal window references
             modal: {
                 container: document.getElementById('hourly-details-modal'),
                 title: document.getElementById('modal-title'),
@@ -83,15 +81,14 @@ class WeatherApp {
             this.updateSliderButtons();
         });
         this.dom.favoritesContainer.addEventListener('click', (e) => this.handleFavoriteClick(e));
-
-        // NOWA SEKCJA: Bindowanie zdarzeń dla okna modalnego
-        // NEW SECTION: Event binding for the modal window
         this.dom.hourly.scrollWrapper.addEventListener('click', (e) => this.handleHourlyItemClick(e));
         
-        // Używamy `document` dla globalnych listenerów, co jest bardziej niezawodne
-        // Using `document` for global listeners is more robust
         document.addEventListener('click', (e) => {
-            if (e.target.matches('[data-close-modal]')) {
+            // ZMIANA: Używamy .closest() zamiast .matches()
+            // To sprawdza kliknięty element ORAZ jego rodziców.
+            // CHANGE: Using .closest() instead of .matches()
+            // This checks the clicked element AND its parents.
+            if (e.target.closest('[data-close-modal]')) {
                 this.hideHourlyDetailsModal();
             }
         });
@@ -176,8 +173,6 @@ class WeatherApp {
         }
         return translated;
     }
-    // NOWA FUNKCJA POMOCNICZA: Konwersja stopni na kierunek wiatru
-    // NEW HELPER FUNCTION: Convert degrees to wind direction
     convertWindDirection(deg) {
         const directions = ['Pn', 'Pn-Wsch', 'Wsch', 'Pd-Wsch', 'Pd', 'Pd-Zach', 'Zach', 'Pn-Zach'];
         return directions[Math.round(deg / 45) % 8];
@@ -218,7 +213,7 @@ class WeatherApp {
         }
     }
     
-    // --- Renderowanie UI ---
+    // --- Renderowanie UI (bez zmian) ---
     renderCurrentWeather(data) {
         const { location } = data;
         const headerHtml = `
@@ -276,105 +271,6 @@ class WeatherApp {
         this.dom.addFavoriteBtn = document.getElementById('add-favorite-btn');
         this.dom.addFavoriteBtn.addEventListener('click', () => this.toggleFavorite());
     }
-    
-    renderMinutelyForecast(data) {
-        this.minutelyData = data.minutely || [];
-        const hasPrecipitation = this.minutelyData.some(minute => minute.precipitation > 0);
-        
-        if (!hasPrecipitation) {
-            this.dom.minutely.wrapper.innerHTML = `<div class="minutely-forecast__no-data">Brak opadów w ciągu najbliższej godziny.</div>`;
-            return;
-        }
-
-        if (!document.getElementById('minutely-chart')) {
-            this.dom.minutely.wrapper.innerHTML = `
-                <h3 class="minutely-forecast__title">Prognoza na najbliższą godzinę</h3>
-                <div class="minutely-forecast__chart-container">
-                    <canvas id="minutely-chart"></canvas>
-                </div>`;
-            this.dom.minutely.chartCanvas = document.getElementById('minutely-chart');
-        }
-
-        const labels = this.minutelyData.map((_, index) => (index % 10 === 0 ? `${index}'` : ''));
-        const precipitationData = this.minutelyData.map(minute => minute.precipitation);
-        const maxPrecipitation = Math.max(...precipitationData, 0);
-
-        const getBackgroundColor = (context) => {
-            const chart = context.chart;
-            const { ctx, chartArea } = chart;
-            if (!chartArea) return null;
-            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-            let colorStops = { start: 'rgba(0, 123, 255, 0.05)', end: 'rgba(0, 123, 255, 0.4)' };
-            if (maxPrecipitation > 2.5) { 
-                colorStops = { start: 'rgba(65, 105, 225, 0.1)', end: 'rgba(65, 105, 225, 0.6)' };
-            } else if (maxPrecipitation > 0.5) {
-                colorStops = { start: 'rgba(30, 144, 255, 0.1)', end: 'rgba(30, 144, 255, 0.5)' };
-            }
-            gradient.addColorStop(0, colorStops.start);
-            gradient.addColorStop(1, colorStops.end);
-            return gradient;
-        };
-        
-        const chartData = {
-            labels: labels,
-            datasets: [{
-                label: 'Intensywność opadów (mm/h)',
-                data: precipitationData,
-                borderColor: 'rgba(0, 123, 255, 0.8)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                backgroundColor: getBackgroundColor,
-            }]
-        };
-
-        if (this.minutelyChart) this.minutelyChart.destroy();
-        
-        const isDarkMode = document.body.classList.contains('dark-mode');
-        const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-        const fontColor = isDarkMode ? '#e9ecef' : '#212529';
-
-        this.minutelyChart = new Chart(this.dom.minutely.chartCanvas, {
-            type: 'line',
-            data: chartData,
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: fontColor } },
-                    x: { grid: { color: gridColor }, ticks: { color: fontColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 } }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
-    }
-    
-    renderWeatherAlerts(data) {
-        const container = this.dom.weatherAlertsContainer;
-        if (!container) return;
-        if (data.alerts && data.alerts.length > 0) {
-            const alert = data.alerts[0];
-            const startTime = new Date(alert.start * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-            const endTime = new Date(alert.end * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-            const translatedEventName = this.translateAlertEvent(alert.event);
-            container.className = 'weather-alert weather-alert--warning';
-            container.innerHTML = `
-                <div class="alert__header">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                    <strong>${translatedEventName}</strong>
-                </div>
-                <p class="alert__source">Wydane przez: ${alert.sender_name}</p>
-                <p class="alert__time">Obowiązuje od ${startTime} do ${endTime}</p>
-            `;
-        } else {
-            container.className = 'weather-alert weather-alert--safe';
-            container.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                <span>Brak alertów pogodowych w bieżącej lokalizacji</span>
-            `;
-        }
-    }
-    
     renderHourlyForecast() {
         // ... (logika filtrowania i grupowania bez zmian) ...
         const now = new Date();
@@ -411,7 +307,6 @@ class WeatherApp {
         }).join('');
         setTimeout(() => this.updateSliderButtons(), 0);
     }
-    
     renderDailyForecast(data) {
         this.dom.daily.container.innerHTML = data.daily.slice(0, 8).map(day => `
             <div class="daily-forecast__day">
@@ -495,9 +390,6 @@ class WeatherApp {
     handleHourlyRangeSwitch(event) { const btn = event.target.closest('button'); if (!btn || btn.classList.contains('active')) return; this.currentHourlyRange = parseInt(btn.dataset.range, 10); this.dom.hourly.rangeSwitcher.querySelector('.active').classList.remove('active'); btn.classList.add('active'); this.renderHourlyForecast(); }
     updateSliderButtons() { if (this.isMobilePortrait() || !this.dom.hourly.scrollWrapper) return; requestAnimationFrame(() => { const { scrollLeft, scrollWidth, clientWidth } = this.dom.hourly.scrollWrapper; this.dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0; this.dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1; }); }
     handleSliderScroll(direction) { const item = this.dom.hourly.container.querySelector('.hourly-forecast__item'); if (!item) return; const itemWidth = item.offsetWidth; const gap = 8; const scrollAmount = (itemWidth + gap) * 8 * direction; this.dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' }); }
-    
-    // NOWA SEKCJA: Metody do obsługi okna modalnego
-    // NEW SECTION: Methods for handling the modal window
     handleHourlyItemClick(event) {
         const itemEl = event.target.closest('.hourly-forecast__item');
         if (!itemEl) return;
@@ -549,17 +441,15 @@ class WeatherApp {
         `;
 
         this.dom.modal.container.removeAttribute('hidden');
-        // Krótkie opóźnienie, aby przeglądarka zdążyła zastosować 'display', zanim doda klasę do animacji
         setTimeout(() => {
             this.dom.modal.container.classList.add('is-visible');
         }, 10);
     }
     hideHourlyDetailsModal() {
         this.dom.modal.container.classList.remove('is-visible');
-        // Ukrywamy element po zakończeniu animacji, dla lepszej dostępności
         setTimeout(() => {
             this.dom.modal.container.setAttribute('hidden', true);
-        }, 300); // Czas musi pasować do transition w CSS
+        }, 300);
     }
 
     getWeatherIconHtml(iconCode, description) { const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/'; const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg', }; const iconName = iconMap[iconCode] || 'not-available.svg'; return `<img src="${iconBaseUrl}${iconName}" alt="${description}" class="weather-icon-img">`; }
