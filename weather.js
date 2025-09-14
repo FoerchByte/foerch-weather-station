@@ -644,3 +644,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const app = new WeatherApp();
     app.init();
 });
+
+" with my request to "Napraw chociaż pogodę godzinową jak była, dokładanie jak była z 92px w konkretnej linii, potem zaczniemy dalej z 8 dniówką"
+
