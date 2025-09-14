@@ -5,6 +5,7 @@ class WeatherApp {
         this.marker = null;
         this.precipitationLayer = null;
         this.hourlyForecastData = [];
+        this.dailyForecastData = []; // NOWY STAN: Przechowujemy pełne dane dzienne
         this.currentHourlyRange = 24;
         this.favorites = [];
         this.currentLocation = null;
@@ -38,10 +39,12 @@ class WeatherApp {
             },
             daily: {
                 wrapper: document.querySelector('.daily-forecast__wrapper'),
-                container: document.getElementById('forecast-container'),
+                container: document.getElementById('daily-forecast-container'),
             },
+            // ZMIANA: Uogólniona nazwa modala
+            // CHANGE: Generic modal name
             modal: {
-                container: document.getElementById('hourly-details-modal'),
+                container: document.getElementById('details-modal'),
                 title: document.getElementById('modal-title'),
                 body: document.getElementById('modal-body'),
             }
@@ -81,22 +84,26 @@ class WeatherApp {
             this.updateSliderButtons();
         });
         this.dom.favoritesContainer.addEventListener('click', (e) => this.handleFavoriteClick(e));
-        this.dom.hourly.scrollWrapper.addEventListener('click', (e) => this.handleHourlyItemClick(e));
+        this.dom.hourly.container.addEventListener('click', (e) => this.handleHourlyItemClick(e));
         
+        // NOWE ZDARZENIE: Obsługa kliknięć na kafelki dzienne
+        // NEW EVENT: Handling clicks on daily tiles
+        this.dom.daily.container.addEventListener('click', (e) => this.handleDailyItemClick(e));
+
         document.addEventListener('click', (e) => {
             if (e.target.closest('[data-close-modal]')) {
-                this.hideHourlyDetailsModal();
+                this.hideDetailsModal();
             }
         });
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.dom.modal.container.classList.contains('is-visible')) {
-                this.hideHourlyDetailsModal();
+                this.hideDetailsModal();
             }
         });
     }
 
-    // --- Logika Ulubionych / Favorites Logic ---
+    // --- Logika Ulubionych (bez zmian) ---
     loadFavorites() {
         this.favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
         this.renderFavorites();
@@ -107,8 +114,6 @@ class WeatherApp {
     renderFavorites() {
         if (this.favorites.length > 0) {
             this.dom.favoritesContainer.innerHTML = this.favorites.map(fav => {
-                // POPRAWKA: Porównujemy współrzędne zamiast nazw dla większej niezawodności
-                // FIX: Comparing coordinates instead of names for more reliability
                 const isActive = this.currentLocation && 
                                  fav.lat.toFixed(4) === this.currentLocation.lat.toFixed(4) &&
                                  fav.lon.toFixed(4) === this.currentLocation.lon.toFixed(4);
@@ -272,7 +277,6 @@ class WeatherApp {
         this.dom.addFavoriteBtn.addEventListener('click', () => this.toggleFavorite());
     }
     
-    // PRZYWRÓCONA FUNKCJA / RESTORED FUNCTION
     renderWeatherAlerts(data) {
         const container = this.dom.weatherAlertsContainer;
         if (!container) return;
@@ -408,13 +412,23 @@ class WeatherApp {
         setTimeout(() => this.updateSliderButtons(), 0);
     }
     
-    renderDailyForecast(data) {
-        this.dom.daily.container.innerHTML = data.daily.slice(0, 8).map(day => `
-            <div class="daily-forecast__day">
-                <h4>${new Date(day.dt * 1000).toLocaleDateString('pl-PL', { weekday: 'long' })}</h4>
+    renderDailyForecast() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        this.dom.daily.container.innerHTML = this.dailyForecastData.map(day => {
+            const dayDate = new Date(day.dt * 1000);
+            let dayLabel = dayDate.toLocaleDateString('pl-PL', { weekday: 'long' });
+            if (dayDate.getTime() === today.getTime()) {
+                dayLabel = 'Dzisiaj';
+            }
+            return `
+            <div class="daily-forecast__day" data-timestamp="${day.dt}">
+                <h4>${dayLabel}</h4>
                 <div class="daily-forecast__icon">${this.getWeatherIconHtml(day.weather[0].icon, day.weather[0].description)}</div>
                 <p>${Math.round(day.temp.max)}° / ${Math.round(day.temp.min)}°</p>
-            </div>`).join('');
+            </div>`;
+        }).join('');
     }
 
     // --- Główna Logika / Main Logic ---
@@ -430,6 +444,7 @@ class WeatherApp {
             if (typeof query === 'string') localStorage.setItem('lastCity', query.trim());
             this.currentLocation = data.location;
             this.hourlyForecastData = data.hourly;
+            this.dailyForecastData = data.daily; // Zapisujemy pełne dane dzienne
             const processedData = {
                 ...data,
                 overview: data.overview,
@@ -454,7 +469,7 @@ class WeatherApp {
             this.updateFavoriteButtonState();
             this.renderWeatherAlerts(processedData);
             this.renderMinutelyForecast(processedData);
-            this.renderDailyForecast(processedData);
+            this.renderDailyForecast();
             this.renderHourlyForecast();
             this.dom.forecastsContainer.style.display = 'block';
             this.handleForecastSwitch({ target: this.dom.forecastSwitcher.querySelector('[data-forecast="minutely"]') });
@@ -491,68 +506,132 @@ class WeatherApp {
     handleHourlyRangeSwitch(event) { const btn = event.target.closest('button'); if (!btn || btn.classList.contains('active')) return; this.currentHourlyRange = parseInt(btn.dataset.range, 10); this.dom.hourly.rangeSwitcher.querySelector('.active').classList.remove('active'); btn.classList.add('active'); this.renderHourlyForecast(); }
     updateSliderButtons() { if (this.isMobilePortrait() || !this.dom.hourly.scrollWrapper) return; requestAnimationFrame(() => { const { scrollLeft, scrollWidth, clientWidth } = this.dom.hourly.scrollWrapper; this.dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0; this.dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1; }); }
     handleSliderScroll(direction) { const item = this.dom.hourly.container.querySelector('.hourly-forecast__item'); if (!item) return; const itemWidth = item.offsetWidth; const gap = 8; const scrollAmount = (itemWidth + gap) * 8 * direction; this.dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' }); }
+    
+    // --- Logika okna modalnego ---
     handleHourlyItemClick(event) {
         const itemEl = event.target.closest('.hourly-forecast__item');
         if (!itemEl) return;
-
         const timestamp = parseInt(itemEl.dataset.timestamp, 10);
         const hourData = this.hourlyForecastData.find(item => item.dt === timestamp);
-
         if (hourData) {
-            this.showHourlyDetailsModal(hourData);
+            this.showDetailsModal(hourData, 'hourly');
         }
     }
-    showHourlyDetailsModal(hourData) {
-        const date = new Date(hourData.dt * 1000);
-        this.dom.modal.title.textContent = `Prognoza na ${date.toLocaleDateString('pl-PL', { weekday: 'long' })}, ${date.getHours()}:00`;
 
-        this.dom.modal.body.innerHTML = `
+    handleDailyItemClick(event) {
+        const itemEl = event.target.closest('.daily-forecast__day');
+        if (!itemEl) return;
+        const timestamp = parseInt(itemEl.dataset.timestamp, 10);
+        const dayData = this.dailyForecastData.find(item => item.dt === timestamp);
+        if (dayData) {
+            this.showDetailsModal(dayData, 'daily');
+        }
+    }
+
+    buildHourlyModalBody(data) {
+        return `
             <div class="modal-detail">
                 <span class="modal-detail__label">Temperatura odczuwalna</span>
-                <span class="modal-detail__value">${Math.round(hourData.feels_like)}°C</span>
+                <span class="modal-detail__value">${Math.round(data.feels_like)}°C</span>
             </div>
             <div class="modal-detail">
                 <span class="modal-detail__label">Wilgotność</span>
-                <span class="modal-detail__value">${hourData.humidity}%</span>
+                <span class="modal-detail__value">${data.humidity}%</span>
             </div>
             <div class="modal-detail">
                 <span class="modal-detail__label">Ciśnienie</span>
-                <span class="modal-detail__value">${hourData.pressure} hPa</span>
+                <span class="modal-detail__value">${data.pressure} hPa</span>
             </div>
              <div class="modal-detail">
                 <span class="modal-detail__label">Zachmurzenie</span>
-                <span class="modal-detail__value">${hourData.clouds}%</span>
+                <span class="modal-detail__value">${data.clouds}%</span>
             </div>
             <div class="modal-detail">
                 <span class="modal-detail__label">Wiatr</span>
-                <span class="modal-detail__value">${hourData.wind_speed.toFixed(1)} m/s, ${this.convertWindDirection(hourData.wind_deg)}</span>
+                <span class="modal-detail__value">${data.wind_speed.toFixed(1)} m/s, ${this.convertWindDirection(data.wind_deg)}</span>
             </div>
             <div class="modal-detail">
                 <span class="modal-detail__label">Porywy wiatru</span>
-                <span class="modal-detail__value">${(hourData.wind_gust || 0).toFixed(1)} m/s</span>
+                <span class="modal-detail__value">${(data.wind_gust || 0).toFixed(1)} m/s</span>
             </div>
             <div class="modal-detail">
                 <span class="modal-detail__label">Indeks UV</span>
-                <span class="modal-detail__value">${Math.round(hourData.uvi)}</span>
+                <span class="modal-detail__value">${Math.round(data.uvi)}</span>
             </div>
             <div class="modal-detail">
                 <span class="modal-detail__label">Widoczność</span>
-                <span class="modal-detail__value">${hourData.visibility / 1000} km</span>
+                <span class="modal-detail__value">${data.visibility / 1000} km</span>
             </div>
         `;
+    }
+
+    buildDailyModalBody(data) {
+        const sunrise = new Date(data.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const sunset = new Date(data.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        return `
+            <div class="modal-detail">
+                <span class="modal-detail__label">Opis</span>
+                <span class="modal-detail__value">${data.summary}</span>
+            </div>
+            <div class="modal-detail">
+                <span class="modal-detail__label">Szansa opadów</span>
+                <span class="modal-detail__value">${Math.round(data.pop * 100)}%</span>
+            </div>
+            <div class="modal-detail">
+                <span class="modal-detail__label">Temperatura</span>
+                <div class="modal-detail__value modal-detail__value--temp-grid">
+                    <span>Rano:</span><span>${Math.round(data.temp.morn)}°C</span>
+                    <span>Dzień:</span><span>${Math.round(data.temp.day)}°C</span>
+                    <span>Wieczór:</span><span>${Math.round(data.temp.eve)}°C</span>
+                    <span>Noc:</span><span>${Math.round(data.temp.night)}°C</span>
+                </div>
+            </div>
+            <div class="modal-detail">
+                <span class="modal-detail__label">Wiatr</span>
+                <span class="modal-detail__value">${data.wind_speed.toFixed(1)} m/s, ${this.convertWindDirection(data.wind_deg)}</span>
+            </div>
+            <div class="modal-detail">
+                <span class="modal-detail__label">Wschód / Zachód słońca</span>
+                <span class="modal-detail__value">${sunrise} / ${sunset}</span>
+            </div>
+            <div class="modal-detail">
+                <span class="modal-detail__label">Indeks UV</span>
+                <span class="modal-detail__value">${Math.round(data.uvi)}</span>
+            </div>
+        `;
+    }
+
+    showDetailsModal(data, type) {
+        const date = new Date(data.dt * 1000);
+        let title = '';
+        let bodyHtml = '';
+
+        if (type === 'hourly') {
+            title = `Prognoza na ${date.toLocaleDateString('pl-PL', { weekday: 'long' })}, ${date.getHours()}:00`;
+            bodyHtml = this.buildHourlyModalBody(data);
+        } else if (type === 'daily') {
+            title = `Prognoza na ${date.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}`;
+            bodyHtml = this.buildDailyModalBody(data);
+        }
+
+        this.dom.modal.title.textContent = title;
+        this.dom.modal.body.innerHTML = bodyHtml;
 
         this.dom.modal.container.removeAttribute('hidden');
         setTimeout(() => {
             this.dom.modal.container.classList.add('is-visible');
         }, 10);
     }
-    hideHourlyDetailsModal() {
+
+    hideDetailsModal() {
         this.dom.modal.container.classList.remove('is-visible');
         setTimeout(() => {
             this.dom.modal.container.setAttribute('hidden', true);
         }, 300);
     }
 
+    // --- Pozostałe funkcje (bez zmian) ---
     getWeatherIconHtml(iconCode, description) { const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/'; const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg', }; const iconName = iconMap[iconCode] || 'not-available.svg'; return `<img src="${iconBaseUrl}${iconName}" alt="${description}" class="weather-icon-img">`; }
     isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
     setTheme(theme) { document.body.classList.toggle('dark-mode', theme === 'dark'); localStorage.setItem('theme', theme); if (this.map) this.updateMapTileLayer(); if (this.minutelyChart) this.renderMinutelyForecast({ minutely: this.minutelyData }); }
