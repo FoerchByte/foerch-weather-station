@@ -38,7 +38,7 @@ class WeatherApp {
                 scrollWrapper: document.querySelector('.hourly-forecast__scroll-wrapper'),
             },
             daily: {
-                wrapper: document.querySelector('.daily-forecast__wrapper'),
+                wrapper: document.querySelector('.daily-forecast__wrapper'), // ZMIANA: Zmieniona nazwa z weather-app__forecast-wrapper
                 container: document.getElementById('forecast-container'),
             },
         };
@@ -57,7 +57,8 @@ class WeatherApp {
         } else if (this.favorites.length > 0) {
             this.handleSearch(this.favorites[0].name, this.dom.searchBtn);
         } else {
-             // Inicjalizacja pustego widoku, jeśli nie ma ostatniego miasta ani ulubionych
+             // PL: Inicjalizacja pustego widoku, jeśli nie ma ostatniego miasta ani ulubionych
+             // EN: Initialize empty view if there is no last city or favorites
              this.dom.favoritesContainer.innerHTML = `<p class="favorites-empty-state">Dodaj swoje ulubione lokalizacje za pomocą ikony gwiazdki ⭐</p>`;
         }
     }
@@ -93,9 +94,10 @@ class WeatherApp {
 
     renderFavorites() {
         if (this.favorites.length > 0) {
-            this.dom.favoritesContainer.innerHTML = this.favorites.map(fav => 
-                `<button class="favorite-location-btn" data-city="${fav.name}">${fav.name}</button>`
-            ).join('');
+            this.dom.favoritesContainer.innerHTML = this.favorites.map(fav => {
+                const isActive = this.currentLocation && fav.name === this.currentLocation.name;
+                return `<button class="favorite-location-btn ${isActive ? 'active' : ''}" data-city="${fav.name}">${fav.name}</button>`;
+            }).join('');
         } else {
             this.dom.favoritesContainer.innerHTML = `<p class="favorites-empty-state">Dodaj swoje ulubione lokalizacje za pomocą ikony gwiazdki ⭐</p>`;
         }
@@ -103,7 +105,6 @@ class WeatherApp {
 
     toggleFavorite() {
         if (!this.currentLocation) return;
-
         const locationId = `${this.currentLocation.lat},${this.currentLocation.lon}`;
         const index = this.favorites.findIndex(fav => `${fav.lat},${fav.lon}` === locationId);
         
@@ -141,46 +142,15 @@ class WeatherApp {
         }
     }
 
+    // --- Tłumaczenia i Formatowanie / Translations & Formatting ---
     translateAlertEvent(eventName) {
-        const alertTranslations = {
-            'Yellow Rain warning': 'Ostrzeżenie: Intensywne opady deszczu',
-            'Orange Rain warning': 'Ostrzeżenie 2. stopnia: Ulewne opady deszczu',
-            'Red Rain warning': 'Ostrzeżenie 3. stopnia: Ekstremalne opady deszczu',
-            'Yellow Snow warning': 'Ostrzeżenie: Intensywne opady śniegu',
-            'Orange Snow warning': 'Ostrzeżenie 2. stopnia: Zamiecie/zawieje śnieżne',
-            'Red Snow warning': 'Ostrzeżenie 3. stopnia: Ekstremalne opady śniegu',
-            'Yellow Wind warning': 'Ostrzeżenie: Silny wiatr',
-            'Orange Wind warning': 'Ostrzeżenie 2. stopnia: Bardzo silny wiatr',
-            'Red Wind warning': 'Ostrzeżenie 3. stopnia: Ekstremalnie silny wiatr',
-            'Yellow Thunderstorm warning': 'Ostrzeżenie: Burze z gradem',
-            'Orange Thunderstorm warning': 'Ostrzeżenie 2. stopnia: Gwałtowne burze',
-            'Red Thunderstorm warning': 'Ostrzeżenie 3. stopnia: Ekstremalne zjawiska burzowe',
-            'Yellow Fog warning': 'Ostrzeżenie: Gęsta mgła',
-            'Orange Fog warning': 'Ostrzeżenie 2. stopnia: Bardzo gęsta mgła',
-            'Yellow High temperature warning': 'Ostrzeżenie: Upał',
-            'Orange High temperature warning': 'Ostrzeżenie 2. stopnia: Upał',
-            'Red High temperature warning': 'Ostrzeżenie 3. stopnia: Ekstremalny upał',
-            'Yellow Low temperature warning': 'Ostrzeżenie: Mróz',
-            'Orange Low temperature warning': 'Ostrzeżenie 2. stopnia: Silny mróz',
-            'Red Low temperature warning': 'Ostrzeżenie 3. stopnia: Ekstremalny mróz',
-        };
+        const alertTranslations = { 'Yellow Rain warning': 'Ostrzeżenie: Intensywne opady deszczu', 'Orange Rain warning': 'Ostrzeżenie 2. stopnia: Ulewne opady deszczu', 'Red Rain warning': 'Ostrzeżenie 3. stopnia: Ekstremalne opady deszczu', 'Yellow Snow warning': 'Ostrzeżenie: Intensywne opady śniegu', 'Orange Snow warning': 'Ostrzeżenie 2. stopnia: Zamiecie/zawieje śnieżne', 'Red Snow warning': 'Ostrzeżenie 3. stopnia: Ekstremalne opady śniegu', 'Yellow Wind warning': 'Ostrzeżenie: Silny wiatr', 'Orange Wind warning': 'Ostrzeżenie 2. stopnia: Bardzo silny wiatr', 'Red Wind warning': 'Ostrzeżenie 3. stopnia: Ekstremalnie silny wiatr', 'Yellow Thunderstorm warning': 'Ostrzeżenie: Burze z gradem', 'Orange Thunderstorm warning': 'Ostrzeżenie 2. stopnia: Gwałtowne burze', 'Red Thunderstorm warning': 'Ostrzeżenie 3. stopnia: Ekstremalne zjawiska burzowe', 'Yellow Fog warning': 'Ostrzeżenie: Gęsta mgła', 'Orange Fog warning': 'Ostrzeżenie 2. stopnia: Bardzo gęsta mgła', 'Yellow High temperature warning': 'Ostrzeżenie: Upał', 'Orange High temperature warning': 'Ostrzeżenie 2. stopnia: Upał', 'Red High temperature warning': 'Ostrzeżenie 3. stopnia: Ekstremalny upał', 'Yellow Low temperature warning': 'Ostrzeżenie: Mróz', 'Orange Low temperature warning': 'Ostrzeżenie 2. stopnia: Silny mróz', 'Red Low temperature warning': 'Ostrzeżenie 3. stopnia: Ekstremalny mróz', };
         return alertTranslations[eventName] || eventName;
     }
 
     translateOverview(overview) {
         if (!overview) return '';
-        const translations = {
-            'Expect a day of ': 'Spodziewaj się dnia z ',
-            'partly cloudy with rain': 'częściowym zachmurzeniem i deszczem',
-            'partly cloudy': 'częściowym zachmurzeniem',
-            'light rain': 'lekkimi opadami deszczu',
-            'heavy rain': 'intensywnymi opadami deszczu',
-            'rain': 'deszczem',
-            'clear sky': 'bezchmurnym niebem',
-            'snow': 'opadami śniegu',
-            'thunderstorms': 'burzami',
-            'fog': 'mgłą',
-        };
+        const translations = { 'Expect a day of ': 'Spodziewaj się dnia z ', 'partly cloudy with rain': 'częściowym zachmurzeniem i deszczem', 'partly cloudy': 'częściowym zachmurzeniem', 'light rain': 'lekkimi opadami deszczu', 'heavy rain': 'intensywnymi opadami deszczu', 'rain': 'deszczem', 'clear sky': 'bezchmurnym niebem', 'snow': 'opadami śniegu', 'thunderstorms': 'burzami', 'fog': 'mgłą', };
         let translated = overview;
         for (const [key, value] of Object.entries(translations)) {
             translated = translated.replace(new RegExp(key, 'gi'), value);
@@ -217,7 +187,7 @@ class WeatherApp {
 
         const detailsHtml = `
             <div class="current-weather__extra-details">
-                <div class="detail-col detail-col--1">
+                 <div class="detail-col detail-col--1">
                     <div class="current-weather__detail-item value-color--neutral-info"><span class="detail-item-header"><span>Wiatr</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 6H6C4.89543 6 4 6.89543 4 8C4 9.10457 4.89543 10 6 10H10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 12H7C5.34315 12 4 13.3431 4 15C4 16.6569 5.34315 18 7 18H14" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 14H16C14.8954 14 14 14.8954 14 16C14 17.1046 14.8954 18 16 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.current.wind_speed.toFixed(1)} m/s</span></div>
                     <div class="current-weather__detail-item value-color--neutral-info"><span class="detail-item-header"><span>Ciśnienie</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 12L15 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.current.pressure} hPa</span></div>
                 </div>
@@ -256,21 +226,24 @@ class WeatherApp {
         this.dom.addFavoriteBtn.addEventListener('click', () => this.toggleFavorite());
     }
     
-    // NOWA METODA: Renderowanie prognozy minutowej / NEW METHOD: Rendering minutely forecast
+    // ZMIANA: Ulepszone renderowanie prognozy minutowej z dynamicznym tłem
+    // CHANGE: Improved rendering of minutely forecast with dynamic background
     renderMinutelyForecast(data) {
         this.minutelyData = data.minutely || [];
         const hasPrecipitation = this.minutelyData.some(minute => minute.precipitation > 0);
         
-        // POPRAWKA: Ukryj warstwę opadów na mapie, jeśli prognoza ich nie przewiduje
-        // FIX: Hide precipitation layer on the map if the forecast doesn't predict any
+        // ZMIANA: Synchronizacja UI - odznaczenie checkboxa opadów, gdy ich nie ma
+        // CHANGE: UI Sync - uncheck precipitation checkbox when there's no precipitation
         if (!hasPrecipitation) {
             this.dom.minutely.wrapper.innerHTML = `<div class="minutely-forecast__no-data">Brak opadów w ciągu najbliższej godziny.</div>`;
-            this.dom.precipitationToggle.checked = false;
-            this.togglePrecipitationLayer(); // Wywołaj funkcję, aby ukryć warstwę
+            if (this.dom.precipitationToggle.checked) {
+                this.dom.precipitationToggle.checked = false;
+                this.togglePrecipitationLayer();
+            }
             return;
         }
 
-        // Przywrócenie canvas, jeśli został usunięty / Restore canvas if it was removed
+        // PL: Przywrócenie canvas, jeśli został usunięty / EN: Restore canvas if it was removed
         if (!document.getElementById('minutely-chart')) {
             this.dom.minutely.wrapper.innerHTML = `
                 <h3 class="minutely-forecast__title">Prognoza opadów w ciągu najbliższej godziny</h3>
@@ -280,10 +253,33 @@ class WeatherApp {
             this.dom.minutely.chartCanvas = document.getElementById('minutely-chart');
         }
 
-        const labels = this.minutelyData.map((minute, index) => {
-            return index % 10 === 0 ? `${index}'` : '';
-        });
+        const labels = this.minutelyData.map((_, index) => (index % 10 === 0 ? `${index}'` : ''));
         const precipitationData = this.minutelyData.map(minute => minute.precipitation);
+        const maxPrecipitation = Math.max(...precipitationData, 0);
+
+        // PL: Definiowanie dynamicznego tła w zależności od intensywności opadów
+        // EN: Defining a dynamic background based on precipitation intensity
+        const getBackgroundColor = (context) => {
+            const chart = context.chart;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return null;
+
+            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+            let colorStops = {
+                start: 'rgba(0, 123, 255, 0.05)',
+                end: 'rgba(0, 123, 255, 0.4)'
+            };
+
+            if (maxPrecipitation > 2.5) { // Intense rain
+                colorStops = { start: 'rgba(65, 105, 225, 0.1)', end: 'rgba(65, 105, 225, 0.6)' };
+            } else if (maxPrecipitation > 0.5) { // Moderate rain
+                colorStops = { start: 'rgba(30, 144, 255, 0.1)', end: 'rgba(30, 144, 255, 0.5)' };
+            }
+            
+            gradient.addColorStop(0, colorStops.start);
+            gradient.addColorStop(1, colorStops.end);
+            return gradient;
+        };
         
         const chartData = {
             labels: labels,
@@ -291,18 +287,16 @@ class WeatherApp {
                 label: 'Intensywność opadów (mm/h)',
                 data: precipitationData,
                 borderColor: 'rgba(0, 123, 255, 0.8)',
-                backgroundColor: 'rgba(0, 123, 255, 0.2)',
                 borderWidth: 2,
                 fill: true,
                 tension: 0.4,
                 pointRadius: 0,
+                backgroundColor: getBackgroundColor,
             }]
         };
 
-        if (this.minutelyChart) {
-            this.minutelyChart.destroy();
-        }
-
+        if (this.minutelyChart) this.minutelyChart.destroy();
+        
         const isDarkMode = document.body.classList.contains('dark-mode');
         const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
         const fontColor = isDarkMode ? '#e9ecef' : '#212529';
@@ -311,24 +305,12 @@ class WeatherApp {
             type: 'line',
             data: chartData,
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: gridColor },
-                        ticks: { color: fontColor }
-                    },
-                    x: {
-                        grid: { color: gridColor },
-                        ticks: { color: fontColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }
-                    }
+                    y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: fontColor } },
+                    x: { grid: { color: gridColor }, ticks: { color: fontColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 } }
                 },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
+                plugins: { legend: { display: false } }
             }
         });
     }
@@ -367,23 +349,15 @@ class WeatherApp {
         let forecastToShow;
 
         if (this.currentHourlyRange === 24) {
-            const endOfTomorrow = new Date();
-            endOfTomorrow.setDate(now.getDate() + 1);
-            endOfTomorrow.setHours(23, 59, 59, 999);
-            
-            forecastToShow = this.hourlyForecastData.filter(item => {
-                const itemDate = new Date(item.dt * 1000);
-                return itemDate > now && itemDate <= endOfTomorrow;
-            });
+            const endOfTomorrow = new Date(); endOfTomorrow.setDate(now.getDate() + 1); endOfTomorrow.setHours(23, 59, 59, 999);
+            forecastToShow = this.hourlyForecastData.filter(item => new Date(item.dt * 1000) > now && new Date(item.dt * 1000) <= endOfTomorrow);
         } else {
             forecastToShow = this.hourlyForecastData.slice(0, 48);
         }
         
         const groupedByDay = forecastToShow.reduce((acc, item) => {
             const dayKey = new Date(item.dt * 1000).toLocaleDateString('pl-PL', { weekday: 'long' });
-            if (!acc[dayKey]) acc[dayKey] = [];
-            acc[dayKey].push(item);
-            return acc;
+            if (!acc[dayKey]) acc[dayKey] = []; acc[dayKey].push(item); return acc;
         }, {});
 
         const todayKey = new Date().toLocaleDateString('pl-PL', { weekday: 'long' });
@@ -391,9 +365,7 @@ class WeatherApp {
         
         this.dom.hourly.container.innerHTML = Object.entries(groupedByDay).map(([day, items]) => {
             let dayLabel = day;
-            if (day === todayKey) dayLabel = 'Dzisiaj';
-            if (day === tomorrowKey) dayLabel = 'Jutro';
-
+            if (day === todayKey) dayLabel = 'Dzisiaj'; if (day === tomorrowKey) dayLabel = 'Jutro';
             const itemsHtml = items.map(item => `
                 <div class="hourly-forecast__item">
                     <p class="hourly-forecast__time">${new Date(item.dt * 1000).getHours()}:00</p>
@@ -405,15 +377,8 @@ class WeatherApp {
                             <span>${Math.round(item.pop * 100)}%</span>
                         </div>
                     </div>
-                </div>
-            `).join('');
-
-            return `
-                <div class="hourly-forecast__day-group">
-                    <h4 class="hourly-forecast__day-heading">${dayLabel}</h4>
-                    <div class="hourly-forecast__items">${itemsHtml}</div>
-                </div>
-            `;
+                </div>`).join('');
+            return `<div class="hourly-forecast__day-group"><h4 class="hourly-forecast__day-heading">${dayLabel}</h4><div class="hourly-forecast__items">${itemsHtml}</div></div>`;
         }).join('');
         
         setTimeout(() => this.updateSliderButtons(), 0);
@@ -421,9 +386,9 @@ class WeatherApp {
     
     renderDailyForecast(data) {
         this.dom.daily.container.innerHTML = data.daily.slice(0, 8).map(day => `
-            <div class="weather-app__forecast-day">
+            <div class="daily-forecast__day">
                 <h4>${new Date(day.dt * 1000).toLocaleDateString('pl-PL', { weekday: 'long' })}</h4>
-                <div class="weather-app__forecast-icon">${this.getWeatherIconHtml(day.weather[0].icon, day.weather[0].description)}</div>
+                <div class="daily-forecast__icon">${this.getWeatherIconHtml(day.weather[0].icon, day.weather[0].description)}</div>
                 <p>${Math.round(day.temp.max)}° / ${Math.round(day.temp.min)}°</p>
             </div>`).join('');
     }
@@ -439,10 +404,7 @@ class WeatherApp {
         try {
             const data = await this.getWeatherData(query);
             if (!data) { this.showError("Wpisz miasto lub zezwól na geolokalizację."); return; }
-            
-            if (typeof query === 'string') {
-                localStorage.setItem('lastCity', query.trim());
-            }
+            if (typeof query === 'string') localStorage.setItem('lastCity', query.trim());
 
             this.currentLocation = data.location;
             this.hourlyForecastData = data.hourly;
@@ -468,6 +430,7 @@ class WeatherApp {
             };
 
             this.renderCurrentWeather(processedData);
+            this.renderFavorites(); // ZMIANA: Odświeżamy ulubione, by pokazać aktywny
             this.updateFavoriteButtonState();
             this.renderWeatherAlerts(processedData);
             this.renderMinutelyForecast(processedData);
@@ -476,7 +439,6 @@ class WeatherApp {
             
             this.dom.forecastsContainer.style.display = 'block';
             this.handleForecastSwitch({ target: this.dom.forecastSwitcher.querySelector('[data-forecast="minutely"]') });
-
             
             this.dom.mapContainer.style.display = 'block';
             const isGeoSearch = typeof query === 'object' && query.latitude;
@@ -495,21 +457,32 @@ class WeatherApp {
         }
     }
     
-    // --- Pozostałe metody (bez istotnych zmian) ---
-    getWeatherIconHtml(iconCode, description) {
-        const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
-        const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg', };
-        const iconName = iconMap[iconCode] || 'not-available.svg';
-        return `<img src="${iconBaseUrl}${iconName}" alt="${description}" class="weather-icon-img">`;
+    // --- Handlery i Funkcje Pomocnicze / Handlers & Helper Functions ---
+    handleGeolocation() { if (navigator.geolocation) { this.toggleButtonLoading(this.dom.geoBtn, true); navigator.geolocation.getCurrentPosition( pos => this.handleSearch({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }, this.dom.geoBtn), () => { this.showError("Nie udało się pobrać lokalizacji."); this.toggleButtonLoading(this.dom.geoBtn, false); } ); } }
+    
+    // ZMIANA: Ulepszony handler przełącznika prognoz z obsługą a11y
+    // CHANGE: Improved forecast switcher handler with a11y support
+    handleForecastSwitch(event) {
+        const btn = event.target.closest('button');
+        if (!btn) return;
+        
+        const forecastType = btn.dataset.forecast;
+        this.dom.forecastsContainer.className = `show-${forecastType}`;
+
+        this.dom.forecastSwitcher.querySelectorAll('button').forEach(b => {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
     }
-    isMobile = () => window.matchMedia("(max-width: 1024px)").matches;
+
+    handleHourlyRangeSwitch(event) { const btn = event.target.closest('button'); if (!btn || btn.classList.contains('active')) return; this.currentHourlyRange = parseInt(btn.dataset.range, 10); this.dom.hourly.rangeSwitcher.querySelector('.active').classList.remove('active'); btn.classList.add('active'); this.renderHourlyForecast(); }
+    updateSliderButtons() { if (this.isMobilePortrait() || !this.dom.hourly.scrollWrapper) return; requestAnimationFrame(() => { const { scrollLeft, scrollWidth, clientWidth } = this.dom.hourly.scrollWrapper; this.dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0; this.dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1; }); }
+    handleSliderScroll(direction) { const item = this.dom.hourly.container.querySelector('.hourly-forecast__item'); if (!item) return; const itemWidth = item.offsetWidth; const gap = 8; const scrollAmount = (itemWidth + gap) * 8 * direction; this.dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' }); }
+    getWeatherIconHtml(iconCode, description) { const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/'; const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg', }; const iconName = iconMap[iconCode] || 'not-available.svg'; return `<img src="${iconBaseUrl}${iconName}" alt="${description}" class="weather-icon-img">`; }
     isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
-    setTheme(theme) { 
-        document.body.classList.toggle('dark-mode', theme === 'dark'); 
-        localStorage.setItem('theme', theme); 
-        if (this.map) this.updateMapTileLayer(); 
-        if (this.minutelyChart) this.renderMinutelyForecast({ minutely: this.minutelyData });
-    }
+    setTheme(theme) { document.body.classList.toggle('dark-mode', theme === 'dark'); localStorage.setItem('theme', theme); if (this.map) this.updateMapTileLayer(); if (this.minutelyChart) this.renderMinutelyForecast({ minutely: this.minutelyData }); }
     toggleButtonLoading(button, isLoading) { const span = button.querySelector('span'); if (isLoading) { span.style.display = 'none'; if (!button.querySelector('.loader')) { button.insertAdjacentHTML('beforeend', '<div class="loader"></div>'); } button.disabled = true; } else { span.style.display = 'inline'; const loader = button.querySelector('.loader'); if (loader) loader.remove(); button.disabled = false; } }
     showError(message) { this.dom.weatherResultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`; this.dom.forecastsContainer.style.display = 'none'; this.dom.mapContainer.style.display = 'none'; }
     getPrecipitationLayer() { const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`; return L.tileLayer(proxyUrl, { attribution: '&copy; OpenWeatherMap' }); }
@@ -518,25 +491,9 @@ class WeatherApp {
     updateMapTileLayer() { const isDarkMode = document.body.classList.contains('dark-mode'); const targetLayer = isDarkMode ? this.darkTileLayer : this.lightTileLayer; const otherLayer = isDarkMode ? this.lightTileLayer : this.darkTileLayer; if (this.map.hasLayer(otherLayer)) this.map.removeLayer(otherLayer); if (!this.map.hasLayer(targetLayer)) this.map.addLayer(targetLayer); }
     updateMap(lat, lon, cityName, zoomLevel = 13) { if (this.map) { this.map.flyTo([lat, lon], zoomLevel); if (this.marker) this.map.removeLayer(this.marker); this.marker = L.marker([lat, lon]).addTo(this.map).bindPopup(cityName).openPopup(); } }
     async getWeatherData(query) { let url; if (typeof query === 'string' && query) { url = `/.netlify/functions/weather?city=${encodeURIComponent(query.trim())}`; } else if (typeof query === 'object' && query.latitude) { url = `/.netlify/functions/weather?lat=${query.latitude}&lon=${query.longitude}`; } else { return null; } const response = await fetch(url); const data = await response.json(); if (!response.ok) { throw new Error(data.message || "Błąd serwera"); } return data; }
-    handleGeolocation() { if (navigator.geolocation) { this.toggleButtonLoading(this.dom.geoBtn, true); navigator.geolocation.getCurrentPosition( pos => this.handleSearch({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }, this.dom.geoBtn), () => { this.showError("Nie udało się pobrać lokalizacji."); this.toggleButtonLoading(this.dom.geoBtn, false); } ); } }
-    handleForecastSwitch(event) {
-        const btn = event.target.closest('button');
-        if (!btn) return;
-        
-        const forecastType = btn.dataset.forecast;
-        this.dom.forecastsContainer.className = `show-${forecastType}`;
-
-        const currentActive = this.dom.forecastSwitcher.querySelector('.active');
-        if(currentActive) currentActive.classList.remove('active');
-        btn.classList.add('active');
-    }
-    handleHourlyRangeSwitch(event) { const btn = event.target.closest('button'); if (!btn || btn.classList.contains('active')) return; this.currentHourlyRange = parseInt(btn.dataset.range, 10); this.dom.hourly.rangeSwitcher.querySelector('.active').classList.remove('active'); btn.classList.add('active'); this.renderHourlyForecast(); }
-    updateSliderButtons() { if (this.isMobilePortrait() || !this.dom.hourly.scrollWrapper) return; requestAnimationFrame(() => { const { scrollLeft, scrollWidth, clientWidth } = this.dom.hourly.scrollWrapper; this.dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0; this.dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1; }); }
-    handleSliderScroll(direction) { const item = this.dom.hourly.container.querySelector('.hourly-forecast__item'); if (!item) return; const itemWidth = item.offsetWidth; const gap = 8; const scrollAmount = (itemWidth + gap) * 8 * direction; this.dom.hourly.scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' }); }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const app = new WeatherApp();
     app.init();
 });
-
