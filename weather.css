@@ -569,7 +569,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
         }
         .hourly-forecast__items { display: flex; flex-direction: column; gap: 8px; }
         .hourly-forecast__item {
-            display: flex; flex-direction: row; justify-content: space-between;
+            display: flex; flex-direction: row; justify-content: space-between
             align-items: center; padding: 0.75rem 1rem; box-sizing: border-box;
         }
         .hourly-forecast__time { text-align: left; font-size: 1rem; margin: 0; }
@@ -590,4 +590,3 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
         .weather-app__forecast-day { flex-direction: row; justify-content: space-between; }
     }
 }
-
