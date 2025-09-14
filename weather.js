@@ -156,6 +156,39 @@ class WeatherApp {
         return alertTranslations[eventName] || eventName;
     }
 
+    // NOWA METODA: Tłumaczenie podsumowania AI / NEW METHOD: Translating AI summary
+    translateOverview(overview) {
+        if (!overview) return '';
+
+        // Proste tłumaczenie oparte na słowach kluczowych.
+        // Simple keyword-based translation.
+        const translations = {
+            'Expect a day of ': 'Spodziewaj się dnia z ',
+            'partly cloudy with rain': 'częściowym zachmurzeniem i deszczem',
+            'partly cloudy': 'częściowym zachmurzeniem',
+            'light rain': 'lekkimi opadami deszczu',
+            'heavy rain': 'intensywnymi opadami deszczu',
+            'rain': 'deszczem',
+            'clear sky': 'bezchmurnym niebem',
+            'snow': 'opadami śniegu',
+            'thunderstorms': 'burzami',
+            'fog': 'mgłą',
+        };
+
+        let translated = overview;
+        for (const [key, value] of Object.entries(translations)) {
+            translated = translated.replace(new RegExp(key, 'gi'), value);
+        }
+        
+        // Zapewnienie, że zdanie zaczyna się z dużej litery i kończy kropką.
+        // Ensure the sentence starts with a capital letter and ends with a period.
+        translated = translated.charAt(0).toUpperCase() + translated.slice(1);
+        if (!translated.endsWith('.')) {
+            translated += '.';
+        }
+        return translated;
+    }
+
 
     // --- Renderowanie UI / UI Rendering ---
     renderCurrentWeather(data) {
@@ -171,11 +204,13 @@ class WeatherApp {
                 </button>
             </div>`;
 
-        // NOWA SEKCJA: Renderowanie podsumowania AI / NEW SECTION: Rendering the AI summary
-        const overviewHtml = data.overview ? `
+        // ZMIANA: Wywołanie funkcji tłumaczącej podsumowanie AI
+        // CHANGE: Calling the AI summary translation function
+        const translatedOverview = this.translateOverview(data.overview);
+        const overviewHtml = translatedOverview ? `
             <div class="weather-overview">
                 <svg class="weather-overview__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 2C17.5228 2 22 6.47715 22 12V12C22 17.5228 17.5228 22 12 22V22C6.47715 22 2 17.5228 2 12V12C2 6.47715 6.47715 2 12 2V2Z"></path><path d="M13.8284 9.17157L12 11L10.1716 9.17157"></path><path d="M9.17157 13.8284L11 12L9.17157 10.1716"></path><path d="M13.8284 14.8284L12 13L10.1716 14.8284"></path><path d="M14.8284 10.1716L13 12L14.8284 13.8284"></path></svg>
-                <p class="weather-overview__text">${data.overview}.</p>
+                <p class="weather-overview__text">${translatedOverview}</p>
             </div>
         ` : '';
 
