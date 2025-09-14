@@ -333,8 +333,8 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__scroll-wrapper {
     display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch; scrollbar-width: none;
-    padding: 0.5rem 0 1rem 0;
-    margin: -0.5rem 0 -1rem 0;
+    padding: 0.5rem 0.25rem 1rem 0.25rem; /* Dodano minimalny padding po bokach */
+    margin: -0.5rem -0.25rem -1rem -0.25rem;
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
@@ -354,7 +354,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: 92px;
+    grid-auto-columns: 92px; /* POPRAWKA: Przywrócenie dokładnej szerokości */
     gap: 8px;
 }
 
@@ -430,15 +430,15 @@ body.dark-mode .daily-forecast__day:hover {
     border-radius: 8px;
 }
 
-/* NOWE STYLE: Dla przewijanej prognozy dziennej */
-/* NEW STYLES: For scrollable daily forecast */
+/* POPRAWKA: Style dla przewijanej prognozy dziennej */
+/* FIX: Styles for scrollable daily forecast */
 .daily-forecast__scroll-wrapper {
     display: flex;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding: 0.5rem 0 1rem 0;
-    margin: -0.5rem 0 -1rem 0;
+    padding: 0.5rem 0.25rem 1rem 0.25rem;
+    margin: -0.5rem -0.25rem -1rem -0.25rem;
 }
 .daily-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
