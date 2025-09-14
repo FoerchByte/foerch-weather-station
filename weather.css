@@ -328,17 +328,13 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__title { margin: 0; }
 .hourly-forecast__slider-container { position: relative; }
 
-/* --- NAPRAWIONA PROGNOZA GODZINOWA --- */
+/* --- NAPRAWIONA PROGNOZA GODZINOWA (STYL Z PRODUKCJI) --- */
 .hourly-forecast__scroll-wrapper {
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    /* Dodajemy padding, aby efekt hover nie był "obcinany" */
-    padding: 4px 2px 1rem 2px;
-    /* Kompensujemy padding ujemnym marginesem */
-    margin: -4px -2px -1rem -2px;
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
@@ -365,11 +361,11 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     text-transform: capitalize;
 }
 
-/* Przywracamy kluczową regułę o szerokości 92px */
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: 92px; 
+    /* Kluczowa reguła z produkcji, z wartością 92px */
+    grid-auto-columns: 92px;
     gap: 8px;
 }
 
