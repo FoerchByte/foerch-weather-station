@@ -1,4 +1,4 @@
-/* --- Style globalne i motywy --- */
+/* --- Style globalne i motywy (bez zmian) --- */
 :root {
     --primary-color: #007bff;
     --primary-color-rgb: 0, 123, 255;
@@ -39,7 +39,7 @@ body {
     padding: 2rem 1.5rem;
 }
 
-/* --- Nagłówek i UI --- */
+/* --- Nagłówek i UI (bez zmian) --- */
 .standalone-header {
     background-color: var(--card-background);
     border-bottom: 1px solid var(--border-color);
@@ -70,7 +70,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     overflow-x: hidden;
 }
 
-/* --- Ulubione lokalizacje --- */
+/* --- Ulubione lokalizacje (bez zmian) --- */
 .favorites-container {
     display: flex;
     flex-wrap: wrap;
@@ -163,7 +163,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* --- Wyniki i detale --- */
+/* --- Wyniki i detale (bez zmian) --- */
 .weather-app__result { text-align: center; }
 .current-weather__main {
     display: flex; align-items: center;
@@ -430,6 +430,16 @@ body.dark-mode .hourly-forecast__item:hover {
     padding: 1rem; background-color: var(--background-color);
     border: 1px solid var(--border-color); border-radius: 8px; text-align: center;
     display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    cursor: pointer;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+}
+.daily-forecast__day:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px -4px rgba(0,0,0,0.1);
+    border-color: var(--primary-color);
+}
+body.dark-mode .daily-forecast__day:hover {
+    box-shadow: 0 6px 16px -4px rgba(0,0,0,0.2);
 }
 .daily-forecast__day h4 { margin: 0; font-size: 1rem; text-transform: capitalize; }
 .daily-forecast__icon { width: 56px; height: 56px; }
