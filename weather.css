@@ -328,7 +328,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__title { margin: 0; }
 .hourly-forecast__slider-container { position: relative; }
 
-/* --- POPRAWKI DLA PROGNOZY GODZINOWEJ / FIXES FOR HOURLY FORECAST --- */
+/* --- NAPRAWIONA PROGNOZA GODZINOWA / FIXED HOURLY FORECAST --- */
 
 .hourly-forecast__scroll-wrapper {
     display: flex; 
@@ -336,11 +336,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch; 
     scrollbar-width: none;
-    /* 1. Dodajemy padding, aby efekt hover nie był "obcinany" */
-    /* 1. Add padding so the hover effect isn't "cut off" */
     padding: 0.5rem 0.25rem 1rem 0.25rem;
-    /* 2. Kompensujemy padding ujemnym marginesem, aby zachować oryginalne wymiary */
-    /* 2. Compensate padding with a negative margin to maintain original dimensions */
     margin: -0.5rem -0.25rem -1rem -0.25rem;
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
@@ -362,8 +358,8 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     color: var(--completed-text); text-transform: capitalize;
 }
 
-/* 3. Przywracamy kluczową regułę o szerokości 92px */
-/* 3. Restore the key 92px width rule */
+/* Przywracamy kluczową regułę o szerokości 92px */
+/* Restore the key 92px width rule */
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
