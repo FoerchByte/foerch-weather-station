@@ -8,6 +8,7 @@ class WeatherApp {
         this.currentHourlyRange = 24;
         this.favorites = [];
         this.currentLocation = null;
+        this.minutelyChart = null; // NOWY STAN: Instancja wykresu / NEW STATE: Chart instance
 
         // --- Referencje DOM / DOM References ---
         this.dom = {
@@ -23,6 +24,9 @@ class WeatherApp {
             forecastSwitcher: document.getElementById('forecast-switcher'),
             favoritesContainer: document.getElementById('favorites-container'),
             addFavoriteBtn: null,
+            minutely: { // NOWE REFERENCJE: Prognoza minutowa / NEW REFERENCES: Minutely Forecast
+                chartCanvas: document.getElementById('minutely-chart'),
+            },
             hourly: {
                 container: document.getElementById('hourly-forecast-container'),
                 rangeSwitcher: document.getElementById('hourly-range-switcher'),
@@ -156,12 +160,8 @@ class WeatherApp {
         return alertTranslations[eventName] || eventName;
     }
 
-    // NOWA METODA: Tłumaczenie podsumowania AI / NEW METHOD: Translating AI summary
     translateOverview(overview) {
         if (!overview) return '';
-
-        // Proste tłumaczenie oparte na słowach kluczowych.
-        // Simple keyword-based translation.
         const translations = {
             'Expect a day of ': 'Spodziewaj się dnia z ',
             'partly cloudy with rain': 'częściowym zachmurzeniem i deszczem',
@@ -174,14 +174,10 @@ class WeatherApp {
             'thunderstorms': 'burzami',
             'fog': 'mgłą',
         };
-
         let translated = overview;
         for (const [key, value] of Object.entries(translations)) {
             translated = translated.replace(new RegExp(key, 'gi'), value);
         }
-        
-        // Zapewnienie, że zdanie zaczyna się z dużej litery i kończy kropką.
-        // Ensure the sentence starts with a capital letter and ends with a period.
         translated = translated.charAt(0).toUpperCase() + translated.slice(1);
         if (!translated.endsWith('.')) {
             translated += '.';
@@ -204,8 +200,6 @@ class WeatherApp {
                 </button>
             </div>`;
 
-        // ZMIANA: Wywołanie funkcji tłumaczącej podsumowanie AI
-        // CHANGE: Calling the AI summary translation function
         const translatedOverview = this.translateOverview(data.overview);
         const overviewHtml = translatedOverview ? `
             <div class="weather-overview">
@@ -255,7 +249,78 @@ class WeatherApp {
         this.dom.addFavoriteBtn.addEventListener('click', () => this.toggleFavorite());
     }
     
-    // ... reszta metod bez zmian ...
+    // NOWA METODA: Renderowanie prognozy minutowej / NEW METHOD: Rendering minutely forecast
+    renderMinutelyForecast(data) {
+        const hasPrecipitation = data.minutely.some(minute => minute.precipitation > 0);
+        const wrapper = this.dom.minutely.chartCanvas.closest('.minutely-forecast__wrapper');
+
+        if (!hasPrecipitation) {
+            wrapper.innerHTML = `<div class="minutely-forecast__no-data">Brak opadów w ciągu najbliższej godziny.</div>`;
+            return;
+        }
+
+        // Przywrócenie canvas, jeśli został usunięty / Restore canvas if it was removed
+        if (!document.getElementById('minutely-chart')) {
+            wrapper.innerHTML = `
+                <h3 class="minutely-forecast__title">Prognoza opadów w ciągu najbliższej godziny</h3>
+                <div class="minutely-forecast__chart-container">
+                    <canvas id="minutely-chart"></canvas>
+                </div>`;
+            this.dom.minutely.chartCanvas = document.getElementById('minutely-chart');
+        }
+
+        const labels = data.minutely.map((minute, index) => {
+            return index % 10 === 0 ? `${index}'` : '';
+        });
+        const precipitationData = data.minutely.map(minute => minute.precipitation);
+        
+        const chartData = {
+            labels: labels,
+            datasets: [{
+                label: 'Intensywność opadów (mm/h)',
+                data: precipitationData,
+                borderColor: 'rgba(0, 123, 255, 0.8)',
+                backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+            }]
+        };
+
+        if (this.minutelyChart) {
+            this.minutelyChart.destroy();
+        }
+
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+        const fontColor = isDarkMode ? '#e9ecef' : '#212529';
+
+        this.minutelyChart = new Chart(this.dom.minutely.chartCanvas, {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: gridColor },
+                        ticks: { color: fontColor }
+                    },
+                    x: {
+                        grid: { color: gridColor },
+                        ticks: { color: fontColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
     
     renderWeatherAlerts(data) {
         const container = this.dom.weatherAlertsContainer;
@@ -344,7 +409,7 @@ class WeatherApp {
     }
     
     renderDailyForecast(data) {
-        this.dom.daily.container.innerHTML = data.daily.slice(1, 6).map(day => `
+        this.dom.daily.container.innerHTML = data.daily.slice(0, 8).map(day => `
             <div class="weather-app__forecast-day">
                 <h4>${new Date(day.dt * 1000).toLocaleDateString('pl-PL', { weekday: 'long' })}</h4>
                 <div class="weather-app__forecast-icon">${this.getWeatherIconHtml(day.weather[0].icon, day.weather[0].description)}</div>
@@ -352,6 +417,7 @@ class WeatherApp {
             </div>`).join('');
     }
 
+    // --- Główna Logika / Main Logic ---
     async handleSearch(query, buttonToLoad) {
         if (!query) return;
         this.dom.weatherResultContainer.innerHTML = `<div class="weather-app__skeleton"><div class="skeleton" style="width: 200px; height: 2.2rem;"></div><div class="skeleton" style="width: 150px; height: 4rem;"></div></div>`;
@@ -393,6 +459,7 @@ class WeatherApp {
             this.renderCurrentWeather(processedData);
             this.updateFavoriteButtonState();
             this.renderWeatherAlerts(processedData);
+            this.renderMinutelyForecast(processedData);
             this.renderDailyForecast(processedData);
             this.renderHourlyForecast();
             
@@ -403,11 +470,10 @@ class WeatherApp {
                 const activeButton = this.dom.forecastSwitcher.querySelector('.active');
                 if (activeButton) activeButton.classList.remove('active');
             } else {
-                this.dom.forecastsContainer.className = 'show-hourly';
-                const dailyButton = this.dom.forecastSwitcher.querySelector('[data-forecast="daily"]');
-                if (dailyButton) dailyButton.classList.remove('active');
-                const hourlyButton = this.dom.forecastSwitcher.querySelector('[data-forecast="hourly"]');
-                if (hourlyButton) hourlyButton.classList.add('active');
+                this.dom.forecastsContainer.className = 'show-minutely';
+                this.dom.forecastSwitcher.querySelector('[data-forecast="hourly"]').classList.remove('active');
+                this.dom.forecastSwitcher.querySelector('[data-forecast="daily"]').classList.remove('active');
+                this.dom.forecastSwitcher.querySelector('[data-forecast="minutely"]').classList.add('active');
             }
             
             this.dom.mapContainer.style.display = 'block';
@@ -427,6 +493,7 @@ class WeatherApp {
         }
     }
     
+    // --- Pozostałe metody (bez istotnych zmian) ---
     getWeatherIconHtml(iconCode, description) {
         const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
         const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg', };
@@ -435,7 +502,7 @@ class WeatherApp {
     }
     isMobile = () => window.matchMedia("(max-width: 1024px)").matches;
     isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
-    setTheme(theme) { document.body.classList.toggle('dark-mode', theme === 'dark'); localStorage.setItem('theme', theme); if (this.map) this.updateMapTileLayer(); }
+    setTheme(theme) { document.body.classList.toggle('dark-mode', theme === 'dark'); localStorage.setItem('theme', theme); if (this.map) this.updateMapTileLayer(); if(this.minutelyChart) this.renderMinutelyForecast({minutely: this.minutelyChart.data.datasets[0].data.map(p=>({precipitation: p}))}) }
     toggleButtonLoading(button, isLoading) { const span = button.querySelector('span'); if (isLoading) { span.style.display = 'none'; if (!button.querySelector('.loader')) { button.insertAdjacentHTML('beforeend', '<div class="loader"></div>'); } button.disabled = true; } else { span.style.display = 'inline'; const loader = button.querySelector('.loader'); if (loader) loader.remove(); button.disabled = false; } }
     showError(message) { this.dom.weatherResultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`; this.dom.forecastsContainer.style.display = 'none'; this.dom.mapContainer.style.display = 'none'; }
     getPrecipitationLayer() { const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`; return L.tileLayer(proxyUrl, { attribution: '&copy; OpenWeatherMap' }); }
