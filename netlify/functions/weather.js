@@ -3,20 +3,14 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 // --- Koncept licznika zapytań / API Call Counter Concept ---
-// W przyszłości można to podłączyć do bazy danych (np. Redis, FaunaDB)
-// In the future, this can be connected to a database (e.g., Redis, FaunaDB)
 const API_CALL_LIMIT = 1000;
-let apiCallCount = 0; // W prostym przykładzie, resetuje się przy każdym wdrożeniu / In a simple example, resets on each deployment
+let apiCallCount = 0; 
 
 async function checkApiLimit() {
-    // W rzeczywistej implementacji, tutaj byłoby zapytanie do bazy danych
-    // In a real implementation, a database query would be here
     return apiCallCount < API_CALL_LIMIT;
 }
 
 async function incrementApiCount() {
-    // Tutaj byłoby zaktualizowanie wartości w bazie danych
-    // Here, the value in the database would be updated
     apiCallCount++;
 }
 
@@ -41,8 +35,6 @@ exports.handler = async function (event, context) {
     try {
         // 4. Geokodowanie (jeśli podano miasto) / Geocoding (if city is provided)
         if (city) {
-            // ZMIANA: Dodajemy kod kraju 'PL' do zapytania, aby zwiększyć precyzję geokodowania dla polskich miast.
-            // CHANGE: We add the country code 'PL' to the query to increase geocoding precision for Polish cities.
             const geoQuery = `${city.trim()}`;
             const geoUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(geoQuery)}&limit=1&appid=${apiKey}`;
             const geoResponse = await fetch(geoUrl);
@@ -76,7 +68,9 @@ exports.handler = async function (event, context) {
         }
 
         // 5. Równoległe zapytania o pogodę i jakość powietrza / Parallel requests for weather and air quality
-        const oneCallUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&exclude=minutely&appid=${apiKey}&units=metric&lang=pl`;
+        // ZMIANA: Usunięto 'exclude=minutely' z URL, aby zawsze pobierać prognozę opadów
+        // CHANGE: Removed 'exclude=minutely' from the URL to always fetch the precipitation forecast
+        const oneCallUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=pl`;
         const airPollutionUrl = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
 
         const [oneCallResponse, airPollutionResponse] = await Promise.all([
@@ -97,11 +91,11 @@ exports.handler = async function (event, context) {
         const responsePayload = {
             location: { name: locationName, country: locationCountry, lat, lon },
             current: oneCallData.current,
+            minutely: oneCallData.minutely, // ZMIANA: Dodajemy dane minutowe do odpowiedzi
             hourly: oneCallData.hourly,
             daily: oneCallData.daily,
             alerts: oneCallData.alerts,
             air_quality: airPollutionData.list[0],
-            // NOWA DANA: Dodajemy podsumowanie pogodowe AI / NEW DATA: Adding the AI weather summary
             overview: oneCallData.daily[0].summary
         };
 
