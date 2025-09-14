@@ -21,8 +21,6 @@ class WeatherApp {
             weatherAlertsContainer: null, 
             forecastsContainer: document.getElementById('forecasts-container'),
             mapContainer: document.getElementById('map-container'),
-            // ZMIANA: Usunięto referencję do precipitationToggle
-            // CHANGE: Removed reference to precipitationToggle
             forecastSwitcher: document.getElementById('forecast-switcher'),
             favoritesContainer: document.getElementById('favorites-container'),
             addFavoriteBtn: null,
@@ -68,8 +66,6 @@ class WeatherApp {
         this.dom.searchBtn?.addEventListener('click', () => this.handleSearch(this.dom.cityInput.value.trim(), this.dom.searchBtn));
         this.dom.cityInput?.addEventListener('keyup', e => { if (e.key === 'Enter') this.handleSearch(this.dom.cityInput.value.trim(), this.dom.searchBtn); });
         this.dom.geoBtn?.addEventListener('click', () => this.handleGeolocation());
-        // ZMIANA: Usunięto event listener dla precipitationToggle
-        // CHANGE: Removed event listener for precipitationToggle
         this.dom.forecastSwitcher?.addEventListener('click', (e) => this.handleForecastSwitch(e));
         this.dom.hourly.rangeSwitcher?.addEventListener('click', (e) => this.handleHourlyRangeSwitch(e));
         this.dom.hourly.sliderPrevBtn.addEventListener('click', () => this.handleSliderScroll(-1));
@@ -159,26 +155,30 @@ class WeatherApp {
     // --- Obsługa Mapy / Map Handling ---
     getPrecipitationLayer() {
         const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`;
+        // ZMIANA: Przypisujemy warstwę do stworzonej "szybki" (pane)
+        // CHANGE: Assigning the layer to the created pane
         return L.tileLayer(proxyUrl, {
-            attribution: '&copy; OpenWeatherMap'
+            attribution: '&copy; OpenWeatherMap',
+            pane: 'precipitationPane' // Mówimy Leaflet, aby rysował tę warstwę na naszej specjalnej "szybce"
         });
     }
-
-    // ZMIANA: Usunięto metodę togglePrecipitationLayer
-    // CHANGE: Removed the togglePrecipitationLayer method
 
     initMap() {
         if (!this.map) {
             this.map = L.map('map').setView([51.75, 19.45], 10);
+            
+            // ZMIANA: Tworzymy dedykowaną "szybkę" dla opadów
+            // CHANGE: Creating a dedicated pane for precipitation
+            this.map.createPane('precipitationPane');
+            this.map.getPane('precipitationPane').style.zIndex = 650; // Ustawiamy ją ponad innymi warstwami
+
             this.lightTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
             this.darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO' });
             
-            // ZMIANA: Warstwa opadów jest teraz dodawana na stałe przy inicjalizacji
-            // CHANGE: The precipitation layer is now permanently added on initialization
-            this.precipitationLayer = this.getPrecipitationLayer();
-            this.map.addLayer(this.precipitationLayer);
+            this.updateMapTileLayer(); // Najpierw dodajemy mapę bazową
 
-            this.updateMapTileLayer();
+            this.precipitationLayer = this.getPrecipitationLayer();
+            this.map.addLayer(this.precipitationLayer); // Następnie dodajemy warstwę opadów, która dzięki "szybce" będzie na wierzchu
         }
     }
 
@@ -261,8 +261,6 @@ class WeatherApp {
         this.minutelyData = data.minutely || [];
         const hasPrecipitation = this.minutelyData.some(minute => minute.precipitation > 0);
         
-        // ZMIANA: Usunięto logikę dynamicznego włączania/wyłączania warstwy
-        // CHANGE: Removed logic for dynamically toggling the layer
         if (!hasPrecipitation) {
             this.dom.minutely.wrapper.innerHTML = `<div class="minutely-forecast__no-data">Brak opadów w ciągu najbliższej godziny.</div>`;
             return;
