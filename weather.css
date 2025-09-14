@@ -1,4 +1,4 @@
-/* --- Style globalne i motywy (bez zmian) --- */
+/* --- Style globalne i motywy --- */
 :root {
     --primary-color: #007bff;
     --primary-color-rgb: 0, 123, 255;
@@ -39,7 +39,7 @@ body {
     padding: 2rem 1.5rem;
 }
 
-/* --- Nagłówek i UI (bez zmian) --- */
+/* --- Nagłówek i UI --- */
 .standalone-header {
     background-color: var(--card-background);
     border-bottom: 1px solid var(--border-color);
@@ -70,7 +70,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     overflow-x: hidden;
 }
 
-/* --- Ulubione lokalizacje (bez zmian) --- */
+/* --- Ulubione lokalizacje --- */
 .favorites-container {
     display: flex;
     flex-wrap: wrap;
@@ -163,7 +163,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* --- Wyniki i detale (bez zmian) --- */
+/* --- Wyniki i detale --- */
 .weather-app__result { text-align: center; }
 .current-weather__main {
     display: flex; align-items: center;
@@ -328,20 +328,16 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__title { margin: 0; }
 .hourly-forecast__slider-container { position: relative; }
 
-/* POPRAWKA: Dodajemy padding, aby uniknąć obcinania cienia/przesunięcia */
-/* FIX: Add padding to avoid clipping shadow/transform */
 .hourly-forecast__scroll-wrapper {
     display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch; scrollbar-width: none;
-    padding: 0.5rem 0.25rem 1rem 0.25rem; /* Dodano minimalny padding po bokach */
+    padding: 0.5rem 0.25rem 1rem 0.25rem;
     margin: -0.5rem -0.25rem -1rem -0.25rem;
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
 .hourly-forecast__grid { display: flex; flex-wrap: nowrap; }
 
-/* POPRAWKA: Przywracamy flex-shrink, aby zapobiec kurczeniu się grup */
-/* FIX: Restore flex-shrink to prevent groups from shrinking */
 .hourly-forecast__day-group { 
     flex-shrink: 0; 
     position: relative; 
@@ -354,25 +350,20 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: 92px; /* POPRAWKA: Przywrócenie dokładnej szerokości */
+    grid-auto-columns: 92px;
     gap: 8px;
 }
 
-/* ZMIANA: Wspólne style dla klikalnych kafelków */
-/* CHANGE: Shared styles for clickable tiles */
-.hourly-forecast__item,
-.daily-forecast__day {
+.hourly-forecast__item {
     cursor: pointer;
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
 }
-.hourly-forecast__item:hover,
-.daily-forecast__day:hover {
+.hourly-forecast__item:hover {
     transform: translateY(-4px);
     box-shadow: 0 6px 16px -4px rgba(0,0,0,0.1);
     border-color: var(--primary-color);
 }
-body.dark-mode .hourly-forecast__item:hover,
-body.dark-mode .daily-forecast__day:hover {
+body.dark-mode .hourly-forecast__item:hover {
     box-shadow: 0 6px 16px -4px rgba(0,0,0,0.2);
 }
 
@@ -388,7 +379,7 @@ body.dark-mode .daily-forecast__day:hover {
     width: 1px; background: linear-gradient(to top, var(--primary-color) 0%, transparent 100%);
 }
 .hourly-forecast__slider-nav {
-    display: none; /* Ukryte domyślnie, pokazane na desktopie */
+    display: none;
     position: absolute; top: 50%; transform: translateY(-50%);
     background-color: rgba(var(--card-background-rgb), 0.8);
     backdrop-filter: blur(2px); border: 1px solid var(--border-color);
@@ -430,36 +421,23 @@ body.dark-mode .daily-forecast__day:hover {
     border-radius: 8px;
 }
 
-/* POPRAWKA: Style dla przewijanej prognozy dziennej */
-/* FIX: Styles for scrollable daily forecast */
-.daily-forecast__scroll-wrapper {
-    display: flex;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding: 0.5rem 0.25rem 1rem 0.25rem;
-    margin: -0.5rem -0.25rem -1rem -0.25rem;
-}
-.daily-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
-
 .daily-forecast__grid {
-    display: flex;
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 1rem;
 }
 .daily-forecast__day {
-    flex: 0 0 120px; /* Zmniejszona szerokość, aby zmieścić więcej */
     padding: 1rem; background-color: var(--background-color);
     border: 1px solid var(--border-color); border-radius: 8px; text-align: center;
     display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
 }
-.daily-forecast__day h4 { margin: 0; font-size: 1rem; text-transform: capitalize; white-space: nowrap; }
+.daily-forecast__day h4 { margin: 0; font-size: 1rem; text-transform: capitalize; }
 .daily-forecast__icon { width: 56px; height: 56px; }
 
 .skeleton { display: inline-block; background-color: var(--border-color); border-radius: 4px; animation: pulse 1.5s infinite ease-in-out; }
 @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
 
-/* --- Kolory (bez zmian) --- */
+/* --- Kolory --- */
 .value-color--roadDry .detail-item-value { color: var(--success-color); }
 .value-color--roadWet .detail-item-value { color: var(--primary-color); }
 .value-color--roadIcy .detail-item-value { color: var(--danger-color); }
@@ -698,23 +676,14 @@ body.dark-mode .daily-forecast__day:hover {
         display: block;
     }
 
-    /* ZMIANA: Na mobile siatka dzienna wraca do trybu listy */
-    /* CHANGE: On mobile, daily grid returns to list mode */
-    .daily-forecast__scroll-wrapper {
-        display: block;
-        overflow-x: hidden;
-        padding: 0;
-        margin: 0;
-    }
     .daily-forecast__grid {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr;
         gap: 8px;
     }
     .daily-forecast__day {
         flex-direction: row;
         justify-content: space-between;
-        flex: 1 1 auto;
     }
 }
 
