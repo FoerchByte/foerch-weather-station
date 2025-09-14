@@ -322,15 +322,9 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     width: 80%; height: 3px; background-color: var(--primary-color);
 }
 
-/* POPRAWKA: Ujednolicenie stylów przełącznika 24h/48h / FIX: Unifying styles for the 24h/48h switcher */
 .hourly-forecast__range-switcher {
-    display: flex;
-    margin: 0 auto 1rem auto; /* Wyśrodkowanie i dodanie marginesu na dole / Centering and adding bottom margin */
-    width: 100%;
-    max-width: 300px; /* Ograniczenie szerokości na dużych ekranach / Limiting width on large screens */
-    border-bottom: 1px solid var(--border-color); /* Spójna dolna krawędź / Consistent bottom border */
-    padding-bottom: 0.5rem;
-    overflow: visible;
+    display: flex; border: none; margin: 0; width: auto;
+    max-width: 200px; overflow: visible;
 }
 .hourly-forecast__range-switcher button {
     flex: 1; background: none; border: none; border-radius: 0; padding: 0.5rem;
@@ -342,7 +336,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     color: var(--text-color); background-color: transparent;
 }
 .hourly-forecast__range-switcher button.active::after {
-    display: block; content: ''; position: absolute; bottom: -1px; /* Poprawka pozycji / Position fix */
+    display: block; content: ''; position: absolute; bottom: 0;
     left: 15%; width: 70%; height: 2px; background-color: var(--primary-color);
 }
 .hourly-forecast__wrapper { position: relative; margin-top: 2rem; }
@@ -493,14 +487,22 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     .weather-app { padding: 1.5rem 1rem; }
     @media (orientation: landscape) {
         .hourly-forecast__header { display: block; }
+        /* POPRAWKA: Ujednolicenie stylów dla przełącznika na desktopie / FIX: Unifying switcher styles on desktop */
         .hourly-forecast__range-switcher {
-            /* Usunięto zbędne reguły, które są teraz w stylach bazowych */
-            /* Removed redundant rules that are now in the base styles */
-            margin: 0 0 1rem 0;
+            width: 100%;
             max-width: none;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin: 0 0 1rem 0;
             gap: 10px;
         }
-        .hourly-forecast__range-switcher button { flex-basis: 50%; }
+        .hourly-forecast__range-switcher button { 
+            flex-basis: 50%;
+        }
+        .hourly-forecast__range-switcher button.active::after {
+            bottom: -10px; /* Dostosowanie do nowej dolnej krawędzi / Adjusting to the new bottom border */
+        }
+
         .current-weather__extra-details {
             grid-template-columns: repeat(5, 1fr); gap: 1rem 0.4rem; align-items: start;
         }
