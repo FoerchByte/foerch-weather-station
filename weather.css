@@ -177,40 +177,11 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 .current-weather__details { display: flex; flex-direction: column; align-items: flex-start; }
 .current-weather__temp { font-size: 2.5rem; font-weight: 500; }
 
-/* NOWE STYLE: Podsumowanie pogodowe AI / NEW STYLES: AI Weather Overview */
-.weather-overview {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    margin: 1.5rem 0 0 0;
-    padding: 1rem;
-    background-color: rgba(var(--primary-color-rgb), 0.05);
-    border-left: 4px solid var(--primary-color);
-    border-radius: 0 8px 8px 0;
-    text-align: left;
-}
-.weather-overview__icon {
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-    color: var(--primary-color);
-    margin-top: 2px;
-}
-.weather-overview__text {
-    margin: 0;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    color: var(--text-color);
-}
-body.dark-mode .weather-overview {
-    background-color: rgba(var(--primary-color-rgb), 0.1);
-}
-
-/* --- Alerty pogodowe / Weather Alerts --- */
+/* ZMIANA: Ujednolicenie stylów dla kontenerów informacyjnych / CHANGE: Unifying styles for info containers */
+.weather-overview,
 .weather-alert {
     position: relative;
     display: flex;
-    align-items: center;
     gap: 1rem;
     padding: 1rem;
     margin: 1.5rem 0 0 0;
@@ -221,17 +192,48 @@ body.dark-mode .weather-overview {
     border: none;
     overflow: hidden;
 }
+.weather-overview::before,
 .weather-alert::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 1;
     pointer-events: none;
     filter: blur(20px);
 }
+.weather-overview > *,
 .weather-alert > * {
     position: relative;
     z-index: 2;
+}
+
+/* Styl dla podsumowania AI / Style for AI Overview */
+.weather-overview {
+    align-items: flex-start;
+    color: var(--primary-color);
+}
+.weather-overview::before {
+    background: radial-gradient(ellipse 130% 100% at 0% 50%, rgba(var(--primary-color-rgb), 0.15), transparent 60%);
+}
+.weather-overview__icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    color: var(--primary-color);
+    margin-top: 2px;
+}
+.weather-overview__text {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--text-color);
+}
+
+/* Style dla alertów / Styles for Alerts */
+.weather-alert {
+    align-items: center;
 }
 .weather-alert--safe {
     color: var(--success-color);
@@ -243,6 +245,7 @@ body.dark-mode .weather-overview {
     flex-direction: column;
     align-items: flex-start;
     color: var(--warning-color);
+    gap: 0.25rem; /* POPRAWKA: Użycie gap do kontroli odstępów / FIX: Using gap for spacing control */
 }
 .weather-alert--warning::before {
      background: radial-gradient(ellipse 130% 100% at 0% 50%, rgba(255, 193, 7, 0.15), transparent 60%);
@@ -254,7 +257,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     font-size: 1.1rem; font-weight: bold;
 }
 .alert__source, .alert__time {
-    margin: 0.25rem 0 0 0;
+    margin: 0; /* POPRAWKA: Usunięcie marginesów / FIX: Removing margins */
     padding-left: calc(24px + 0.75rem);
     font-size: 0.9rem;
     color: var(--completed-text);
@@ -318,9 +321,16 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     content: ''; position: absolute; bottom: -1px; left: 10%;
     width: 80%; height: 3px; background-color: var(--primary-color);
 }
+
+/* POPRAWKA: Ujednolicenie stylów przełącznika 24h/48h / FIX: Unifying styles for the 24h/48h switcher */
 .hourly-forecast__range-switcher {
-    display: flex; border: none; margin: 0; width: auto;
-    max-width: 200px; overflow: visible;
+    display: flex;
+    margin: 0 auto 1rem auto; /* Wyśrodkowanie i dodanie marginesu na dole / Centering and adding bottom margin */
+    width: 100%;
+    max-width: 300px; /* Ograniczenie szerokości na dużych ekranach / Limiting width on large screens */
+    border-bottom: 1px solid var(--border-color); /* Spójna dolna krawędź / Consistent bottom border */
+    padding-bottom: 0.5rem;
+    overflow: visible;
 }
 .hourly-forecast__range-switcher button {
     flex: 1; background: none; border: none; border-radius: 0; padding: 0.5rem;
@@ -332,7 +342,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     color: var(--text-color); background-color: transparent;
 }
 .hourly-forecast__range-switcher button.active::after {
-    display: block; content: ''; position: absolute; bottom: 0;
+    display: block; content: ''; position: absolute; bottom: -1px; /* Poprawka pozycji / Position fix */
     left: 15%; width: 70%; height: 2px; background-color: var(--primary-color);
 }
 .hourly-forecast__wrapper { position: relative; margin-top: 2rem; }
@@ -482,11 +492,13 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 @media (max-width: 1024px) {
     .weather-app { padding: 1.5rem 1rem; }
     @media (orientation: landscape) {
-        .hourly-forecast__wrapper, .weather-app__forecast-wrapper { display: block !important; }
         .hourly-forecast__header { display: block; }
         .hourly-forecast__range-switcher {
-            width: 100%; max-width: none; border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.5rem; margin: 0 0 1rem 0; gap: 10px;
+            /* Usunięto zbędne reguły, które są teraz w stylach bazowych */
+            /* Removed redundant rules that are now in the base styles */
+            margin: 0 0 1rem 0;
+            max-width: none;
+            gap: 10px;
         }
         .hourly-forecast__range-switcher button { flex-basis: 50%; }
         .current-weather__extra-details {
@@ -532,10 +544,10 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
         .forecast-switcher { display: flex; }
         .hourly-forecast__header { display: none; }
         .hourly-forecast__range-switcher {
-            display: flex; border-bottom: 1px solid var(--border-color);
-            margin: -1rem 0 1rem 0; max-width: none; gap: 0;
+            margin: -1rem 0 1rem 0;
+            max-width: none;
+            gap: 0;
         }
-        .hourly-forecast__range-switcher button.active::after { display: block; }
         .hourly-forecast__scroll-wrapper { display: block; overflow-x: hidden; }
         .hourly-forecast__slider-nav { display: none; }
         .hourly-forecast__grid { display: block; flex-wrap: wrap; padding-bottom: 0; }
