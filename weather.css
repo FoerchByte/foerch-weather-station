@@ -245,7 +245,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     flex-direction: column;
     align-items: flex-start;
     color: var(--warning-color);
-    gap: 0.25rem; /* POPRAWKA: Użycie gap do kontroli odstępów / FIX: Using gap for spacing control */
+    gap: 0.25rem;
 }
 .weather-alert--warning::before {
      background: radial-gradient(ellipse 130% 100% at 0% 50%, rgba(255, 193, 7, 0.15), transparent 60%);
@@ -257,7 +257,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     font-size: 1.1rem; font-weight: bold;
 }
 .alert__source, .alert__time {
-    margin: 0; /* POPRAWKA: Usunięcie marginesów / FIX: Removing margins */
+    margin: 0;
     padding-left: calc(24px + 0.75rem);
     font-size: 0.9rem;
     color: var(--completed-text);
@@ -325,9 +325,9 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__range-switcher {
     display: flex;
     border: none;
-    margin: 0;
-    width: auto;
-    max-width: 200px;
+    margin: 0 auto 1rem auto;
+    width: 100%;
+    max-width: 350px;
     overflow: visible;
 }
 .hourly-forecast__range-switcher button {
@@ -396,9 +396,30 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     display: flex; align-items: center;
 }
 .hourly-forecast__pop-icon { width: 10px; height: 10px; }
+
+/* NOWE STYLE: Prognoza minutowa / NEW STYLES: Minutely Forecast */
+.minutely-forecast__wrapper {
+    margin-top: 2rem;
+}
+.minutely-forecast__title {
+    margin: 0 0 1rem 0;
+}
+.minutely-forecast__chart-container {
+    height: 200px;
+    position: relative;
+}
+.minutely-forecast__no-data {
+    text-align: center;
+    padding: 2rem;
+    color: var(--completed-text);
+    background-color: var(--background-color);
+    border-radius: 8px;
+}
+
 .weather-app__forecast-wrapper { margin-top: 2rem; }
 .weather-app__forecast-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 1rem;
 }
 .weather-app__forecast-day {
@@ -489,48 +510,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 
 @media (max-width: 1024px) {
     .weather-app { padding: 1.5rem 1rem; }
-    @media (orientation: landscape) {
-        .hourly-forecast__header { display: none; }
-        .hourly-forecast__range-switcher {
-            width: 100%;
-            max-width: none;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.5rem;
-            margin: 0 0 1rem 0;
-            gap: 10px;
-        }
-        .hourly-forecast__range-switcher button { 
-            flex-basis: 50%;
-        }
-        .hourly-forecast__range-switcher button.active::after {
-            bottom: -10px;
-        }
-
-        .current-weather__extra-details {
-            grid-template-columns: repeat(5, 1fr); gap: 1rem 0.4rem; align-items: start;
-        }
-        .current-weather__extra-details .detail-item-header {
-            font-size: 0.85rem; min-height: 34px; align-items: start;
-        }
-        .detail-col--3 { align-self: center; justify-content: center; }
-        .hourly-forecast__slider-nav { display: flex; }
-        .hourly-forecast__slider-container { padding: 0 5px; }
-        .forecast-switcher { display: none; }
-        .hourly-forecast__grid { flex-direction: row; }
-        .hourly-forecast__items {
-            display: grid; grid-auto-flow: column; grid-auto-columns: 85px; gap: 8px;
-        }
-        .hourly-forecast__item {
-            flex-direction: column; justify-content: space-between; align-items: center;
-            padding: 1rem; height: auto;
-        }
-        .hourly-forecast__item > * { flex: initial; }
-        .hourly-forecast__time { flex-basis: auto; font-size: 0.8rem; }
-        .hourly-forecast__icon { justify-content: center; }
-        .hourly-forecast__temp { text-align: center; font-size: 1rem; font-weight: normal; }
-        .hourly-forecast__pop { justify-content: center; }
-        .hourly-forecast__day-group:not(:last-child)::after { display: block; }
-    }
+    /* Usunięto media query dla orientacji landscape, aby uprościć style */
 }
 @media (max-width: 768px) {
     .weather-app__search { flex-direction: column; }
@@ -569,7 +549,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
         }
         .hourly-forecast__items { display: flex; flex-direction: column; gap: 8px; }
         .hourly-forecast__item {
-            display: flex; flex-direction: row; justify-content: space-between
+            display: flex; flex-direction: row; justify-content: space-between;
             align-items: center; padding: 0.75rem 1rem; box-sizing: border-box;
         }
         .hourly-forecast__time { text-align: left; font-size: 1rem; margin: 0; }
@@ -580,13 +560,23 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
         }
         .hourly-forecast__temp { font-size: 1.1rem; font-weight: bold; margin: 0; }
         .hourly-forecast__pop { display: flex; align-items: center; gap: 4px; margin: 0; }
-        #forecasts-container:not(.show-hourly):not(.show-daily) .hourly-forecast__wrapper,
-        #forecasts-container:not(.show-hourly):not(.show-daily) .weather-app__forecast-wrapper { display: none; }
+        
+        #forecasts-container.show-minutely .hourly-forecast__wrapper,
+        #forecasts-container.show-minutely .weather-app__forecast-wrapper { display: none; }
+        
+        #forecasts-container.show-hourly .minutely-forecast__wrapper,
         #forecasts-container.show-hourly .weather-app__forecast-wrapper { display: none; }
+        
+        #forecasts-container.show-daily .minutely-forecast__wrapper,
         #forecasts-container.show-daily .hourly-forecast__wrapper { display: none; }
+        
+        #forecasts-container.show-minutely .minutely-forecast__wrapper,
         #forecasts-container.show-hourly .hourly-forecast__wrapper,
-        #forecasts-container.show-daily .weather-app__forecast-wrapper { display: block; }
+        #forecasts-container.show-daily .weather-app__forecast-wrapper {
+            display: block;
+        }
         .weather-app__forecast-grid { grid-template-columns: 1fr; }
         .weather-app__forecast-day { flex-direction: row; justify-content: space-between; }
     }
 }
+
