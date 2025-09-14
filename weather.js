@@ -6,9 +6,10 @@ class WeatherApp {
         this.precipitationLayer = null;
         this.hourlyForecastData = [];
         this.currentHourlyRange = 24;
-        this.favorites = []; // POPRAWKA: Zawsze inicjalizuj jako pustą tablicę / FIX: Always initialize as an empty array
+        this.favorites = [];
         this.currentLocation = null;
         this.minutelyChart = null;
+        this.minutelyData = [];
 
         // --- Referencje DOM / DOM References ---
         this.dom = {
@@ -25,9 +26,11 @@ class WeatherApp {
             favoritesContainer: document.getElementById('favorites-container'),
             addFavoriteBtn: null,
             minutely: {
+                wrapper: document.querySelector('.minutely-forecast__wrapper'),
                 chartCanvas: document.getElementById('minutely-chart'),
             },
             hourly: {
+                wrapper: document.querySelector('.hourly-forecast__wrapper'),
                 container: document.getElementById('hourly-forecast-container'),
                 rangeSwitcher: document.getElementById('hourly-range-switcher'),
                 sliderPrevBtn: document.getElementById('hourly-slider-prev'),
@@ -35,6 +38,7 @@ class WeatherApp {
                 scrollWrapper: document.querySelector('.hourly-forecast__scroll-wrapper'),
             },
             daily: {
+                wrapper: document.querySelector('.daily-forecast__wrapper'),
                 container: document.getElementById('forecast-container'),
             },
         };
@@ -52,6 +56,9 @@ class WeatherApp {
             this.handleSearch(lastCity, this.dom.searchBtn);
         } else if (this.favorites.length > 0) {
             this.handleSearch(this.favorites[0].name, this.dom.searchBtn);
+        } else {
+             // Inicjalizacja pustego widoku, jeśli nie ma ostatniego miasta ani ulubionych
+             this.dom.favoritesContainer.innerHTML = `<p class="favorites-empty-state">Dodaj swoje ulubione lokalizacje za pomocą ikony gwiazdki ⭐</p>`;
         }
     }
 
@@ -251,17 +258,21 @@ class WeatherApp {
     
     // NOWA METODA: Renderowanie prognozy minutowej / NEW METHOD: Rendering minutely forecast
     renderMinutelyForecast(data) {
-        const hasPrecipitation = data.minutely && data.minutely.some(minute => minute.precipitation > 0);
-        const wrapper = this.dom.minutely.chartCanvas.closest('.minutely-forecast__wrapper');
-
+        this.minutelyData = data.minutely || [];
+        const hasPrecipitation = this.minutelyData.some(minute => minute.precipitation > 0);
+        
+        // POPRAWKA: Ukryj warstwę opadów na mapie, jeśli prognoza ich nie przewiduje
+        // FIX: Hide precipitation layer on the map if the forecast doesn't predict any
         if (!hasPrecipitation) {
-            wrapper.innerHTML = `<div class="minutely-forecast__no-data">Brak opadów w ciągu najbliższej godziny.</div>`;
+            this.dom.minutely.wrapper.innerHTML = `<div class="minutely-forecast__no-data">Brak opadów w ciągu najbliższej godziny.</div>`;
+            this.dom.precipitationToggle.checked = false;
+            this.togglePrecipitationLayer(); // Wywołaj funkcję, aby ukryć warstwę
             return;
         }
 
         // Przywrócenie canvas, jeśli został usunięty / Restore canvas if it was removed
         if (!document.getElementById('minutely-chart')) {
-            wrapper.innerHTML = `
+            this.dom.minutely.wrapper.innerHTML = `
                 <h3 class="minutely-forecast__title">Prognoza opadów w ciągu najbliższej godziny</h3>
                 <div class="minutely-forecast__chart-container">
                     <canvas id="minutely-chart"></canvas>
@@ -269,10 +280,10 @@ class WeatherApp {
             this.dom.minutely.chartCanvas = document.getElementById('minutely-chart');
         }
 
-        const labels = data.minutely.map((minute, index) => {
+        const labels = this.minutelyData.map((minute, index) => {
             return index % 10 === 0 ? `${index}'` : '';
         });
-        const precipitationData = data.minutely.map(minute => minute.precipitation);
+        const precipitationData = this.minutelyData.map(minute => minute.precipitation);
         
         const chartData = {
             labels: labels,
@@ -464,18 +475,8 @@ class WeatherApp {
             this.renderHourlyForecast();
             
             this.dom.forecastsContainer.style.display = 'block';
+            this.handleForecastSwitch({ target: this.dom.forecastSwitcher.querySelector('[data-forecast="minutely"]') });
 
-            if (this.isMobile()) {
-                this.dom.forecastsContainer.className = '';
-                const activeButton = this.dom.forecastSwitcher.querySelector('.active');
-                if (activeButton) activeButton.classList.remove('active');
-                this.dom.forecastSwitcher.querySelector('[data-forecast="minutely"]').classList.add('active');
-            } else {
-                this.dom.forecastsContainer.className = 'show-minutely';
-                this.dom.forecastSwitcher.querySelector('[data-forecast="hourly"]').classList.remove('active');
-                this.dom.forecastSwitcher.querySelector('[data-forecast="daily"]').classList.remove('active');
-                this.dom.forecastSwitcher.querySelector('[data-forecast="minutely"]').classList.add('active');
-            }
             
             this.dom.mapContainer.style.display = 'block';
             const isGeoSearch = typeof query === 'object' && query.latitude;
@@ -503,7 +504,12 @@ class WeatherApp {
     }
     isMobile = () => window.matchMedia("(max-width: 1024px)").matches;
     isMobilePortrait = () => window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
-    setTheme(theme) { document.body.classList.toggle('dark-mode', theme === 'dark'); localStorage.setItem('theme', theme); if (this.map) this.updateMapTileLayer(); if(this.minutelyChart) this.renderMinutelyForecast({minutely: this.minutelyChart.data.datasets[0].data.map(p=>({precipitation: p}))}) }
+    setTheme(theme) { 
+        document.body.classList.toggle('dark-mode', theme === 'dark'); 
+        localStorage.setItem('theme', theme); 
+        if (this.map) this.updateMapTileLayer(); 
+        if (this.minutelyChart) this.renderMinutelyForecast({ minutely: this.minutelyData });
+    }
     toggleButtonLoading(button, isLoading) { const span = button.querySelector('span'); if (isLoading) { span.style.display = 'none'; if (!button.querySelector('.loader')) { button.insertAdjacentHTML('beforeend', '<div class="loader"></div>'); } button.disabled = true; } else { span.style.display = 'inline'; const loader = button.querySelector('.loader'); if (loader) loader.remove(); button.disabled = false; } }
     showError(message) { this.dom.weatherResultContainer.innerHTML = `<div class="weather-app__error">${message}</div>`; this.dom.forecastsContainer.style.display = 'none'; this.dom.mapContainer.style.display = 'none'; }
     getPrecipitationLayer() { const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`; return L.tileLayer(proxyUrl, { attribution: '&copy; OpenWeatherMap' }); }
@@ -516,15 +522,10 @@ class WeatherApp {
     handleForecastSwitch(event) {
         const btn = event.target.closest('button');
         if (!btn) return;
+        
+        const forecastType = btn.dataset.forecast;
+        this.dom.forecastsContainer.className = `show-${forecastType}`;
 
-        // Pokaż odpowiedni kontener i ukryj resztę
-        document.querySelectorAll('.minutely-forecast__wrapper, .hourly-forecast__wrapper, .weather-app__forecast-wrapper').forEach(el => {
-            el.style.display = 'none';
-        });
-        const targetClass = btn.dataset.forecast;
-        document.querySelector(`.${targetClass}-forecast__wrapper, .weather-app__forecast-wrapper[data-forecast-type="${targetClass}"]`).style.display = 'block';
-
-        this.dom.forecastsContainer.className = `show-${btn.dataset.forecast}`;
         const currentActive = this.dom.forecastSwitcher.querySelector('.active');
         if(currentActive) currentActive.classList.remove('active');
         btn.classList.add('active');
