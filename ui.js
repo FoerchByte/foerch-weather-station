@@ -54,8 +54,6 @@ export function initUI() {
         closeBtns: document.querySelectorAll('[data-close-modal]'),
     };
     
-    // Inicjalizacja referencji dopiero po stworzeniu elementu w DOM
-    // Initialize reference only after the element is created in the DOM
     dom.weatherAlertsContainer = null; 
     dom.addFavoriteBtn = null;
 }
@@ -74,24 +72,30 @@ function convertWindDirection(deg) {
     return directions[Math.round(deg / 45) % 8];
 }
 
+// POPRAWKA: Uproszczona i bardziej niezawodna funkcja tłumacząca
+// FIX: Simplified and more reliable translation function
 function translateOverview(overviewText, t) {
     if (!overviewText) return '';
-    // --- PL --- Tłumaczy całe zdanie na podstawie kluczy.
-    // --- EN --- Translates the entire sentence based on keys.
-    let translated = t.overview[overviewText.toLowerCase()] || overviewText;
     
-    // --- PL --- Formatuje przetłumaczony tekst.
-    // --- EN --- Formats the translated text.
-    translated = `${t.overview.expect} ${translated} ${t.overview['throughout the day']}.`;
+    let translated = overviewText;
+    // Iterujemy po kluczach tłumaczeń i podmieniamy frazy
+    // Iterate over translation keys and replace phrases
+    for (const [key, value] of Object.entries(t.overview)) {
+        // Pomijamy klucze szablonowe / Skip template keys
+        if (['expect', 'throughout the day', 'and'].includes(key)) continue;
+        
+        translated = translated.replace(new RegExp(key, 'gi'), value);
+    }
+    
     translated = translated.charAt(0).toUpperCase() + translated.slice(1);
-    
-    return translated;
+    return translated.endsWith('.') ? translated : `${translated}.`;
 }
 
 
 // --- Zarządzanie stanem UI / UI State Management ---
 
 export function toggleButtonLoading(button, isLoading) {
+    if (!button) return;
     const span = button.querySelector('span');
     if (isLoading) {
         span.style.display = 'none';
@@ -151,6 +155,8 @@ export function renderCurrentWeather(data, t) {
         </div>
     ` : '';
     
+    // POPRAWKA: Klasy kolorów są teraz na elemencie-rodzicu, a nie na `span` z wartością
+    // FIX: Color classes are now on the parent element, not on the value `span`
     const detailsHtml = `
         <div class="current-weather__extra-details">
              <div class="detail-col detail-col--1">
@@ -158,11 +164,11 @@ export function renderCurrentWeather(data, t) {
                 <div class="current-weather__detail-item"><span class="detail-item-header"><span>${t.details.pressure}</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 12L15 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.current.pressure} hPa</span></div>
             </div>
             <div class="detail-col detail-col--2">
-                <div class="current-weather__detail-item"><span class="detail-item-header"><span>${t.details.aqi}</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 12C21 7.9242 18.2323 4.56213 14.5 3.5C14.5 3.5 12.5 2 10 3.5C6.5 5.5 4.5 9.5 5.5 13C6.5 16.5 12.5 17 14.5 15.5" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 15.5C20.5 15.5 21 17.5 20 18.5C19 19.5 17 19.5 16.5 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value value-color--aqi-${data.air_quality.main.aqi}">${t.values.aqi[data.air_quality.main.aqi - 1]}</span></div>
-                <div class="current-weather__detail-item"><span class="detail-item-header"><span>${t.details.uvIndex}</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 21V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.05025 7.05025L5.63604 5.63604" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.364 18.364L16.9497 16.9497" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.05025 16.9497L5.63604 18.364" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.364 5.63604L16.9497 7.05025" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value value-color--uv-${data.uvCategory}">${t.values.uv[data.uvCategory]}</span></div>
+                <div class="current-weather__detail-item value-color--aqi-${data.air_quality.main.aqi}"><span class="detail-item-header"><span>${t.details.aqi}</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 12C21 7.9242 18.2323 4.56213 14.5 3.5C14.5 3.5 12.5 2 10 3.5C6.5 5.5 4.5 9.5 5.5 13C6.5 16.5 12.5 17 14.5 15.5" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 15.5C20.5 15.5 21 17.5 20 18.5C19 19.5 17 19.5 16.5 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${t.values.aqi[data.air_quality.main.aqi - 1]}</span></div>
+                <div class="current-weather__detail-item value-color--uv-${data.uvCategory}"><span class="detail-item-header"><span>${t.details.uvIndex}</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 21V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.05025 7.05025L5.63604 5.63604" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.364 18.364L16.9497 16.9497" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.05025 16.9497L5.63604 18.364" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.364 5.63604L16.9497 7.05025" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${t.values.uv[data.uvCategory]}</span></div>
             </div>
             <div class="detail-col detail-col--3">
-                <div class="current-weather__detail-item"><span class="detail-item-header"><span>${t.details.roadSurface}</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 17.5C6 16.1193 7.11929 15 8.5 15C9.88071 15 11 16.1193 11 17.5V21H6V17.5Z" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 17.5C13 16.1193 14.1193 15 15.5 15C16.8807 15 18 16.1193 18 17.5V21H13V17.5Z" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15V8.44444C4 7.22849 4 6.62051 4.29828 6.16201C4.59656 5.70351 5.09916 5.37833 5.60436 5.05315L6.5 4.5L17.5 4.5L18.3956 5.05315C18.9008 5.37833 19.4034 5.70351 19.7017 6.16201C20 6.62051 20 7.22849 20 8.44444V15H4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value value-color--${data.roadCondition.class}">${t.values.road[data.roadCondition.class]}</span></div>
+                <div class="current-weather__detail-item value-color--${data.roadCondition.class}"><span class="detail-item-header"><span>${t.details.roadSurface}</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 17.5C6 16.1193 7.11929 15 8.5 15C9.88071 15 11 16.1193 11 17.5V21H6V17.5Z" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 17.5C13 16.1193 14.1193 15 15.5 15C16.8807 15 18 16.1193 18 17.5V21H13V17.5Z" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15V8.44444C4 7.22849 4 6.62051 4.29828 6.16201C4.59656 5.70351 5.09916 5.37833 5.60436 5.05315L6.5 4.5L17.5 4.5L18.3956 5.05315C18.9008 5.37833 19.4034 5.70351 19.7017 6.16201C20 6.62051 20 7.22849 20 8.44444V15H4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${t.values.road[data.roadCondition.key]}</span></div>
             </div>
             <div class="detail-col detail-col--4">
                 <div class="current-weather__detail-item"><span class="detail-item-header"><span>${t.details.sunrise}</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 17H21" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.63604 5.63604L6.34315 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 10H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.364 5.63604L17.6569 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.sunrise}</span></div>
@@ -188,7 +194,6 @@ export function renderCurrentWeather(data, t) {
         ${detailsHtml}
     `;
     
-    // Inicjalizacja referencji DOM po wyrenderowaniu
     dom.weatherAlertsContainer = document.getElementById('weather-alerts-container');
     dom.addFavoriteBtn = document.getElementById('add-favorite-btn');
 }
@@ -218,7 +223,7 @@ export function renderWeatherAlerts(data, t) {
 }
 
 export function renderMinutelyForecast(minutelyData) {
-    const hasPrecipitation = minutelyData.some(minute => minute.precipitation > 0);
+    const hasPrecipitation = minutelyData && minutelyData.some(minute => minute.precipitation > 0);
     
     if (!hasPrecipitation) {
         dom.minutely.wrapper.innerHTML = `<div class="minutely-forecast__no-data">Brak opadów w ciągu najbliższej godziny.</div>`;
@@ -430,3 +435,4 @@ export function hideDetailsModal() {
         dom.modal.container.setAttribute('hidden', true);
     }, 300);
 }
+
