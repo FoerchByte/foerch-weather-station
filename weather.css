@@ -488,7 +488,7 @@ body.dark-mode .hourly-forecast__item:hover {
     grid-auto-flow: column;
     /* POPRAWKA: Precyzyjne obliczenie szerokości dla 4 kafelków */
     /* FIX: Precise width calculation for 4 tiles */
-    grid-auto-columns: 160px;
+    grid-auto-columns: 168px;
     gap: 16px; /* 1rem = 16px */
     padding: 0.5rem 0 1rem 0;
 }
