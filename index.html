@@ -16,8 +16,8 @@
         <div class="container">
             <h1>Stacja Pogody</h1>
             <button id="theme-toggle" class="theme-toggle" aria-label="Zmień motyw">
-                <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
             </button>
         </div>
     </header>
@@ -73,8 +73,16 @@
 
                 <div class="daily-forecast__wrapper">
                     <h3 class="daily-forecast__title">Prognoza na 8 dni</h3>
-                    <div class="daily-forecast__grid" id="daily-forecast-container">
-                        <!-- Treść prognozy dziennej renderowana przez JS -->
+                    <!-- ZMIANA: Nowa struktura slidera dla prognozy dziennej -->
+                    <!-- CHANGE: New slider structure for the daily forecast -->
+                    <div class="daily-forecast__slider-container">
+                        <button class="daily-forecast__slider-nav" id="daily-slider-prev" aria-label="Poprzedni dzień">&lt;</button>
+                        <div class="daily-forecast__scroll-wrapper">
+                            <div class="daily-forecast__grid" id="daily-forecast-container">
+                                <!-- Kafelki prognozy renderowane przez JS -->
+                            </div>
+                        </div>
+                        <button class="daily-forecast__slider-nav" id="daily-slider-next" aria-label="Następny dzień">&gt;</button>
                     </div>
                 </div>
             </div>
@@ -88,7 +96,7 @@
             <div class="modal__header">
                 <h2 id="modal-title" class="modal__title">Szczegóły prognozy</h2>
                 <button class="modal__close-btn" data-close-modal aria-label="Zamknij okno">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
             <div id="modal-body" class="modal__body">
@@ -100,8 +108,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- ZMIANA: Wczytanie głównego skryptu jako modułu -->
-    <!-- CHANGE: Loading the main script as a module -->
     <script type="module" src="/main.js"></script>
 
 </body>
