@@ -226,7 +226,6 @@ class WeatherApp {
         this.dom.addFavoriteBtn.addEventListener('click', () => this.toggleFavorite());
     }
     
-    // --- POPRAWKA: Przywrócenie ikon SVG / FIX: Restoring SVG icons ---
     buildDetailsHtml(data) {
         return `<div class="current-weather__extra-details">
              <div class="detail-col detail-col--1">
@@ -251,17 +250,20 @@ class WeatherApp {
         </div>`;
     }
 
+    // --- POPRAWKA: Ukrywanie kontenera, gdy nie ma alertów / FIX: Hiding container when no alerts exist ---
     renderWeatherAlerts({ alerts }) {
         const container = this.dom.weatherAlertsContainer;
         if (!container) return;
+        
         if (alerts && alerts.length > 0) {
+            container.style.display = 'flex';
             const alert = alerts[0];
             const translatedEventName = this.translateAlertEvent(alert.event);
             container.className = 'weather-alert weather-alert--warning';
             container.innerHTML = `<div class="alert__header"><strong>${translatedEventName}</strong></div><p class="alert__source">Wydane przez: ${alert.sender_name}</p><p class="alert__time">Obowiązuje od ${this.formatTime(alert.start)} do ${this.formatTime(alert.end)}</p>`;
         } else {
-            container.className = 'weather-alert weather-alert--safe';
-            container.innerHTML = `<span>Brak alertów pogodowych w bieżącej lokalizacji</span>`;
+            container.innerHTML = '';
+            container.style.display = 'none';
         }
     }
 
@@ -423,7 +425,78 @@ class WeatherApp {
     getRoadCondition({ temp, weather }) { if (temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(weather[0].main)) { return { text: "Sucha", class: 'roadDry' }; } return (temp <= 2) ? { text: "Możliwe oblodzenie", class: 'roadIcy' } : { text: "Mokra", class: 'roadWet' }; }
     getUvCategory(uvi) { const uv = Math.round(uvi); if (uv >= 11) return 'extreme'; if (uv >= 8) return 'very-high'; if (uv >= 6) return 'high'; if (uv >= 3) return 'moderate'; return 'low'; }
     translateAlertEvent(event) { const translations = { 'Rain': 'Opady deszczu', 'Snow': 'Opady śniegu', 'Wind': 'Silny wiatr', 'Thunderstorm': 'Burze', 'Fog': 'Mgła', 'High temperature': 'Upał', 'Low temperature': 'Mróz' }; return Object.entries(translations).reduce((acc, [key, value]) => acc.replace(key, value), event); }
-    translateOverview(overview) { if (!overview) return ''; const translations = { 'Expect a day of ': 'Spodziewaj się dnia z ', 'partly cloudy with rain': 'częściowym zachmurzeniem i deszczem', 'partly cloudy': 'częściowym zachmurzeniem', 'light rain': 'lekkimi opadami deszczu', 'heavy rain': 'intensywnymi opadami deszczu', 'rain': 'deszczem', 'clear sky': 'bezchmurnym niebem', 'snow': 'opadami śniegu', 'thunderstorms': 'burzami', 'fog': 'mgłą' }; let translated = Object.entries(translations).reduce((acc, [key, value]) => acc.replace(new RegExp(key, 'gi'), value), overview); translated = translated.charAt(0).toUpperCase() + translated.slice(1); return translated.endsWith('.') ? translated : `${translated}.`; }
+    
+    // --- POPRAWKA: Rozbudowany słownik tłumaczeń / FIX: Extended translation dictionary ---
+    translateOverview(overview) {
+        if (!overview) return '';
+        const translations = {
+            'light intensity drizzle': 'lekka mżawka',
+            'drizzle': 'mżawka',
+            'heavy intensity drizzle': 'intensywna mżawka',
+            'light intensity drizzle rain': 'lekka mżawka z deszczem',
+            'drizzle rain': 'mżawka z deszczem',
+            'heavy intensity drizzle rain': 'intensywna mżawka z deszczem',
+            'shower rain and drizzle': 'przelotny deszcz z mżawką',
+            'heavy shower rain and drizzle': 'intensywny przelotny deszcz z mżawką',
+            'shower drizzle': 'przelotna mżawka',
+            'light rain': 'lekkie opady deszczu',
+            'moderate rain': 'umiarkowane opady deszczu',
+            'heavy intensity rain': 'intensywne opady deszczu',
+            'very heavy rain': 'bardzo intensywne opady deszczu',
+            'extreme rain': 'ekstremalne opady deszczu',
+            'freezing rain': 'marznący deszcz',
+            'light intensity shower rain': 'lekkie opady deszczu przelotnego',
+            'shower rain': 'deszcz przelotny',
+            'heavy intensity shower rain': 'intensywny deszcz przelotny',
+            'ragged shower rain': 'przelotne opady deszczu',
+            'light snow': 'lekkie opady śniegu',
+            'snow': 'opady śniegu',
+            'heavy snow': 'intensywne opady śniegu',
+            'sleet': 'deszcz ze śniegiem',
+            'light shower sleet': 'lekkie przelotne opady deszczu ze śniegiem',
+            'shower sleet': 'przelotne opady deszczu ze śniegiem',
+            'light rain and snow': 'słabe opady deszczu ze śniegiem',
+            'rain and snow': 'deszcz ze śniegiem',
+            'light shower snow': 'lekkie przelotne opady śniegu',
+            'shower snow': 'przelotne opady śniegu',
+            'heavy shower snow': 'intensywne przelotne opady śniegu',
+            'mist': 'zamglenie',
+            'smoke': 'zadymienie',
+            'haze': 'mgiełka',
+            'sand/ dust whirls': 'wiry piaskowe/pyłowe',
+            'fog': 'mgła',
+            'sand': 'piasek',
+            'dust': 'pył',
+            'volcanic ash': 'pył wulkaniczny',
+            'squalls': 'nawałnice',
+            'tornado': 'tornado',
+            'clear sky': 'bezchmurne niebo',
+            'few clouds': 'niewielkie zachmurzenie',
+            'scattered clouds': 'rozproszone chmury',
+            'broken clouds': 'przejaśnienia',
+            'overcast clouds': 'całkowite zachmurzenie',
+            'thunderstorm with light rain': 'burza z lekkimi opadami deszczu',
+            'thunderstorm with rain': 'burza z deszczem',
+            'thunderstorm with heavy rain': 'burza z ulewnym deszczem',
+            'light thunderstorm': 'słaba burza',
+            'thunderstorm': 'burza',
+            'heavy thunderstorm': 'silna burza',
+            'ragged thunderstorm': 'przelotna burza',
+            'thunderstorm with light drizzle': 'burza z lekką mżawką',
+            'thunderstorm with drizzle': 'burza z mżawką',
+            'thunderstorm with heavy drizzle': 'burza z intensywną mżawką',
+            'Expect ': 'Spodziewaj się ',
+            ' throughout the day': ' przez cały dzień',
+            ' and ': ' i ',
+        };
+        let translated = overview;
+        for (const [key, value] of Object.entries(translations)) {
+            translated = translated.replace(new RegExp(key, 'gi'), value);
+        }
+        translated = translated.charAt(0).toUpperCase() + translated.slice(1);
+        return translated.endsWith('.') ? translated : `${translated}.`;
+    }
+
     getChartConfig(labels, data) { const isDarkMode = document.body.classList.contains('dark-mode'); const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'; const fontColor = isDarkMode ? '#e9ecef' : '#212529'; return { type: 'line', data: { labels, datasets: [{ data, borderColor: 'rgba(0, 123, 255, 0.8)', borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0, backgroundColor: 'rgba(0, 123, 255, 0.1)' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: fontColor } }, x: { grid: { color: gridColor }, ticks: { color: fontColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 6 } } }, plugins: { legend: { display: false }, tooltip: { enabled: false } } } }; }
     groupForecastByDay(forecastData) { return forecastData.reduce((acc, item) => { const dayKey = new Date(item.dt * 1000).toLocaleDateString('pl-PL', { weekday: 'long' }); if (!acc[dayKey]) acc[dayKey] = []; acc[dayKey].push(item); return acc; }, {}); }
     getRelativeDayName(date) { const today = new Date(); const tomorrow = new Date(); tomorrow.setDate(today.getDate() + 1); today.setHours(0,0,0,0); tomorrow.setHours(0,0,0,0); date.setHours(0,0,0,0); if(date.getTime() === today.getTime()) return 'Dzisiaj'; if(date.getTime() === tomorrow.getTime()) return 'Jutro'; return date.toLocaleDateString('pl-PL', { weekday: 'long' }); }
