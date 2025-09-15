@@ -260,14 +260,16 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     font-size: 0.9rem;
     color: var(--completed-text);
 }
+
+/* --- POPRAWKA: Symetria w detalach / FIX: Symmetry in details view --- */
 .current-weather__extra-details {
     display: grid;
-    gap: 1rem;
     text-align: left;
     padding-top: 1.5rem;
     margin-top: 1.5rem;
     border-top: 1px solid var(--border-color);
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(2, 1fr) auto repeat(2, 1fr);
+    gap: 1rem 1.5rem;
 }
 .detail-col { display: flex; flex-direction: column; gap: 1rem; }
 .detail-col--3 { justify-content: center; }
@@ -307,7 +309,6 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     width: 80%; height: 3px; background-color: var(--primary-color);
 }
 
-/* --- POPRAWKA: Przełącznik zakresu godzinowego / FIX: Hourly Range Switcher --- */
 .hourly-forecast__header {
     display: flex;
     justify-content: center;
@@ -316,8 +317,6 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 }
 .hourly-forecast__range-switcher {
     display: flex;
-    /* Usunięto max-width, aby przyciski zajmowały pełną szerokość */
-    /* Removed max-width to make buttons full-width */
     width: 100%;
     margin: 0 auto 1rem auto;
     border-bottom: 1px solid var(--border-color);
@@ -352,7 +351,6 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__title { margin: 0; }
 .hourly-forecast__slider-container { position: relative; }
 
-/* --- POPRAWKA: Prognoza godzinowa / FIX: Hourly Forecast --- */
 .hourly-forecast__scroll-wrapper {
     display: flex;
     overflow-x: auto;
@@ -389,8 +387,8 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     display: grid;
     grid-auto-flow: column;
     /* --- ZMIANA ---
-       PL: Zmniejszono szerokość kolumny do 84px, aby zapewnić dopasowanie.
-       EN: Column width reduced to 84px to ensure proper fit. */
+       PL: Zmniejszono szerokość kolumny do 84px, aby zapewnić idealne dopasowanie.
+       EN: Column width reduced to 84px to ensure a perfect fit. */
     grid-auto-columns: 84px;
     gap: 8px;
 }
