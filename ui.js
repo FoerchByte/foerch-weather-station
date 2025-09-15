@@ -425,10 +425,12 @@ export function updateSliderButtons() {
 }
 
 export function updateDailySliderButtons() {
-    // Ponieważ na desktopie slider jest teraz statyczną siatką, ta funkcja nie jest już potrzebna w tej formie
-    // Since the slider is now a static grid on desktop, this function is no longer needed in this form
-    if (dom.daily.sliderPrevBtn) dom.daily.sliderPrevBtn.disabled = true;
-    if (dom.daily.sliderNextBtn) dom.daily.sliderNextBtn.disabled = true;
+    if (!dom.daily.scrollWrapper) return;
+    requestAnimationFrame(() => {
+        const { scrollLeft, scrollWidth, clientWidth } = dom.daily.scrollWrapper;
+        if(dom.daily.sliderPrevBtn) dom.daily.sliderPrevBtn.disabled = scrollLeft <= 0;
+        if(dom.daily.sliderNextBtn) dom.daily.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
+    });
 }
 
 // --- Logika okna modalnego / Modal Logic ---
