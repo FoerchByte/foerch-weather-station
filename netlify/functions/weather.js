@@ -1,42 +1,27 @@
-// Importujemy 'node-fetch' dynamicznie, aby zapewnić kompatybilność
-// Import 'node-fetch' dynamically for compatibility
+// --- PL ---
+// Funkcja serwerless (Netlify Function) działająca jako bezpieczne proxy do API OpenWeatherMap.
+// Pobiera zapytania od klienta, dodaje klucz API po stronie serwera i wykonuje
+// równoległe zapytania o dane pogodowe i jakość powietrza, a następnie łączy wyniki.
+// --- EN ---
+// A serverless function (Netlify Function) that acts as a secure proxy to the OpenWeatherMap API.
+// It receives requests from the client, adds the API key on the server side, performs
+// parallel requests for weather data and air quality, and then combines the results.
+
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-// --- Koncept licznika zapytań / API Call Counter Concept ---
-const API_CALL_LIMIT = 1000;
-let apiCallCount = 0; 
-
-async function checkApiLimit() {
-    return apiCallCount < API_CALL_LIMIT;
-}
-
-async function incrementApiCount() {
-    apiCallCount++;
-}
-
-// --- Główna funkcja serwerless / Main Serverless Function ---
 exports.handler = async function (event, context) {
-    // 1. Sprawdzenie klucza API / Check for API Key
     const apiKey = process.env.WEATHER_API_KEY;
     if (!apiKey) {
-        return { statusCode: 500, body: JSON.stringify({ message: 'Klucz API nie jest skonfigurowany.' }) };
+        return { statusCode: 500, body: JSON.stringify({ message: 'Klucz API nie jest skonfigurowany. / API key is not configured.' }) };
     }
 
-    // 2. Sprawdzenie limitu zapytań / Check API Call Limit
-    const withinLimit = await checkApiLimit();
-    if (!withinLimit) {
-        return { statusCode: 429, body: JSON.stringify({ message: 'Przekroczono dzienny limit zapytań.' }) };
-    }
-
-    // 3. Pobranie parametrów / Get Parameters
     const { city, lat: latParam, lon: lonParam } = event.queryStringParameters;
-    let lat, lon, locationName, locationCountry;
+    let lat, lon;
 
     try {
-        // 4. Geokodowanie (jeśli podano miasto) / Geocoding (if city is provided)
+        // Krok 1: Geokodowanie, jeśli potrzebne / Step 1: Geocoding, if needed
         if (city) {
-            const geoQuery = `${city.trim()}`;
-            const geoUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(geoQuery)}&limit=1&appid=${apiKey}`;
+            const geoUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(city.trim())}&limit=1&appid=${apiKey}`;
             const geoResponse = await fetch(geoUrl);
             if (!geoResponse.ok) throw new Error(`Błąd geokodowania: ${geoResponse.statusText}`);
             
@@ -46,30 +31,23 @@ exports.handler = async function (event, context) {
             lat = geoData[0].lat;
             lon = geoData[0].lon;
             locationName = geoData[0].local_names?.pl || geoData[0].name;
-            locationCountry = geoData[0].country;
 
         } else if (latParam && lonParam) {
             lat = latParam;
             lon = lonParam;
-            // Geokodowanie odwrotne / Reverse Geocoding
             const reverseGeoUrl = `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`;
             const reverseGeoResponse = await fetch(reverseGeoUrl);
             if (!reverseGeoResponse.ok) throw new Error(`Błąd geokodowania odwrotnego: ${reverseGeoResponse.statusText}`);
             
             const reverseGeoData = await reverseGeoResponse.json();
-            if (reverseGeoData && reverseGeoData.length > 0) {
-                locationName = reverseGeoData[0].local_names?.pl || reverseGeoData[0].name;
-                locationCountry = reverseGeoData[0].country;
-            } else {
-                 throw new Error('Nie udało się ustalić nazwy dla podanych współrzędnych.');
-            }
+            locationName = (reverseGeoData && reverseGeoData.length > 0) 
+                ? (reverseGeoData[0].local_names?.pl || reverseGeoData[0].name) 
+                : 'Nieznana lokalizacja';
         } else {
-            return { statusCode: 400, body: JSON.stringify({ message: 'Brak miasta lub współrzędnych.' }) };
+            return { statusCode: 400, body: JSON.stringify({ message: 'Brak miasta lub współrzędnych. / Missing city or coordinates.' }) };
         }
 
-        // 5. Równoległe zapytania o pogodę i jakość powietrza / Parallel requests for weather and air quality
-        // ZMIANA: Usunięto 'exclude=minutely' z URL, aby zawsze pobierać prognozę opadów
-        // CHANGE: Removed 'exclude=minutely' from the URL to always fetch the precipitation forecast
+        // Krok 2: Równoległe zapytania do API / Step 2: Parallel API Requests
         const oneCallUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=pl`;
         const airPollutionUrl = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
 
@@ -78,20 +56,17 @@ exports.handler = async function (event, context) {
             fetch(airPollutionUrl)
         ]);
 
-        if (!oneCallResponse.ok) throw new Error(`Błąd pobierania danych pogodowych: ${oneCallResponse.statusText}`);
-        if (!airPollutionResponse.ok) throw new Error(`Błąd pobierania danych o jakości powietrza: ${airPollutionResponse.statusText}`);
+        if (!oneCallResponse.ok) throw new Error(`Błąd danych pogodowych: ${oneCallResponse.statusText}`);
+        if (!airPollutionResponse.ok) throw new Error(`Błąd danych o jakości powietrza: ${airPollutionResponse.statusText}`);
 
         const oneCallData = await oneCallResponse.json();
         const airPollutionData = await airPollutionResponse.json();
 
-        // 6. Inkrementacja licznika (tylko przy sukcesie) / Increment counter (only on success)
-        await incrementApiCount();
-
-        // 7. Zbudowanie i zwrócenie finalnej odpowiedzi / Build and return the final response
+        // Krok 3: Zbudowanie odpowiedzi / Step 3: Build the response
         const responsePayload = {
-            location: { name: locationName, country: locationCountry, lat, lon },
+            location: { name: locationName, lat, lon },
             current: oneCallData.current,
-            minutely: oneCallData.minutely, // ZMIANA: Dodajemy dane minutowe do odpowiedzi
+            minutely: oneCallData.minutely,
             hourly: oneCallData.hourly,
             daily: oneCallData.daily,
             alerts: oneCallData.alerts,
@@ -105,10 +80,10 @@ exports.handler = async function (event, context) {
         };
 
     } catch (error) {
-        // Centralna obsługa błędów / Centralized error handling
+        console.error("Błąd funkcji serwerless / Serverless function error:", error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ message: error.message || 'Wystąpił wewnętrzny błąd serwera.' }),
+            body: JSON.stringify({ message: error.message || 'Wystąpił wewnętrzny błąd serwera. / An internal server error occurred.' }),
         };
     }
 };
