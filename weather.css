@@ -470,26 +470,37 @@ body.dark-mode .hourly-forecast__item:hover {
     border-radius: 8px;
 }
 
-/* --- Style dla prognozy 8-dniowej --- */
+/* ZMIANA: Przywrócenie stylów slidera dla prognozy 8-dniowej */
+/* CHANGE: Restoring slider styles for the 8-day forecast */
 .daily-forecast__slider-container {
     position: relative;
 }
 .daily-forecast__scroll-wrapper {
-    overflow-x: hidden; /* Ukrywamy domyślny pasek przewijania */
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.daily-forecast__scroll-wrapper::-webkit-scrollbar {
+    display: none;
 }
 .daily-forecast__grid {
     display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(115px, 1fr);
+    gap: 1rem;
     padding: 0.5rem 0 1rem 0;
-    gap: 0.75rem;
-    /* Domyślnie dla mobile, pionowa lista */
-    grid-template-columns: 1fr;
 }
 .daily-forecast__day {
-    padding: 0.75rem 1rem;
+    padding: 1rem;
     background-color: var(--background-color);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
     cursor: pointer;
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
 }
@@ -510,12 +521,11 @@ body.dark-mode .daily-forecast__day:hover {
 .daily-forecast__icon {
     width: 64px;
     height: 64px;
-    margin: 0.25rem 0;
+    margin: 0.5rem 0;
 }
 .daily-forecast__pop {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 4px;
     font-size: 0.9rem;
     color: var(--completed-text);
@@ -527,7 +537,34 @@ body.dark-mode .daily-forecast__day:hover {
 }
 .daily-forecast__slider-nav {
     display: none; /* Domyślnie ukryte, widoczne na desktopie */
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(var(--card-background-rgb), 0.8);
+    backdrop-filter: blur(2px);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    line-height: 1;
+    color: var(--text-color);
+    transition: background-color 0.2s;
 }
+.daily-forecast__slider-nav:hover {
+    background-color: var(--card-background);
+}
+.daily-forecast__slider-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+#daily-slider-prev { left: 5px; }
+#daily-slider-next { right: 5px; }
 
 
 .skeleton { display: inline-block; background-color: var(--border-color); border-radius: 4px; animation: pulse 1.5s infinite ease-in-out; }
@@ -663,28 +700,11 @@ body.dark-mode .daily-forecast__day:hover {
     #forecasts-container.show-daily .hourly-forecast__wrapper {
         display: block !important;
     }
-
-    /* ZMIANA: Układ siatki 8-dniowej na desktopie */
-    /* CHANGE: 8-day forecast grid layout on desktop */
-    .daily-forecast__grid {
-        grid-template-columns: repeat(8, 1fr);
-        gap: 0.5rem;
-    }
-    .daily-forecast__day {
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 0.75rem 0.5rem;
-    }
-    .daily-forecast__slider-nav {
-        display: none; /* Ukrywamy nawigację, bo widać wszystkie 8 dni */
-    }
-    .daily-forecast__scroll-wrapper {
-        justify-content: center;
-    }
 }
 
 @media (min-width: 1025px) {
-    .hourly-forecast__slider-nav {
+    .hourly-forecast__slider-nav,
+    .daily-forecast__slider-nav {
         display: flex;
     }
 }
