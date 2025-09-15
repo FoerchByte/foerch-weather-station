@@ -486,8 +486,10 @@ body.dark-mode .hourly-forecast__item:hover {
 .daily-forecast__grid {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: calc(25% - 12px); /* 4 kafelki minus marginesy */
-    gap: 16px; /* 1rem */
+    /* POPRAWKA: Precyzyjne obliczenie szerokości dla 4 kafelków */
+    /* FIX: Precise width calculation for 4 tiles */
+    grid-auto-columns: calc(25% - 12px);
+    gap: 16px; /* 1rem = 16px */
     padding: 0.5rem 0 1rem 0;
 }
 .daily-forecast__day {
@@ -535,7 +537,7 @@ body.dark-mode .daily-forecast__day:hover {
     color: var(--primary-color);
 }
 .daily-forecast__slider-nav {
-    display: none; /* Domyślnie ukryte, widoczne na desktopie */
+    display: none;
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
