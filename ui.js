@@ -85,6 +85,34 @@ function translateOverview(apiDescription, t) {
     return apiDescription.charAt(0).toUpperCase() + apiDescription.slice(1);
 }
 
+// NOWA FUNKCJA: Tłumaczenie alertów pogodowych
+// NEW FUNCTION: Translating weather alerts
+function translateAlertEvent(eventName) {
+    const alertTranslations = {
+        'Yellow Rain warning': 'Ostrzeżenie: Intensywne opady deszczu',
+        'Orange Rain warning': 'Ostrzeżenie 2. stopnia: Ulewne opady deszczu',
+        'Red Rain warning': 'Ostrzeżenie 3. stopnia: Ekstremalne opady deszczu',
+        'Yellow Snow warning': 'Ostrzeżenie: Intensywne opady śniegu',
+        'Orange Snow warning': 'Ostrzeżenie 2. stopnia: Zamiecie/zawieje śnieżne',
+        'Red Snow warning': 'Ostrzeżenie 3. stopnia: Ekstremalne opady śniegu',
+        'Yellow Wind warning': 'Ostrzeżenie: Silny wiatr',
+        'Orange Wind warning': 'Ostrzeżenie 2. stopnia: Bardzo silny wiatr',
+        'Red Wind warning': 'Ostrzeżenie 3. stopnia: Ekstremalnie silny wiatr',
+        'Yellow Thunderstorm warning': 'Ostrzeżenie: Burze z gradem',
+        'Orange Thunderstorm warning': 'Ostrzeżenie 2. stopnia: Gwałtowne burze',
+        'Red Thunderstorm warning': 'Ostrzeżenie 3. stopnia: Ekstremalne zjawiska burzowe',
+        'Yellow Fog warning': 'Ostrzeżenie: Gęsta mgła',
+        'Orange Fog warning': 'Ostrzeżenie 2. stopnia: Bardzo gęsta mgła',
+        'Yellow High temperature warning': 'Ostrzeżenie: Upał',
+        'Orange High temperature warning': 'Ostrzeżenie 2. stopnia: Upał',
+        'Red High temperature warning': 'Ostrzeżenie 3. stopnia: Ekstremalny upał',
+        'Yellow Low temperature warning': 'Ostrzeżenie: Mróz',
+        'Orange Low temperature warning': 'Ostrzeżenie 2. stopnia: Silny mróz',
+        'Red Low temperature warning': 'Ostrzeżenie 3. stopnia: Ekstremalny mróz',
+    };
+    return alertTranslations[eventName] || eventName;
+}
+
 
 // --- Zarządzanie stanem UI / UI State Management ---
 
@@ -163,12 +191,12 @@ export function renderCurrentWeather(data, t) {
                 <div class="current-weather__detail-item value-color--${data.roadCondition.class}"><span class="detail-item-header"><span>${t.details.roadSurface}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 17.5C6 16.1193 7.11929 15 8.5 15C9.88071 15 11 16.1193 11 17.5V21H6V17.5Z" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 17.5C13 16.1193 14.1193 15 15.5 15C16.8807 15 18 16.1193 18 17.5V21H13V17.5Z" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15V8.44444C4 7.22849 4 6.62051 4.29828 6.16201C4.59656 5.70351 5.09916 5.37833 5.60436 5.05315L6.5 4.5L17.5 4.5L18.3956 5.05315C18.9008 5.37833 19.4034 5.70351 19.7017 6.16201C20 6.62051 20 7.22849 20 8.44444V15H4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${t.values.road[data.roadCondition.key]}</span></div>
             </div>
             <div class="detail-col detail-col--4">
-                <div class="current-weather__detail-item value-color--sun"><span class="detail-item-header"><span>${t.details.sunrise}</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 17H21" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.63604 5.63604L6.34315 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 10H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.364 5.63604L17.6569 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.sunrise}</span></div>
-                <div class="current-weather__detail-item value-color--sun"><span class="detail-item-header"><span>${t.details.sunset}</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 17H21" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.63604 5.63604L6.34315 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 10H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.364 5.63604L17.6569 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.sunset}</span></div>
+                <div class="current-weather__detail-item value-color--sun"><span class="detail-item-header"><span>${t.details.sunrise}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 17H21" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.63604 5.63604L6.34315 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 10H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.364 5.63604L17.6569 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.sunrise}</span></div>
+                <div class="current-weather__detail-item value-color--sun"><span class="detail-item-header"><span>${t.details.sunset}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 17H21" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.63604 5.63604L6.34315 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 10H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.364 5.63604L17.6569 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.sunset}</span></div>
             </div>
             <div class="detail-col detail-col--5">
                 <div class="current-weather__detail-item value-color--moon"><span class="detail-item-header"><span>${t.details.moonrise}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 17H22" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C15.3137 14 18 11.3137 18 8C18 4.68629 15.3137 2 12 2C8.68629 2 6 4.68629 6 8C6 11.3137 8.68629 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C13.6569 14 15 11.3137 15 8C15 4.68629 13.6569 2 12 2" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.moonrise}</span></div>
-                <div class="current-weather__detail-item value-color--moon"><span class="detail-item-header"><span>${t.details.moonset}</span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 17H22" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C15.3137 14 18 11.3137 18 8C18 4.68629 15.3137 2 12 2C8.68629 2 6 4.68629 6 8C6 11.3137 8.68629 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C13.6569 14 15 11.3137 15 8C15 4.68629 13.6569 2 12 2" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.moonset}</span></div>
+                <div class="current-weather__detail-item value-color--moon"><span class="detail-item-header"><span>${t.details.moonset}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 17H22" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C15.3137 14 18 11.3137 18 8C18 4.68629 15.3137 2 12 2C8.68629 2 6 4.68629 6 8C6 11.3137 8.68629 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C13.6569 14 15 11.3137 15 8C15 4.68629 13.6569 2 12 2" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.moonset}</span></div>
             </div>
         </div>`;
     
@@ -199,11 +227,16 @@ export function renderWeatherAlerts(data, t) {
         const alert = data.alerts[0];
         const startTime = new Date(alert.start * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
         const endTime = new Date(alert.end * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+        
+        // POPRAWKA: Użycie nowej funkcji do tłumaczenia alertów
+        // FIX: Using the new function to translate alerts
+        const translatedEventName = translateAlertEvent(alert.event);
+        
         container.className = 'weather-alert weather-alert--warning';
         container.innerHTML = `
             <div class="alert__header">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                <strong>${alert.event}</strong>
+                <strong>${translatedEventName}</strong>
             </div>
             <p class="alert__source">${t.alerts.issuedBy}: ${alert.sender_name}</p>
             <p class="alert__time">${t.alerts.effective} ${startTime} ${t.alerts.to} ${endTime}</p>
@@ -214,8 +247,6 @@ export function renderWeatherAlerts(data, t) {
     }
 }
 
-// ZMIANA: Wykres opadów zamiast temperatury
-// CHANGE: Precipitation chart instead of temperature
 export function renderMinutelyForecast(minutelyData) {
     const hasPrecipitation = minutelyData && minutelyData.some(minute => minute.precipitation > 0);
     
@@ -233,15 +264,27 @@ export function renderMinutelyForecast(minutelyData) {
     }
     const chartCanvas = dom.minutely.wrapper.querySelector('#minutely-chart');
 
-    const labels = minutelyData.map((_, index) => (index % 10 === 0 ? `${index}'` : ''));
+    // POPRAWKA: Lepsze etykiety na osi X
+    // FIX: Better labels on the X-axis
+    const labels = minutelyData.map((_, index) => {
+        if (index === 0) return 'Teraz';
+        if (index === 59) return "60'";
+        if ((index + 1) % 15 === 0) return `${index + 1}'`;
+        return '';
+    });
     const precipitationData = minutelyData.map(minute => minute.precipitation);
+
+    // POPRAWKA: Dynamiczna skala osi Y
+    // FIX: Dynamic Y-axis scale
+    const maxPrecip = Math.max(...precipitationData);
+    const yAxisMax = maxPrecip > 1 ? Math.ceil(maxPrecip) + 1 : 1;
 
     const chartConfig = {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Intensywność opadów (mm/h)',
+                label: 'Intensywność opadów',
                 data: precipitationData,
                 backgroundColor: 'rgba(0, 123, 255, 0.5)',
                 borderColor: 'rgba(0, 123, 255, 1)',
@@ -256,13 +299,19 @@ export function renderMinutelyForecast(minutelyData) {
             scales: {
                 y: { 
                     beginAtZero: true,
+                    max: yAxisMax,
                     ticks: {
-                        callback: function(value) { return value + ' mm/h'; }
+                        // POPRAWKA: Czyste liczby na osi, jednostka w dymku
+                        // FIX: Clean numbers on the axis, unit in the tooltip
+                        callback: function(value) { return value; }
                     }
                 },
                 x: { 
                     grid: { display: false },
-                    ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 7 } 
+                    ticks: { 
+                        maxRotation: 0,
+                        autoSkip: false, // Pokazujemy wszystkie zdefiniowane etykiety
+                    } 
                 }
             },
             plugins: { 
@@ -274,7 +323,7 @@ export function renderMinutelyForecast(minutelyData) {
                             let label = context.dataset.label || '';
                             if (label) { label += ': '; }
                             if (context.parsed.y !== null) {
-                                label += context.parsed.y.toFixed(2) + ' mm/h';
+                                label += context.parsed.y.toFixed(2) + ' mm';
                             }
                             return label;
                         }
