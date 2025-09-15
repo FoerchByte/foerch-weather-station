@@ -1,4 +1,12 @@
-/* --- Style globalne i motywy (bez zmian) --- */
+/* --- PL ---
+    Główne style aplikacji Stacji Pogodowej.
+    Plik zawiera style globalne, motywy, layout, komponenty oraz media queries dla responsywności.
+    --- EN ---
+    Main styles for the Weather Station application.
+    This file includes global styles, themes, layout, components, and media queries for responsiveness.
+*/
+
+/* --- Style globalne i motywy / Global Styles & Themes --- */
 :root {
     --primary-color: #007bff;
     --primary-color-rgb: 0, 123, 255;
@@ -39,7 +47,7 @@ body {
     padding: 2rem 1.5rem;
 }
 
-/* --- Nagłówek i UI (bez zmian) --- */
+/* --- Nagłówek i UI / Header & UI --- */
 .standalone-header {
     background-color: var(--card-background);
     border-bottom: 1px solid var(--border-color);
@@ -50,7 +58,6 @@ body {
     align-items: center;
     padding-top: 1rem;
     padding-bottom: 1rem;
-    max-width: 800px;
 }
 .standalone-header h1 { margin: 0; font-size: 1.8rem; }
 .theme-toggle {
@@ -70,7 +77,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
     overflow-x: hidden;
 }
 
-/* --- Ulubione lokalizacje (bez zmian) --- */
+/* --- Ulubione lokalizacje / Favorite Locations --- */
 .favorites-container {
     display: flex;
     flex-wrap: wrap;
@@ -163,7 +170,7 @@ body.dark-mode .theme-toggle .sun-icon { display: none; }
 }
 @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* --- Wyniki i detale (bez zmian) --- */
+/* --- Wyniki, detale i alerty / Results, Details & Alerts --- */
 .weather-app__result { text-align: center; }
 .current-weather__main {
     display: flex; align-items: center;
@@ -328,13 +335,13 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__title { margin: 0; }
 .hourly-forecast__slider-container { position: relative; }
 
-/* --- NAPRAWIONA PROGNOZA GODZINOWA (STYL Z PRODUKCJI) --- */
+/* --- FIX: Prognoza godzinowa / FIX: Hourly Forecast --- */
 .hourly-forecast__scroll-wrapper {
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    scrollbar-width: none; /* Ukrycie paska przewijania / Hide scrollbar */
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
@@ -364,8 +371,10 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
-    /* Kluczowa reguła z produkcji, z wartością 92px */
-    grid-auto-columns: 92px;
+    /* --- POPRAWKA ---
+       PL: Przywrócono wartość 91px z wersji produkcyjnej i dodano margines, aby 8 kafelków mieściło się idealnie.
+       EN: Restored the 91px value from the production version and added margin to fit 8 tiles perfectly. */
+    grid-auto-columns: 89px; /* Zmniejszona szerokość kolumny */
     gap: 8px;
 }
 
@@ -379,7 +388,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     border: 1px solid var(--border-color);
     border-radius: 8px;
     position: relative;
-    padding: 1rem;
+    padding: 0.8rem; /* Zmniejszony padding */
     box-sizing: border-box;
     cursor: pointer;
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
@@ -413,8 +422,9 @@ body.dark-mode .hourly-forecast__item:hover {
 }
 .hourly-forecast__slider-nav:hover { background-color: var(--card-background); }
 .hourly-forecast__slider-nav:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
-#hourly-slider-prev { left: -18px; }
-#hourly-slider-next { right: -18px; }
+/* POPRAWKA: Przyciski wewnątrz kontenera / FIX: Buttons inside the container */
+#hourly-slider-prev { left: 5px; }
+#hourly-slider-next { right: 5px; }
 .hourly-forecast__time { font-size: 0.8rem; margin: 0 0 0.5rem 0; }
 .hourly-forecast__icon { width: 44px; height: 44px; margin: 0.1rem 0; }
 .hourly-forecast__temp { font-size: 1rem; margin: 0.5rem 0; }
@@ -424,7 +434,7 @@ body.dark-mode .hourly-forecast__item:hover {
 }
 .hourly-forecast__pop-icon { width: 10px; height: 10px; }
 
-/* --- Pozostałe prognozy --- */
+/* --- Pozostałe prognozy / Other Forecasts --- */
 .minutely-forecast__wrapper,
 .daily-forecast__wrapper {
     margin-top: 2rem;
@@ -445,7 +455,6 @@ body.dark-mode .hourly-forecast__item:hover {
     border-radius: 8px;
 }
 
-/* Przywracamy stabilny layout dla prognozy 8-dniowej */
 .daily-forecast__grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -472,7 +481,7 @@ body.dark-mode .daily-forecast__day:hover {
 .skeleton { display: inline-block; background-color: var(--border-color); border-radius: 4px; animation: pulse 1.5s infinite ease-in-out; }
 @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
 
-/* --- Kolory --- */
+/* --- Kolory detali / Detail Colors --- */
 .value-color--roadDry .detail-item-value { color: var(--success-color); }
 .value-color--roadWet .detail-item-value { color: var(--primary-color); }
 .value-color--roadIcy .detail-item-value { color: var(--danger-color); }
@@ -503,7 +512,7 @@ body.dark-mode .daily-forecast__day:hover {
 .value-color--sun .detail-item-header svg { color: var(--warning-color); }
 .value-color--moon .detail-item-header svg { color: var(--completed-text); }
 
-/* --- Okno modalne --- */
+/* --- Okno modalne / Modal Window --- */
 .modal {
     position: fixed;
     top: 0;
@@ -590,8 +599,7 @@ body.dark-mode .daily-forecast__day:hover {
     align-items: center;
 }
 
-
-/* --- Media Queries --- */
+/* --- Media Queries / Zapytania medialne --- */
 @media (min-width: 1025px) {
     .hourly-forecast__slider-nav {
         display: flex;
@@ -658,6 +666,7 @@ body.dark-mode .daily-forecast__day:hover {
          display: flex;
          flex-direction: column;
          gap: 8px;
+         /* POPRAWKA: Usunięcie właściwości gridowych, które nie są już potrzebne / FIX: Removing grid properties that are no longer needed */
     }
     .hourly-forecast__item {
         display: flex;
@@ -696,6 +705,7 @@ body.dark-mode .daily-forecast__day:hover {
         margin: 0;
     }
     
+    /* Logika pokazywania/ukrywania prognoz dla mobile / Logic for showing/hiding forecasts on mobile */
     #forecasts-container.show-minutely .hourly-forecast__wrapper,
     #forecasts-container.show-minutely .daily-forecast__wrapper { display: none; }
     
