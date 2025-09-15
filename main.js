@@ -79,8 +79,6 @@ function bindEvents() {
         dailyContainer: document.getElementById('daily-forecast-container'),
         modalContainer: document.getElementById('details-modal'),
         favoritesContainer: document.getElementById('favorites-container'),
-        // ZMIANA: Dodanie eventów dla slidera prognozy dziennej
-        // CHANGE: Adding events for the daily forecast slider
         hourly: {
             sliderPrevBtn: document.getElementById('hourly-slider-prev'),
             sliderNextBtn: document.getElementById('hourly-slider-next'),
@@ -103,12 +101,12 @@ function bindEvents() {
     dom.forecastSwitcher.addEventListener('click', handleForecastSwitch);
     dom.hourlyRangeSwitcher.addEventListener('click', handleHourlyRangeSwitch);
     
+    // ZMIANA: Przekazanie odpowiednich elementów do funkcji obsługujących slidery
+    // CHANGE: Passing the correct elements to the slider handler functions
     dom.hourly.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, -1));
     dom.hourly.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, 1));
-    dom.hourly.scrollWrapper.addEventListener('scroll', () => ui.updateSliderButtons(dom.hourly.scrollWrapper, dom.hourly.sliderPrevBtn, dom.hourly.sliderNextBtn), { passive: true });
+    dom.hourly.scrollWrapper.addEventListener('scroll', () => ui.updateSliderButtons(), { passive: true });
     
-    // ZMIANA: Powiązanie zdarzeń dla nowego slidera
-    // CHANGE: Binding events for the new slider
     dom.daily.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, -1));
     dom.daily.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, 1));
     dom.daily.scrollWrapper.addEventListener('scroll', () => ui.updateDailySliderButtons(), { passive: true });
@@ -132,7 +130,7 @@ function bindEvents() {
         if (state.currentWeather) {
             const t = translations[state.currentLang];
             ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
-            ui.updateSliderButtons(dom.hourly.scrollWrapper, dom.hourly.sliderPrevBtn, dom.hourly.sliderNextBtn);
+            ui.updateSliderButtons();
             ui.updateDailySliderButtons();
         }
     });
@@ -226,8 +224,6 @@ function updateFullUI(query) {
     ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
     ui.renderDailyForecast(state.currentWeather.daily, t);
     
-    // ZMIANA: Aktualizujemy stan przycisków nowego slidera po renderowaniu
-    // CHANGE: Update the new slider's buttons state after rendering
     ui.updateDailySliderButtons();
 
     ui.showContent();
@@ -274,13 +270,13 @@ function handleHourlyRangeSwitch(event) {
     ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
 }
 
-// ZMIANA: Uogólniona funkcja do przewijania sliderów
-// CHANGE: Generalized function for scrolling sliders
 function handleSliderScroll(scrollWrapper, direction) {
     const item = scrollWrapper.querySelector('.hourly-forecast__item, .daily-forecast__day');
     if (!item) return;
 
-    const scrollAmount = item.offsetWidth * 4 * direction; // Przewiń o 4 kafelki
+    // Przewijamy o szerokość 4 kafelków (plus marginesy)
+    // We scroll by the width of 4 tiles (plus margins)
+    const scrollAmount = (item.offsetWidth + 16) * 4 * direction;
     
     scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 }
