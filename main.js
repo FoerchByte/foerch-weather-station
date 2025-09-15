@@ -103,12 +103,14 @@ function bindEvents() {
     
     // ZMIANA: Przekazanie odpowiednich elementów do funkcji obsługujących slidery
     // CHANGE: Passing the correct elements to the slider handler functions
-    dom.hourly.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, -1));
-    dom.hourly.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, 1));
+    dom.hourly.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, -1, 8));
+    dom.hourly.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, 1, 8));
     dom.hourly.scrollWrapper.addEventListener('scroll', () => ui.updateSliderButtons(), { passive: true });
     
-    dom.daily.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, -1));
-    dom.daily.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, 1));
+    // ZMIANA: Powiązanie zdarzeń dla nowego slidera 4+4
+    // CHANGE: Binding events for the new 4+4 slider
+    dom.daily.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, -1, 4));
+    dom.daily.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, 1, 4));
     dom.daily.scrollWrapper.addEventListener('scroll', () => ui.updateDailySliderButtons(), { passive: true });
     
     dom.hourlyContainer.addEventListener('click', handleHourlyItemClick);
@@ -270,13 +272,14 @@ function handleHourlyRangeSwitch(event) {
     ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
 }
 
-function handleSliderScroll(scrollWrapper, direction) {
+// ZMIANA: Uogólniona funkcja do przewijania sliderów o określoną liczbę kafelków
+// CHANGE: Generalized function for scrolling sliders by a specific number of tiles
+function handleSliderScroll(scrollWrapper, direction, itemsToScroll) {
     const item = scrollWrapper.querySelector('.hourly-forecast__item, .daily-forecast__day');
     if (!item) return;
 
-    // Przewijamy o szerokość 4 kafelków (plus marginesy)
-    // We scroll by the width of 4 tiles (plus margins)
-    const scrollAmount = (item.offsetWidth + 16) * 4 * direction;
+    const gap = 16; // 1rem
+    const scrollAmount = (item.offsetWidth + gap) * itemsToScroll * direction;
     
     scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 }
