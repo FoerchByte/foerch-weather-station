@@ -28,12 +28,40 @@ let state = {
     darkTileLayer: null,
 };
 
+
+// --- Logika Motywu / Theme Logic ---
+
+/**
+ * --- PL --- Ustawia motyw aplikacji (jasny/ciemny) i zapisuje wybór.
+ * --- EN --- Sets the application theme (light/dark) and saves the choice.
+ * @param {'light' | 'dark'} theme - Nazwa motywu do ustawienia. / The name of the theme to set.
+ */
+function setTheme(theme) {
+    document.body.classList.toggle('dark-mode', theme === 'dark');
+    localStorage.setItem('theme', theme);
+    if (state.map) updateMapTileLayer();
+}
+
+/**
+ * --- PL --- Przełącza pomiędzy motywem jasnym i ciemnym.
+ * --- EN --- Toggles between the light and dark theme.
+ */
+function toggleTheme() {
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    setTheme(isDarkMode ? 'light' : 'dark');
+}
+
+
 // --- Inicjalizacja Aplikacji / Application Initialization ---
+
+// POPRAWKA: Ustaw motyw na samym początku, aby uniknąć migotania interfejsu
+// FIX: Set the theme at the very beginning to avoid a UI flash
+setTheme(localStorage.getItem('theme') || 'light');
 
 document.addEventListener('DOMContentLoaded', () => {
     ui.initUI();
     initMap();
-    initPrecipitationLayer(); // POPRAWKA: Inicjalizacja warstwy opadów
+    initPrecipitationLayer();
     loadFavorites();
     bindEvents();
     
@@ -110,8 +138,13 @@ function bindEvents() {
 async function handleSearch(query) {
     if (!query) return;
 
-    const searchButton = document.getElementById('search-weather-btn');
-    ui.toggleButtonLoading(searchButton, true);
+    // POPRAWKA: Przycisk ładowania jest dynamicznie wybierany na podstawie typu zapytania
+    // FIX: The loading button is dynamically selected based on the query type
+    const buttonToLoad = (typeof query === 'object' && query.latitude) 
+        ? document.getElementById('geolocation-btn') 
+        : document.getElementById('search-weather-btn');
+        
+    ui.toggleButtonLoading(buttonToLoad, true);
     ui.showLoadingState();
 
     try {
@@ -123,29 +156,22 @@ async function handleSearch(query) {
             localStorage.setItem('lastCity', query.trim());
         }
         
-        updateFullUI(query); // POPRAWKA: Przekazanie zapytania do aktualizacji UI
+        updateFullUI(query);
         
     } catch (error) {
         ui.showError(error.message);
     } finally {
-        ui.toggleButtonLoading(searchButton, false);
+        ui.toggleButtonLoading(buttonToLoad, false);
     }
 }
 
 function handleGeolocation() {
     if (navigator.geolocation) {
-        const geoButton = document.getElementById('geolocation-btn');
-        ui.toggleButtonLoading(geoButton, true);
-        
         navigator.geolocation.getCurrentPosition(
-            async (pos) => {
-                await handleSearch({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-                ui.toggleButtonLoading(geoButton, false);
-            },
+            (pos) => handleSearch({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
             () => {
                 const t = translations[state.currentLang];
                 ui.showError(t.errors.location);
-                ui.toggleButtonLoading(geoButton, false);
             }
         );
     }
@@ -158,9 +184,18 @@ function handleGeolocation() {
 function processWeatherData(data) {
     return {
         ...data,
-        roadCondition: data.current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(data.current.weather[0].main)
-            ? { text: "Sucha", class: 'roadDry' }
-            : (data.current.temp <= 2 ? { text: "Możliwe oblodzenie", class: 'roadIcy' } : { text: "Mokra", class: 'roadWet' }),
+        // POPRAWKA: Generuje obiekt z kluczem dla tłumaczeń (`key`) i klasą CSS (`class`)
+        // FIX: Generates an object with a key for translations (`key`) and a CSS class (`class`)
+        roadCondition: (() => {
+            const mainWeather = data.current.weather[0].main;
+            if (data.current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(mainWeather)) {
+                return { key: 'dry', class: 'roadDry' };
+            }
+            if (data.current.temp <= 2) {
+                return { key: 'icy', class: 'roadIcy' };
+            }
+            return { key: 'wet', class: 'roadWet' };
+        })(),
         uvCategory: (() => {
             const uvIndex = Math.round(data.current.uvi);
             if (uvIndex >= 11) return 'extreme';
@@ -199,7 +234,6 @@ function updateFullUI(query) {
 
     ui.showContent();
     
-    // POPRAWKA: Uproszczona logika zoomu
     const isGeoSearch = typeof query === 'object' && query.latitude;
     const zoomLevel = isGeoSearch ? 17 : 13;
     
@@ -296,7 +330,6 @@ function toggleFavorite() {
         state.favorites.splice(index, 1);
     } else {
         if (state.favorites.length >= 5) {
-            // POPRAWKA: Usunięto 'alert'
             console.warn("Maksymalna liczba ulubionych (5) została osiągnięta.");
             return;
         }
@@ -325,26 +358,12 @@ function handleFavoriteClick(event) {
     }
 }
 
-// --- Logika Motywu / Theme Logic ---
-
-function toggleTheme() {
-    const isDarkMode = document.body.classList.contains('dark-mode');
-    setTheme(isDarkMode ? 'light' : 'dark');
-}
-
-function setTheme(theme) {
-    document.body.classList.toggle('dark-mode', theme === 'dark');
-    localStorage.setItem('theme', theme);
-    if (state.map) updateMapTileLayer();
-}
 
 // --- Logika Mapy / Map Logic ---
 
 function initMap() {
     state.map = L.map('map').setView([51.75, 19.45], 10);
     
-    // --- PL --- Tworzymy osobny "panel" dla warstwy opadów
-    // --- EN --- Create a separate "pane" for the precipitation layer
     state.map.createPane('precipitationPane');
     state.map.getPane('precipitationPane').style.zIndex = 650;
     
@@ -353,13 +372,11 @@ function initMap() {
     updateMapTileLayer();
 }
 
-// --- PL --- NOWA FUNKCJA: Inicjalizuje i dodaje warstwę opadów do mapy
-// --- EN --- NEW FUNCTION: Initializes and adds the precipitation layer to the map
 function initPrecipitationLayer() {
     const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`;
     state.precipitationLayer = L.tileLayer(proxyUrl, {
         attribution: '&copy; OpenWeatherMap',
-        pane: 'precipitationPane' // Ważne: przypisanie do panelu / Important: assign to the pane
+        pane: 'precipitationPane'
     });
     state.map.addLayer(state.precipitationLayer);
 }
