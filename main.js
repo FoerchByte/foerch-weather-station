@@ -33,6 +33,7 @@ let state = {
 document.addEventListener('DOMContentLoaded', () => {
     ui.initUI();
     initMap();
+    initPrecipitationLayer(); // POPRAWKA: Inicjalizacja warstwy opadów
     loadFavorites();
     bindEvents();
     
@@ -122,7 +123,7 @@ async function handleSearch(query) {
             localStorage.setItem('lastCity', query.trim());
         }
         
-        updateFullUI();
+        updateFullUI(query); // POPRAWKA: Przekazanie zapytania do aktualizacji UI
         
     } catch (error) {
         ui.showError(error.message);
@@ -142,7 +143,8 @@ function handleGeolocation() {
                 ui.toggleButtonLoading(geoButton, false);
             },
             () => {
-                ui.showError("Nie udało się pobrać lokalizacji.");
+                const t = translations[state.currentLang];
+                ui.showError(t.errors.location);
                 ui.toggleButtonLoading(geoButton, false);
             }
         );
@@ -180,13 +182,11 @@ function processWeatherData(data) {
  * --- PL --- Aktualizuje cały interfejs użytkownika na podstawie bieżącego stanu.
  * --- EN --- Updates the entire user interface based on the current state.
  */
-function updateFullUI() {
+function updateFullUI(query) {
     const t = translations[state.currentLang];
     
     ui.renderCurrentWeather(state.currentWeather, t);
     
-    // Musimy ponownie powiązać event, bo przycisk jest re-renderowany
-    // We must re-bind the event because the button is re-rendered
     document.getElementById('add-favorite-btn').addEventListener('click', toggleFavorite);
     
     ui.renderFavorites(state.favorites, state.currentLocation);
@@ -199,7 +199,8 @@ function updateFullUI() {
 
     ui.showContent();
     
-    const isGeoSearch = typeof state.lastQuery === 'object' && state.lastQuery.latitude;
+    // POPRAWKA: Uproszczona logika zoomu
+    const isGeoSearch = typeof query === 'object' && query.latitude;
     const zoomLevel = isGeoSearch ? 17 : 13;
     
     setTimeout(() => {
@@ -295,7 +296,8 @@ function toggleFavorite() {
         state.favorites.splice(index, 1);
     } else {
         if (state.favorites.length >= 5) {
-            alert("Możesz dodać maksymalnie 5 ulubionych lokalizacji.");
+            // POPRAWKA: Usunięto 'alert'
+            console.warn("Maksymalna liczba ulubionych (5) została osiągnięta.");
             return;
         }
         state.favorites.push(state.currentLocation);
@@ -340,9 +342,26 @@ function setTheme(theme) {
 
 function initMap() {
     state.map = L.map('map').setView([51.75, 19.45], 10);
+    
+    // --- PL --- Tworzymy osobny "panel" dla warstwy opadów
+    // --- EN --- Create a separate "pane" for the precipitation layer
+    state.map.createPane('precipitationPane');
+    state.map.getPane('precipitationPane').style.zIndex = 650;
+    
     state.lightTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
     state.darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO' });
     updateMapTileLayer();
+}
+
+// --- PL --- NOWA FUNKCJA: Inicjalizuje i dodaje warstwę opadów do mapy
+// --- EN --- NEW FUNCTION: Initializes and adds the precipitation layer to the map
+function initPrecipitationLayer() {
+    const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`;
+    state.precipitationLayer = L.tileLayer(proxyUrl, {
+        attribution: '&copy; OpenWeatherMap',
+        pane: 'precipitationPane' // Ważne: przypisanie do panelu / Important: assign to the pane
+    });
+    state.map.addLayer(state.precipitationLayer);
 }
 
 function updateMapTileLayer() {
@@ -360,3 +379,4 @@ function updateMap(lat, lon, cityName, zoomLevel = 13) {
         state.marker = L.marker([lat, lon]).addTo(state.map).bindPopup(cityName).openPopup();
     }
 }
+
