@@ -85,8 +85,6 @@ function translateOverview(apiDescription, t) {
     return apiDescription.charAt(0).toUpperCase() + apiDescription.slice(1);
 }
 
-// NOWA FUNKCJA: Tłumaczenie alertów pogodowych
-// NEW FUNCTION: Translating weather alerts
 function translateAlertEvent(eventName) {
     const alertTranslations = {
         'Yellow Rain warning': 'Ostrzeżenie: Intensywne opady deszczu',
@@ -228,8 +226,6 @@ export function renderWeatherAlerts(data, t) {
         const startTime = new Date(alert.start * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
         const endTime = new Date(alert.end * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
         
-        // POPRAWKA: Użycie nowej funkcji do tłumaczenia alertów
-        // FIX: Using the new function to translate alerts
         const translatedEventName = translateAlertEvent(alert.event);
         
         container.className = 'weather-alert weather-alert--warning';
@@ -264,8 +260,6 @@ export function renderMinutelyForecast(minutelyData) {
     }
     const chartCanvas = dom.minutely.wrapper.querySelector('#minutely-chart');
 
-    // POPRAWKA: Lepsze etykiety na osi X
-    // FIX: Better labels on the X-axis
     const labels = minutelyData.map((_, index) => {
         if (index === 0) return 'Teraz';
         if (index === 59) return "60'";
@@ -274,8 +268,6 @@ export function renderMinutelyForecast(minutelyData) {
     });
     const precipitationData = minutelyData.map(minute => minute.precipitation);
 
-    // POPRAWKA: Dynamiczna skala osi Y
-    // FIX: Dynamic Y-axis scale
     const maxPrecip = Math.max(...precipitationData);
     const yAxisMax = maxPrecip > 1 ? Math.ceil(maxPrecip) + 1 : 1;
 
@@ -301,16 +293,16 @@ export function renderMinutelyForecast(minutelyData) {
                     beginAtZero: true,
                     max: yAxisMax,
                     ticks: {
-                        // POPRAWKA: Czyste liczby na osi, jednostka w dymku
-                        // FIX: Clean numbers on the axis, unit in the tooltip
-                        callback: function(value) { return value; }
+                        // POPRAWKA: Dodanie jednostki "mm" do osi Y
+                        // FIX: Adding "mm" unit to the Y-axis
+                        callback: function(value) { return value + ' mm'; }
                     }
                 },
                 x: { 
                     grid: { display: false },
                     ticks: { 
                         maxRotation: 0,
-                        autoSkip: false, // Pokazujemy wszystkie zdefiniowane etykiety
+                        autoSkip: false,
                     } 
                 }
             },
