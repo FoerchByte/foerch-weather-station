@@ -316,12 +316,11 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 }
 .hourly-forecast__range-switcher {
     display: flex;
-    max-width: 400px;
+    /* Usunięto max-width, aby przyciski zajmowały pełną szerokość */
+    /* Removed max-width to make buttons full-width */
     width: 100%;
     margin: 0 auto 1rem auto;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    overflow: hidden;
+    border-bottom: 1px solid var(--border-color);
 }
 .hourly-forecast__range-switcher button {
     flex: 1;
@@ -331,19 +330,22 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     font-weight: 500;
     color: var(--completed-text);
     cursor: pointer;
-    transition: color 0.2s, background-color 0.2s;
+    transition: color 0.2s;
     font-size: 0.9rem;
     position: relative;
 }
-.hourly-forecast__range-switcher button:first-child {
-    border-right: 1px solid var(--border-color);
-}
 .hourly-forecast__range-switcher button.active {
-    color: var(--text-color);
-    background-color: var(--background-color);
+    color: var(--primary-color);
+    font-weight: bold;
 }
-.hourly-forecast__range-switcher button:not(.active):hover {
-    background-color: rgba(var(--primary-color-rgb), 0.05);
+.hourly-forecast__range-switcher button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 15%;
+    width: 70%;
+    height: 2px;
+    background-color: var(--primary-color);
 }
 
 .hourly-forecast__wrapper { position: relative; margin-top: 2rem; }
@@ -386,9 +388,10 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
-    /* Dalsza redukcja szerokości kolumny, aby zapewnić dopasowanie */
-    /* Further reduction of column width to ensure fit */
-    grid-auto-columns: 86px;
+    /* --- ZMIANA ---
+       PL: Zmniejszono szerokość kolumny do 85px, aby zapewnić dopasowanie.
+       EN: Column width reduced to 85px to ensure proper fit. */
+    grid-auto-columns: 85px;
     gap: 8px;
 }
 
@@ -402,7 +405,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     border: 1px solid var(--border-color);
     border-radius: 8px;
     position: relative;
-    padding: 0.75rem; /* Zmniejszony padding */
+    padding: 0.75rem;
     box-sizing: border-box;
     cursor: pointer;
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
