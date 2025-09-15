@@ -261,7 +261,6 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     color: var(--completed-text);
 }
 
-/* --- POPRAWKA: Symetria w detalach / FIX: Symmetry in details view --- */
 .current-weather__extra-details {
     display: grid;
     text-align: left;
@@ -386,9 +385,6 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
-    /* --- ZMIANA ---
-       PL: Zmniejszono szerokość kolumny do 84px, aby zapewnić idealne dopasowanie.
-       EN: Column width reduced to 84px to ensure a perfect fit. */
     grid-auto-columns: 84px;
     gap: 8px;
 }
@@ -456,6 +452,7 @@ body.dark-mode .hourly-forecast__item:hover {
 .minutely-forecast__title,
 .daily-forecast__title {
     margin: 0 0 1rem 0;
+    text-align: center;
 }
 .minutely-forecast__chart-container {
     height: 200px;
@@ -469,15 +466,37 @@ body.dark-mode .hourly-forecast__item:hover {
     border-radius: 8px;
 }
 
+/* --- NOWE STYLE: Slider prognozy 8-dniowej --- */
+/* --- NEW STYLES: 8-day forecast slider --- */
+.daily-forecast__slider-container {
+    position: relative;
+}
+.daily-forecast__scroll-wrapper {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+}
+.daily-forecast__scroll-wrapper::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+}
 .daily-forecast__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(120px, 1fr);
     gap: 1rem;
+    padding: 0.5rem 0 1rem 0;
 }
 .daily-forecast__day {
-    padding: 1rem; background-color: var(--background-color);
-    border: 1px solid var(--border-color); border-radius: 8px; text-align: center;
-    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    padding: 1rem;
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
     cursor: pointer;
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
 }
@@ -489,8 +508,60 @@ body.dark-mode .hourly-forecast__item:hover {
 body.dark-mode .daily-forecast__day:hover {
     box-shadow: 0 6px 16px -4px rgba(0,0,0,0.2);
 }
-.daily-forecast__day h4 { margin: 0; font-size: 1rem; text-transform: capitalize; }
-.daily-forecast__icon { width: 56px; height: 56px; }
+.daily-forecast__day h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+.daily-forecast__icon {
+    width: 64px; /* Powiększona ikona */
+    height: 64px;
+    margin: 0.5rem 0;
+}
+.daily-forecast__pop {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.9rem;
+    color: var(--completed-text);
+}
+.daily-forecast__pop-icon {
+    width: 12px;
+    height: 12px;
+    color: var(--primary-color);
+}
+.daily-forecast__slider-nav {
+    display: none; /* Domyślnie ukryte, widoczne na desktopie */
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(var(--card-background-rgb), 0.8);
+    backdrop-filter: blur(2px);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    line-height: 1;
+    color: var(--text-color);
+    transition: background-color 0.2s;
+}
+.daily-forecast__slider-nav:hover {
+    background-color: var(--card-background);
+}
+.daily-forecast__slider-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+#daily-slider-prev { left: 5px; }
+#daily-slider-next { right: 5px; }
+
 
 .skeleton { display: inline-block; background-color: var(--border-color); border-radius: 4px; animation: pulse 1.5s infinite ease-in-out; }
 @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
@@ -615,7 +686,8 @@ body.dark-mode .daily-forecast__day:hover {
 
 /* --- Media Queries / Zapytania medialne --- */
 @media (min-width: 1025px) {
-    .hourly-forecast__slider-nav {
+    .hourly-forecast__slider-nav,
+    .daily-forecast__slider-nav {
         display: flex;
     }
 }
@@ -736,6 +808,12 @@ body.dark-mode .daily-forecast__day:hover {
         display: block;
     }
 
+    /* Układ listowy dla prognozy dziennej na mobile */
+    /* List layout for daily forecast on mobile */
+    .daily-forecast__scroll-wrapper {
+        display: block;
+        overflow-x: hidden;
+    }
     .daily-forecast__grid {
         display: grid;
         grid-template-columns: 1fr;
