@@ -105,8 +105,7 @@ function bindEvents() {
     dom.hourly.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, 1, 8));
     dom.hourly.scrollWrapper.addEventListener('scroll', ui.updateSliderButtons, { passive: true });
     
-    // POPRAWKA: Uruchomienie slidera 4+4
-    // FIX: Activating the 4+4 slider
+    // Uruchomienie slidera 4+4 dla prognozy dziennej
     dom.daily.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, -1, 4));
     dom.daily.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, 1, 4));
     dom.daily.scrollWrapper.addEventListener('scroll', ui.updateDailySliderButtons, { passive: true });
