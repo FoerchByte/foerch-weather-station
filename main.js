@@ -101,17 +101,15 @@ function bindEvents() {
     dom.forecastSwitcher.addEventListener('click', handleForecastSwitch);
     dom.hourlyRangeSwitcher.addEventListener('click', handleHourlyRangeSwitch);
     
-    // ZMIANA: Przekazanie odpowiednich elementów do funkcji obsługujących slidery
-    // CHANGE: Passing the correct elements to the slider handler functions
     dom.hourly.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, -1, 8));
     dom.hourly.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, 1, 8));
-    dom.hourly.scrollWrapper.addEventListener('scroll', () => ui.updateSliderButtons(), { passive: true });
+    dom.hourly.scrollWrapper.addEventListener('scroll', ui.updateSliderButtons, { passive: true });
     
-    // ZMIANA: Powiązanie zdarzeń dla nowego slidera 4+4
-    // CHANGE: Binding events for the new 4+4 slider
+    // POPRAWKA: Uruchomienie slidera 4+4
+    // FIX: Activating the 4+4 slider
     dom.daily.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, -1, 4));
     dom.daily.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, 1, 4));
-    dom.daily.scrollWrapper.addEventListener('scroll', () => ui.updateDailySliderButtons(), { passive: true });
+    dom.daily.scrollWrapper.addEventListener('scroll', ui.updateDailySliderButtons, { passive: true });
     
     dom.hourlyContainer.addEventListener('click', handleHourlyItemClick);
     dom.dailyContainer.addEventListener('click', handleDailyItemClick);
@@ -272,8 +270,6 @@ function handleHourlyRangeSwitch(event) {
     ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
 }
 
-// ZMIANA: Uogólniona funkcja do przewijania sliderów o określoną liczbę kafelków
-// CHANGE: Generalized function for scrolling sliders by a specific number of tiles
 function handleSliderScroll(scrollWrapper, direction, itemsToScroll) {
     const item = scrollWrapper.querySelector('.hourly-forecast__item, .daily-forecast__day');
     if (!item) return;
