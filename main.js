@@ -1,0 +1,362 @@
+/**
+ * --- PL ---
+ * Główny plik aplikacji (Orkiestrator).
+ * Łączy wszystkie moduły (UI, API, Tłumaczenia) i zarządza stanem aplikacji
+ * oraz główną logiką biznesową.
+ * --- EN ---
+ * Main application file (Orchestrator).
+ * Connects all modules (UI, API, Translations) and manages the application state
+ * and main business logic.
+ */
+
+// --- Import modułów / Module Imports ---
+import { translations } from './translations.js';
+import * as api from './api.js';
+import * as ui from './ui.js';
+
+// --- Stan Aplikacji / Application State ---
+let state = {
+    currentWeather: null,
+    currentLocation: null,
+    favorites: [],
+    currentLang: 'pl',
+    currentHourlyRange: 24,
+    map: null,
+    marker: null,
+    precipitationLayer: null,
+    lightTileLayer: null,
+    darkTileLayer: null,
+};
+
+// --- Inicjalizacja Aplikacji / Application Initialization ---
+
+document.addEventListener('DOMContentLoaded', () => {
+    ui.initUI();
+    initMap();
+    loadFavorites();
+    bindEvents();
+    
+    const lastCity = localStorage.getItem('lastCity');
+    if (lastCity) {
+        document.getElementById('city-input').value = lastCity;
+        handleSearch(lastCity);
+    } else if (state.favorites.length > 0) {
+        handleSearch(state.favorites[0].name);
+    } else {
+        ui.showInitialState();
+    }
+});
+
+// --- Powiązanie Eventów / Event Binding ---
+
+function bindEvents() {
+    const dom = { // Lokalne referencje dla zwięzłości / Local references for brevity
+        searchBtn: document.getElementById('search-weather-btn'),
+        cityInput: document.getElementById('city-input'),
+        geoBtn: document.getElementById('geolocation-btn'),
+        themeToggle: document.getElementById('theme-toggle'),
+        forecastSwitcher: document.getElementById('forecast-switcher'),
+        hourlyRangeSwitcher: document.getElementById('hourly-range-switcher'),
+        hourlySliderPrevBtn: document.getElementById('hourly-slider-prev'),
+        hourlySliderNextBtn: document.getElementById('hourly-slider-next'),
+        hourlyScrollWrapper: document.querySelector('.hourly-forecast__scroll-wrapper'),
+        favoritesContainer: document.getElementById('favorites-container'),
+        hourlyContainer: document.getElementById('hourly-forecast-container'),
+        dailyContainer: document.getElementById('daily-forecast-container'),
+        modalContainer: document.getElementById('details-modal'),
+    };
+
+    dom.searchBtn.addEventListener('click', () => handleSearch(dom.cityInput.value.trim()));
+    dom.cityInput.addEventListener('keyup', e => { if (e.key === 'Enter') handleSearch(dom.cityInput.value.trim()); });
+    dom.geoBtn.addEventListener('click', handleGeolocation);
+    dom.themeToggle.addEventListener('click', toggleTheme);
+    
+    dom.favoritesContainer.addEventListener('click', handleFavoriteClick);
+    
+    dom.forecastSwitcher.addEventListener('click', handleForecastSwitch);
+    dom.hourlyRangeSwitcher.addEventListener('click', handleHourlyRangeSwitch);
+    
+    dom.hourlySliderPrevBtn.addEventListener('click', () => handleSliderScroll(-1));
+    dom.hourlySliderNextBtn.addEventListener('click', () => handleSliderScroll(1));
+    dom.hourlyScrollWrapper.addEventListener('scroll', ui.updateSliderButtons, { passive: true });
+    
+    dom.hourlyContainer.addEventListener('click', handleHourlyItemClick);
+    dom.dailyContainer.addEventListener('click', handleDailyItemClick);
+    
+    dom.modalContainer.addEventListener('click', (e) => {
+        if (e.target.closest('[data-close-modal]')) {
+            ui.hideDetailsModal();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && dom.modalContainer.classList.contains('is-visible')) {
+            ui.hideDetailsModal();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (state.currentWeather) {
+            const t = translations[state.currentLang];
+            ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
+            ui.updateSliderButtons();
+        }
+    });
+}
+
+// --- Główna Logika / Main Logic ---
+
+async function handleSearch(query) {
+    if (!query) return;
+
+    const searchButton = document.getElementById('search-weather-btn');
+    ui.toggleButtonLoading(searchButton, true);
+    ui.showLoadingState();
+
+    try {
+        const data = await api.getWeatherData(query);
+        state.currentWeather = processWeatherData(data);
+        state.currentLocation = data.location;
+
+        if (typeof query === 'string') {
+            localStorage.setItem('lastCity', query.trim());
+        }
+        
+        updateFullUI();
+        
+    } catch (error) {
+        ui.showError(error.message);
+    } finally {
+        ui.toggleButtonLoading(searchButton, false);
+    }
+}
+
+function handleGeolocation() {
+    if (navigator.geolocation) {
+        const geoButton = document.getElementById('geolocation-btn');
+        ui.toggleButtonLoading(geoButton, true);
+        
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                await handleSearch({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+                ui.toggleButtonLoading(geoButton, false);
+            },
+            () => {
+                ui.showError("Nie udało się pobrać lokalizacji.");
+                ui.toggleButtonLoading(geoButton, false);
+            }
+        );
+    }
+}
+
+/**
+ * --- PL --- Przetwarza surowe dane z API, dodając pomocnicze pola.
+ * --- EN --- Processes raw API data, adding helper fields.
+ */
+function processWeatherData(data) {
+    return {
+        ...data,
+        roadCondition: data.current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(data.current.weather[0].main)
+            ? { text: "Sucha", class: 'roadDry' }
+            : (data.current.temp <= 2 ? { text: "Możliwe oblodzenie", class: 'roadIcy' } : { text: "Mokra", class: 'roadWet' }),
+        uvCategory: (() => {
+            const uvIndex = Math.round(data.current.uvi);
+            if (uvIndex >= 11) return 'extreme';
+            if (uvIndex >= 8) return 'very-high';
+            if (uvIndex >= 6) return 'high';
+            if (uvIndex >= 3) return 'moderate';
+            return 'low';
+        })(),
+        formattedTimes: {
+            sunrise: new Date(data.current.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            sunset: new Date(data.current.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            moonrise: new Date(data.daily[0].moonrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            moonset: new Date(data.daily[0].moonset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }
+    };
+}
+
+/**
+ * --- PL --- Aktualizuje cały interfejs użytkownika na podstawie bieżącego stanu.
+ * --- EN --- Updates the entire user interface based on the current state.
+ */
+function updateFullUI() {
+    const t = translations[state.currentLang];
+    
+    ui.renderCurrentWeather(state.currentWeather, t);
+    
+    // Musimy ponownie powiązać event, bo przycisk jest re-renderowany
+    // We must re-bind the event because the button is re-rendered
+    document.getElementById('add-favorite-btn').addEventListener('click', toggleFavorite);
+    
+    ui.renderFavorites(state.favorites, state.currentLocation);
+    updateFavoriteButtonState();
+    
+    ui.renderWeatherAlerts(state.currentWeather, t);
+    ui.renderMinutelyForecast(state.currentWeather.minutely);
+    ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
+    ui.renderDailyForecast(state.currentWeather.daily, t);
+
+    ui.showContent();
+    
+    const isGeoSearch = typeof state.lastQuery === 'object' && state.lastQuery.latitude;
+    const zoomLevel = isGeoSearch ? 17 : 13;
+    
+    setTimeout(() => {
+        if (state.map) {
+            state.map.invalidateSize();
+            updateMap(state.currentLocation.lat, state.currentLocation.lon, state.currentLocation.name, zoomLevel);
+        }
+    }, 0);
+}
+
+
+// --- Handlery Zdarzeń UI / UI Event Handlers ---
+
+function handleForecastSwitch(event) {
+    const btn = event.target.closest('button');
+    if (!btn) return;
+    const forecastType = btn.dataset.forecast;
+    
+    document.getElementById('forecasts-container').className = `show-${forecastType}`;
+    
+    document.getElementById('forecast-switcher').querySelectorAll('button').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+}
+
+function handleHourlyRangeSwitch(event) {
+    const btn = event.target.closest('button');
+    if (!btn || btn.classList.contains('active')) return;
+    
+    state.currentHourlyRange = parseInt(btn.dataset.range, 10);
+    
+    document.getElementById('hourly-range-switcher').querySelector('.active').classList.remove('active');
+    btn.classList.add('active');
+    
+    const t = translations[state.currentLang];
+    ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
+}
+
+function handleSliderScroll(direction) {
+    const container = document.getElementById('hourly-forecast-container');
+    const item = container.querySelector('.hourly-forecast__item');
+    if (!item) return;
+
+    const itemWidth = item.offsetWidth;
+    const gap = 8;
+    const scrollAmount = (itemWidth + gap) * 8 * direction; // Przewiń o 8 kafelków
+    
+    document.querySelector('.hourly-forecast__scroll-wrapper').scrollBy({ left: scrollAmount, behavior: 'smooth' });
+}
+
+function handleHourlyItemClick(event) {
+    const itemEl = event.target.closest('.hourly-forecast__item');
+    if (!itemEl) return;
+    const timestamp = parseInt(itemEl.dataset.timestamp, 10);
+    const hourData = state.currentWeather.hourly.find(item => item.dt === timestamp);
+    if (hourData) {
+        const t = translations[state.currentLang];
+        ui.showDetailsModal(hourData, 'hourly', t);
+    }
+}
+
+function handleDailyItemClick(event) {
+    const itemEl = event.target.closest('.daily-forecast__day');
+    if (!itemEl) return;
+    const timestamp = parseInt(itemEl.dataset.timestamp, 10);
+    const dayData = state.currentWeather.daily.find(item => item.dt === timestamp);
+    if (dayData) {
+        const t = translations[state.currentLang];
+        ui.showDetailsModal(dayData, 'daily', t);
+    }
+}
+
+// --- Logika Ulubionych / Favorites Logic ---
+
+function loadFavorites() {
+    state.favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
+    ui.renderFavorites(state.favorites, state.currentLocation);
+}
+
+function saveFavorites() {
+    localStorage.setItem('weatherFavorites', JSON.stringify(state.favorites));
+}
+
+function toggleFavorite() {
+    if (!state.currentLocation) return;
+    const locationId = `${state.currentLocation.lat},${state.currentLocation.lon}`;
+    const index = state.favorites.findIndex(fav => `${fav.lat},${fav.lon}` === locationId);
+    
+    if (index > -1) {
+        state.favorites.splice(index, 1);
+    } else {
+        if (state.favorites.length >= 5) {
+            alert("Możesz dodać maksymalnie 5 ulubionych lokalizacji.");
+            return;
+        }
+        state.favorites.push(state.currentLocation);
+    }
+    
+    saveFavorites();
+    ui.renderFavorites(state.favorites, state.currentLocation);
+    updateFavoriteButtonState();
+}
+
+function updateFavoriteButtonState() {
+    if (!state.currentLocation) return;
+    const locationId = `${state.currentLocation.lat},${state.currentLocation.lon}`;
+    const isFav = state.favorites.some(fav => `${fav.lat},${fav.lon}` === locationId);
+    ui.updateFavoriteButtonState(isFav, state.favorites.length);
+}
+
+function handleFavoriteClick(event) {
+    const btn = event.target.closest('.favorite-location-btn');
+    if (!btn) return;
+    const cityName = btn.dataset.city;
+    if (cityName) {
+        document.getElementById('city-input').value = cityName;
+        handleSearch(cityName);
+    }
+}
+
+// --- Logika Motywu / Theme Logic ---
+
+function toggleTheme() {
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    setTheme(isDarkMode ? 'light' : 'dark');
+}
+
+function setTheme(theme) {
+    document.body.classList.toggle('dark-mode', theme === 'dark');
+    localStorage.setItem('theme', theme);
+    if (state.map) updateMapTileLayer();
+}
+
+// --- Logika Mapy / Map Logic ---
+
+function initMap() {
+    state.map = L.map('map').setView([51.75, 19.45], 10);
+    state.lightTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
+    state.darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO' });
+    updateMapTileLayer();
+}
+
+function updateMapTileLayer() {
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const targetLayer = isDarkMode ? state.darkTileLayer : state.lightTileLayer;
+    const otherLayer = isDarkMode ? state.lightTileLayer : state.darkTileLayer;
+    if (state.map.hasLayer(otherLayer)) state.map.removeLayer(otherLayer);
+    if (!state.map.hasLayer(targetLayer)) state.map.addLayer(targetLayer);
+}
+
+function updateMap(lat, lon, cityName, zoomLevel = 13) {
+    if (state.map) {
+        state.map.flyTo([lat, lon], zoomLevel);
+        if (state.marker) state.map.removeLayer(state.marker);
+        state.marker = L.marker([lat, lon]).addTo(state.map).bindPopup(cityName).openPopup();
+    }
+}
