@@ -80,40 +80,43 @@ export const translations = {
             'throughout the day': 'przez cały dzień',
             
             // --- Tłumaczenia zjawisk pogodowych / Weather phenomena translations ---
-            'clear sky': { nominative: 'bezchmurne niebo', genitive: 'bezchmurnego nieba' },
-            'few clouds': { nominative: 'niewielkie zachmurzenie', genitive: 'niewielkiego zachmurzenia' },
-            'scattered clouds': { nominative: 'rozproszone chmury', genitive: 'rozproszonych chmur' },
-            'broken clouds': { nominative: 'przejaśnienia', genitive: 'przejaśnień' },
-            'overcast clouds': { nominative: 'całkowite zachmurzenie', genitive: 'całkowitego zachmurzenia' },
-            'light rain': { nominative: 'lekkie opady deszczu', genitive: 'lekkich opadów deszczu' },
-            'moderate rain': { nominative: 'umiarkowane opady deszczu', genitive: 'umiarkowanych opadów deszczu' },
-            'heavy intensity rain': { nominative: 'intensywne opady deszczu', genitive: 'intensywnych opadów deszczu' },
-            'very heavy rain': { nominative: 'bardzo intensywne opady deszczu', genitive: 'bardzo intensywnych opadów deszczu' },
-            'extreme rain': { nominative: 'ekstremalne opady deszczu', genitive: 'ekstremalnych opadów deszczu' },
-            'freezing rain': { nominative: 'marznący deszcz', genitive: 'marznącego deszczu' },
-            'light snow': { nominative: 'lekkie opady śniegu', genitive: 'lekkich opadów śniegu' },
-            'snow': { nominative: 'opady śniegu', genitive: 'opadów śniegu' },
-            'heavy snow': { nominative: 'intensywne opady śniegu', genitive: 'intensywnych opadów śniegu' },
-            'sleet': { nominative: 'deszcz ze śniegiem', genitive: 'deszczu ze śniegiem' },
-            'shower rain': { nominative: 'przelotne opady deszczu', genitive: 'przelotnych opadów deszczu' },
-            'thunderstorm': { nominative: 'burza', genitive: 'burzy' },
-            'thunderstorm with light rain': { nominative: 'burza z lekkim deszczem', genitive: 'burzy z lekkim deszczem' },
-            'thunderstorm with rain': { nominative: 'burza z deszczem', genitive: 'burzy z deszczem' },
-            'thunderstorm with heavy rain': { nominative: 'burza z ulewnym deszczem', genitive: 'burzy z ulewnym deszczem' },
-            'mist': { nominative: 'zamglenie', genitive: 'zamglenia' },
-            'smoke': { nominative: 'zadymienie', genitive: 'zadymienia' },
-            'haze': { nominative: 'mgiełka', genitive: 'mgiełki' },
-            'sand/ dust whirls': { nominative: 'wiry piaskowe/pyłowe', genitive: 'wirów piaskowych/pyłowych' },
-            'fog': { nominative: 'mgła', genitive: 'mgły' },
-            'sand': { nominative: 'piasek', genitive: 'piasku' },
-            'dust': { nominative: 'pył', genitive: 'pyłu' },
-            'volcanic ash': { nominative: 'pył wulkaniczny', genitive: 'pyłu wulkanicznego' },
-            'squalls': { nominative: 'nawałnice', genitive: 'nawałnic' },
+            'bezchmurnie': { nominative: 'bezchmurne niebo', genitive: 'bezchmurnego nieba' },
+            'niewielkie zachmurzenie': { nominative: 'niewielkie zachmurzenie', genitive: 'niewielkiego zachmurzenia' },
+            'rozproszone chmury': { nominative: 'rozproszone chmury', genitive: 'rozproszonych chmur' },
+            'przejaśnienia': { nominative: 'przejaśnienia', genitive: 'przejaśnień' },
+            'zachmurzenie umiarkowane': { nominative: 'zachmurzenie umiarkowane', genitive: 'zachmurzenia umiarkowanego' },
+            'zachmurzenie duże': { nominative: 'zachmurzenie duże', genitive: 'dużego zachmurzenia' },
+            'całkowite zachmurzenie': { nominative: 'całkowite zachmurzenie', genitive: 'całkowitego zachmurzenia' },
+            'lekkie opady deszczu': { nominative: 'lekkie opady deszczu', genitive: 'lekkich opadów deszczu' },
+            'umiarkowane opady deszczu': { nominative: 'umiarkowane opady deszczu', genitive: 'umiarkowanych opadów deszczu' },
+            'intensywne opady deszczu': { nominative: 'intensywne opady deszczu', genitive: 'intensywnych opadów deszczu' },
+            'bardzo intensywne opady deszczu': { nominative: 'bardzo intensywne opady deszczu', genitive: 'bardzo intensywnych opadów deszczu' },
+            'ekstremalne opady deszczu': { nominative: 'ekstremalne opady deszczu', genitive: 'ekstremalnych opadów deszczu' },
+            'marznący deszcz': { nominative: 'marznący deszcz', genitive: 'marznącego deszczu' },
+            'lekkie opady śniegu': { nominative: 'lekkie opady śniegu', genitive: 'lekkich opadów śniegu' },
+            'opady śniegu': { nominative: 'opady śniegu', genitive: 'opadów śniegu' },
+            'śnieg': { nominative: 'opady śniegu', genitive: 'opadów śniegu' },
+            'intensywne opady śniegu': { nominative: 'intensywne opady śniegu', genitive: 'intensywnych opadów śniegu' },
+            'deszcz ze śniegiem': { nominative: 'deszcz ze śniegiem', genitive: 'deszczu ze śniegiem' },
+            'przelotne opady deszczu': { nominative: 'przelotne opady deszczu', genitive: 'przelotnych opadów deszczu' },
+            'burza': { nominative: 'burza', genitive: 'burzy' },
+            'burza z lekkimi opadami deszczu': { nominative: 'burza z lekkim deszczem', genitive: 'burzy z lekkim deszczem' },
+            'burza z deszczem': { nominative: 'burza z deszczem', genitive: 'burzy z deszczem' },
+            'burza z ulewnym deszczem': { nominative: 'burza z ulewnym deszczem', genitive: 'burzy z ulewnym deszczem' },
+            'zamglenie': { nominative: 'zamglenie', genitive: 'zamglenia' },
+            'zadymienie': { nominative: 'zadymienie', genitive: 'zadymienia' },
+            'mgiełka': { nominative: 'mgiełka', genitive: 'mgiełki' },
+            'wiry piaskowe/pyłowe': { nominative: 'wiry piaskowe/pyłowe', genitive: 'wirów piaskowych/pyłowych' },
+            'mgła': { nominative: 'mgła', genitive: 'mgły' },
+            'piasek': { nominative: 'piasek', genitive: 'piasku' },
+            'pył': { nominative: 'pył', genitive: 'pyłu' },
+            'pył wulkaniczny': { nominative: 'pył wulkaniczny', genitive: 'pyłu wulkanicznego' },
+            'nawałnice': { nominative: 'nawałnice', genitive: 'nawałnic' },
             'tornado': { nominative: 'tornado', genitive: 'tornada' }
         }
     },
     en: {
-        // --- Alerts and errors ---
+        // --- English translations... ---
         alerts: {
             noAlerts: 'No weather alerts for the current location',
             issuedBy: 'Issued by',
@@ -125,8 +128,6 @@ export const translations = {
             location: 'Could not retrieve location.',
             serverError: 'Server error',
         },
-        
-        // --- Main weather details ---
         details: {
             feelsLike: 'Feels like',
             humidity: 'Humidity',
@@ -143,8 +144,6 @@ export const translations = {
             moonrise: 'Moonrise',
             moonset: 'Moonset',
         },
-
-        // --- Forecasts ---
         forecast: {
             precipChance: 'Chance of precipitation',
             today: 'Today',
@@ -155,8 +154,6 @@ export const translations = {
             eve: 'Evening',
             night: 'Night',
         },
-
-        // --- Values (for AQI, UV etc.) ---
         values: {
             aqi: ['Good', 'Fair', 'Moderate', 'Poor', 'Very Poor'],
             uv: {
@@ -172,12 +169,9 @@ export const translations = {
                 icy: 'Icy conditions possible'
             }
         },
-        
-        // --- English versions for API summaries (mostly 1:1) ---
         overview: {
             'expect': 'Expect',
             'throughout the day': 'throughout the day',
-            
             'clear sky': { nominative: 'clear sky', genitive: 'clear sky' },
             'few clouds': { nominative: 'few clouds', genitive: 'few clouds' },
             'scattered clouds': { nominative: 'scattered clouds', genitive: 'scattered clouds' },
