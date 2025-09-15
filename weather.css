@@ -389,9 +389,9 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     display: grid;
     grid-auto-flow: column;
     /* --- ZMIANA ---
-       PL: Zmniejszono szerokość kolumny do 85px, aby zapewnić dopasowanie.
-       EN: Column width reduced to 85px to ensure proper fit. */
-    grid-auto-columns: 85px;
+       PL: Zmniejszono szerokość kolumny do 84px, aby zapewnić dopasowanie.
+       EN: Column width reduced to 84px to ensure proper fit. */
+    grid-auto-columns: 84px;
     gap: 8px;
 }
 
