@@ -74,14 +74,23 @@ function convertWindDirection(deg) {
 
 // POPRAWKA: Uproszczona i bardziej niezawodna funkcja tłumacząca
 // FIX: Simplified and more reliable translation function
-function translateOverview(generatedOverview, t) {
-    if (!generatedOverview) return '';
+function translateOverview(apiDescription, t) {
+    if (!apiDescription) return '';
     
-    // Budujemy zdanie z gotowych, przetłumaczonych fragmentów
-    // We build the sentence from ready, translated parts
-    let sentence = `${t.overview.expect} ${generatedOverview} ${t.overview['throughout the day']}.`;
+    // Wyszukujemy tłumaczenie w naszym nowym, inteligentnym słowniku
+    // We search for the translation in our new, smart dictionary
+    const translationEntry = t.overview[apiDescription.toLowerCase()];
+
+    // Jeśli znajdziemy odpowiedni wpis z formą dopełniacza, budujemy zdanie
+    // If we find a matching entry with the genitive form, we build the sentence
+    if (translationEntry && translationEntry.genitive) {
+        let sentence = `${t.overview.expect} ${translationEntry.genitive} ${t.overview['throughout the day']}.`;
+        return sentence.charAt(0).toUpperCase() + sentence.slice(1);
+    }
     
-    return sentence.charAt(0).toUpperCase() + sentence.slice(1);
+    // W przypadku braku tłumaczenia, zwracamy oryginalny (już polski) opis
+    // If no translation is found, return the original (already Polish) description
+    return apiDescription.charAt(0).toUpperCase() + apiDescription.slice(1);
 }
 
 
@@ -140,12 +149,10 @@ export function renderCurrentWeather(data, t) {
             </button>
         </div>`;
     
-    // POPRAWKA: Przekazujemy `data.generatedOverview` zamiast `data.overview`
-    // FIX: Passing `data.generatedOverview` instead of `data.overview`
     const translatedOverview = translateOverview(data.generatedOverview, t);
     const overviewHtml = translatedOverview ? `
         <div class="weather-overview">
-            <svg class="weather-overview__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 2C17.5228 2 22 6.47715 22 12V12C22 17.5228 17.5228 22 12 22V22C6.47715 22 2 17.5228 2 12V12C2 6.47715 6.47715 2 12 2V2Z"></path><path d="M13.8284 9.17157L12 11L10.1716 9.17157"></path><path d="M9.17157 13.8284L11 12L9.17157 10.1716"></path><path d="M13.8284 14.8284L12 13L10.1716 14.8284"></path><path d="M14.8284 10.1716L13 12L14.8284 13.8284"></path></svg>
+            <svg class="weather-overview__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 2C17.5228 2 22 6.47715 22 12V12C22 17.5228 17.5228 22 12 22V22C6.47715 22 2 17.5228 2 12V12C2 6.47715 6.47715 2 12 2V2Z"></path><path d="M13.8284 9.17157L12 11L10.1716 9.17157"></path><path d="M9.17157 13.8284L11 12L9.17157 10.1716"></path><path d="M13.8284 14.8284L12 13L10.1716 14.8284"></path><path d="M14.8284 10.1716L13 12L14.8284 13.8284"></path></svg>
             <p class="weather-overview__text">${translatedOverview}</p>
         </div>
     ` : '';
