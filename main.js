@@ -31,21 +31,12 @@ let state = {
 
 // --- Logika Motywu / Theme Logic ---
 
-/**
- * --- PL --- Ustawia motyw aplikacji (jasny/ciemny) i zapisuje wybór.
- * --- EN --- Sets the application theme (light/dark) and saves the choice.
- * @param {'light' | 'dark'} theme - Nazwa motywu do ustawienia. / The name of the theme to set.
- */
 function setTheme(theme) {
     document.body.classList.toggle('dark-mode', theme === 'dark');
     localStorage.setItem('theme', theme);
     if (state.map) updateMapTileLayer();
 }
 
-/**
- * --- PL --- Przełącza pomiędzy motywem jasnym i ciemnym.
- * --- EN --- Toggles between the light and dark theme.
- */
 function toggleTheme() {
     const isDarkMode = document.body.classList.contains('dark-mode');
     setTheme(isDarkMode ? 'light' : 'dark');
@@ -54,8 +45,6 @@ function toggleTheme() {
 
 // --- Inicjalizacja Aplikacji / Application Initialization ---
 
-// POPRAWKA: Ustaw motyw na samym początku, aby uniknąć migotania interfejsu
-// FIX: Set the theme at the very beginning to avoid a UI flash
 setTheme(localStorage.getItem('theme') || 'light');
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -79,20 +68,29 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- Powiązanie Eventów / Event Binding ---
 
 function bindEvents() {
-    const dom = { // Lokalne referencje dla zwięzłości / Local references for brevity
+    const dom = {
         searchBtn: document.getElementById('search-weather-btn'),
         cityInput: document.getElementById('city-input'),
         geoBtn: document.getElementById('geolocation-btn'),
         themeToggle: document.getElementById('theme-toggle'),
         forecastSwitcher: document.getElementById('forecast-switcher'),
         hourlyRangeSwitcher: document.getElementById('hourly-range-switcher'),
-        hourlySliderPrevBtn: document.getElementById('hourly-slider-prev'),
-        hourlySliderNextBtn: document.getElementById('hourly-slider-next'),
-        hourlyScrollWrapper: document.querySelector('.hourly-forecast__scroll-wrapper'),
-        favoritesContainer: document.getElementById('favorites-container'),
         hourlyContainer: document.getElementById('hourly-forecast-container'),
         dailyContainer: document.getElementById('daily-forecast-container'),
         modalContainer: document.getElementById('details-modal'),
+        favoritesContainer: document.getElementById('favorites-container'),
+        // ZMIANA: Dodanie eventów dla slidera prognozy dziennej
+        // CHANGE: Adding events for the daily forecast slider
+        hourly: {
+            sliderPrevBtn: document.getElementById('hourly-slider-prev'),
+            sliderNextBtn: document.getElementById('hourly-slider-next'),
+            scrollWrapper: document.querySelector('.hourly-forecast__scroll-wrapper'),
+        },
+        daily: {
+            sliderPrevBtn: document.getElementById('daily-slider-prev'),
+            sliderNextBtn: document.getElementById('daily-slider-next'),
+            scrollWrapper: document.querySelector('.daily-forecast__scroll-wrapper'),
+        }
     };
 
     dom.searchBtn.addEventListener('click', () => handleSearch(dom.cityInput.value.trim()));
@@ -105,9 +103,15 @@ function bindEvents() {
     dom.forecastSwitcher.addEventListener('click', handleForecastSwitch);
     dom.hourlyRangeSwitcher.addEventListener('click', handleHourlyRangeSwitch);
     
-    dom.hourlySliderPrevBtn.addEventListener('click', () => handleSliderScroll(-1));
-    dom.hourlySliderNextBtn.addEventListener('click', () => handleSliderScroll(1));
-    dom.hourlyScrollWrapper.addEventListener('scroll', ui.updateSliderButtons, { passive: true });
+    dom.hourly.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, -1));
+    dom.hourly.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, 1));
+    dom.hourly.scrollWrapper.addEventListener('scroll', () => ui.updateSliderButtons(dom.hourly.scrollWrapper, dom.hourly.sliderPrevBtn, dom.hourly.sliderNextBtn), { passive: true });
+    
+    // ZMIANA: Powiązanie zdarzeń dla nowego slidera
+    // CHANGE: Binding events for the new slider
+    dom.daily.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, -1));
+    dom.daily.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, 1));
+    dom.daily.scrollWrapper.addEventListener('scroll', () => ui.updateDailySliderButtons(), { passive: true });
     
     dom.hourlyContainer.addEventListener('click', handleHourlyItemClick);
     dom.dailyContainer.addEventListener('click', handleDailyItemClick);
@@ -128,7 +132,8 @@ function bindEvents() {
         if (state.currentWeather) {
             const t = translations[state.currentLang];
             ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
-            ui.updateSliderButtons();
+            ui.updateSliderButtons(dom.hourly.scrollWrapper, dom.hourly.sliderPrevBtn, dom.hourly.sliderNextBtn);
+            ui.updateDailySliderButtons();
         }
     });
 }
@@ -138,8 +143,6 @@ function bindEvents() {
 async function handleSearch(query) {
     if (!query) return;
 
-    // POPRAWKA: Przycisk ładowania jest dynamicznie wybierany na podstawie typu zapytania
-    // FIX: The loading button is dynamically selected based on the query type
     const buttonToLoad = (typeof query === 'object' && query.latitude) 
         ? document.getElementById('geolocation-btn') 
         : document.getElementById('search-weather-btn');
@@ -177,15 +180,9 @@ function handleGeolocation() {
     }
 }
 
-/**
- * --- PL --- Przetwarza surowe dane z API, dodając pomocnicze pola.
- * --- EN --- Processes raw API data, adding helper fields.
- */
 function processWeatherData(data) {
     return {
         ...data,
-        // POPRAWKA: Tworzymy własny, niezawodny opis na podstawie przetłumaczonych danych, a nie zdania z API
-        // FIX: We create our own reliable overview from the translated data, not the API sentence
         generatedOverview: data.daily[0].weather[0].description,
         roadCondition: (() => {
             const mainWeather = data.current.weather[0].main;
@@ -214,10 +211,6 @@ function processWeatherData(data) {
     };
 }
 
-/**
- * --- PL --- Aktualizuje cały interfejs użytkownika na podstawie bieżącego stanu.
- * --- EN --- Updates the entire user interface based on the current state.
- */
 function updateFullUI(query) {
     const t = translations[state.currentLang];
     
@@ -232,6 +225,10 @@ function updateFullUI(query) {
     ui.renderMinutelyForecast(state.currentWeather.minutely);
     ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
     ui.renderDailyForecast(state.currentWeather.daily, t);
+    
+    // ZMIANA: Aktualizujemy stan przycisków nowego slidera po renderowaniu
+    // CHANGE: Update the new slider's buttons state after rendering
+    ui.updateDailySliderButtons();
 
     ui.showContent();
     
@@ -277,16 +274,15 @@ function handleHourlyRangeSwitch(event) {
     ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
 }
 
-function handleSliderScroll(direction) {
-    const container = document.getElementById('hourly-forecast-container');
-    const item = container.querySelector('.hourly-forecast__item');
+// ZMIANA: Uogólniona funkcja do przewijania sliderów
+// CHANGE: Generalized function for scrolling sliders
+function handleSliderScroll(scrollWrapper, direction) {
+    const item = scrollWrapper.querySelector('.hourly-forecast__item, .daily-forecast__day');
     if (!item) return;
 
-    const itemWidth = item.offsetWidth;
-    const gap = 8;
-    const scrollAmount = (itemWidth + gap) * 8 * direction; // Przewiń o 8 kafelków
+    const scrollAmount = item.offsetWidth * 4 * direction; // Przewiń o 4 kafelki
     
-    document.querySelector('.hourly-forecast__scroll-wrapper').scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 }
 
 function handleHourlyItemClick(event) {
