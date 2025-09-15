@@ -184,8 +184,9 @@ function handleGeolocation() {
 function processWeatherData(data) {
     return {
         ...data,
-        // POPRAWKA: Generuje obiekt z kluczem dla tłumaczeń (`key`) i klasą CSS (`class`)
-        // FIX: Generates an object with a key for translations (`key`) and a CSS class (`class`)
+        // POPRAWKA: Tworzymy własny, niezawodny opis na podstawie przetłumaczonych danych, a nie zdania z API
+        // FIX: We create our own reliable overview from the translated data, not the API sentence
+        generatedOverview: data.daily[0].weather[0].description,
         roadCondition: (() => {
             const mainWeather = data.current.weather[0].main;
             if (data.current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(mainWeather)) {
@@ -396,3 +397,4 @@ function updateMap(lat, lon, cityName, zoomLevel = 13) {
         state.marker = L.marker([lat, lon]).addTo(state.map).bindPopup(cityName).openPopup();
     }
 }
+
