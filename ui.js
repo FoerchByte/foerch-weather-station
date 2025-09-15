@@ -416,25 +416,19 @@ export function updateFavoriteButtonState(isFavorite, favoritesCount) {
 }
 
 export function updateSliderButtons() {
-    const isMobilePortrait = window.matchMedia("(max-width: 768px) and (orientation: portrait)").matches;
-    if (isMobilePortrait || !dom.hourly.scrollWrapper) return;
-    
+    if (!dom.hourly.scrollWrapper) return;
     requestAnimationFrame(() => {
         const { scrollLeft, scrollWidth, clientWidth } = dom.hourly.scrollWrapper;
-        dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0;
-        dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
+        if(dom.hourly.sliderPrevBtn) dom.hourly.sliderPrevBtn.disabled = scrollLeft <= 0;
+        if(dom.hourly.sliderNextBtn) dom.hourly.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
     });
 }
 
 export function updateDailySliderButtons() {
-    const isMobile = window.matchMedia("(max-width: 768px)").matches;
-    if (isMobile || !dom.daily.scrollWrapper) return;
-    
-    requestAnimationFrame(() => {
-        const { scrollLeft, scrollWidth, clientWidth } = dom.daily.scrollWrapper;
-        dom.daily.sliderPrevBtn.disabled = scrollLeft <= 0;
-        dom.daily.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
-    });
+    // Ponieważ na desktopie slider jest teraz statyczną siatką, ta funkcja nie jest już potrzebna w tej formie
+    // Since the slider is now a static grid on desktop, this function is no longer needed in this form
+    if (dom.daily.sliderPrevBtn) dom.daily.sliderPrevBtn.disabled = true;
+    if (dom.daily.sliderNextBtn) dom.daily.sliderNextBtn.disabled = true;
 }
 
 // --- Logika okna modalnego / Modal Logic ---
@@ -456,8 +450,8 @@ function buildDailyModalBody(data, t) {
     const sunrise = new Date(data.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const sunset = new Date(data.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    // POPRAWKA: Użycie `generatedOverview` dla spójności
-    // FIX: Using `generatedOverview` for consistency
+    // POPRAWKA: Użycie `weather[0].description` do tłumaczenia i klucza 'description'
+    // FIX: Using `weather[0].description` for translation and the 'description' key
     const translatedSummary = translateOverview(data.weather[0].description, t);
 
     return `
