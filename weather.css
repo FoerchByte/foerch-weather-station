@@ -470,8 +470,7 @@ body.dark-mode .hourly-forecast__item:hover {
     border-radius: 8px;
 }
 
-/* ZMIANA: Przywrócenie stylów slidera dla prognozy 8-dniowej */
-/* CHANGE: Restoring slider styles for the 8-day forecast */
+/* --- Style dla prognozy 8-dniowej --- */
 .daily-forecast__slider-container {
     position: relative;
 }
@@ -479,15 +478,17 @@ body.dark-mode .hourly-forecast__item:hover {
     display: flex;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    scrollbar-width: none; /* Firefox */
 }
 .daily-forecast__scroll-wrapper::-webkit-scrollbar {
-    display: none;
+    display: none; /* Chrome, Safari */
 }
 .daily-forecast__grid {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: minmax(115px, 1fr);
+    /* Układ 4 kafelków na desktopie */
+    grid-template-columns: repeat(8, 1fr);
+    grid-auto-columns: calc(25% - 0.75rem * 3 / 4);
     gap: 1rem;
     padding: 0.5rem 0 1rem 0;
 }
