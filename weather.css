@@ -306,42 +306,57 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     content: ''; position: absolute; bottom: -1px; left: 10%;
     width: 80%; height: 3px; background-color: var(--primary-color);
 }
+
+/* --- POPRAWKA: Przełącznik zakresu godzinowego / FIX: Hourly Range Switcher --- */
+.hourly-forecast__header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
 .hourly-forecast__range-switcher {
     display: flex;
-    border: none;
-    margin: 0;
-    width: auto;
-    max-width: 200px;
-    overflow: visible;
+    max-width: 400px;
+    width: 100%;
+    margin: 0 auto 1rem auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
 }
 .hourly-forecast__range-switcher button {
-    flex: 1; background: none; border: none; border-radius: 0; padding: 0.5rem;
-    font-weight: 500; color: var(--completed-text); cursor: pointer;
-    transition: color 0.2s; position: relative; font-size: 0.9rem;
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    font-weight: 500;
+    color: var(--completed-text);
+    cursor: pointer;
+    transition: color 0.2s, background-color 0.2s;
+    font-size: 0.9rem;
+    position: relative;
 }
-.hourly-forecast__range-switcher button:first-child { border-right: none; }
+.hourly-forecast__range-switcher button:first-child {
+    border-right: 1px solid var(--border-color);
+}
 .hourly-forecast__range-switcher button.active {
-    color: var(--text-color); background-color: transparent;
+    color: var(--text-color);
+    background-color: var(--background-color);
 }
-.hourly-forecast__range-switcher button.active::after {
-    display: block; content: ''; position: absolute; bottom: 0;
-    left: 15%; width: 70%; height: 2px; background-color: var(--primary-color);
+.hourly-forecast__range-switcher button:not(.active):hover {
+    background-color: rgba(var(--primary-color-rgb), 0.05);
 }
+
 .hourly-forecast__wrapper { position: relative; margin-top: 2rem; }
-.hourly-forecast__header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 1rem;
-}
 .hourly-forecast__title { margin: 0; }
 .hourly-forecast__slider-container { position: relative; }
 
-/* --- FIX: Prognoza godzinowa / FIX: Hourly Forecast --- */
+/* --- POPRAWKA: Prognoza godzinowa / FIX: Hourly Forecast --- */
 .hourly-forecast__scroll-wrapper {
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Ukrycie paska przewijania / Hide scrollbar */
+    scrollbar-width: none;
 }
 .hourly-forecast__scroll-wrapper::-webkit-scrollbar { display: none; }
 
@@ -371,10 +386,9 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
 .hourly-forecast__items {
     display: grid;
     grid-auto-flow: column;
-    /* --- POPRAWKA ---
-       PL: Przywrócono wartość 91px z wersji produkcyjnej i dodano margines, aby 8 kafelków mieściło się idealnie.
-       EN: Restored the 91px value from the production version and added margin to fit 8 tiles perfectly. */
-    grid-auto-columns: 89px; /* Zmniejszona szerokość kolumny */
+    /* Dalsza redukcja szerokości kolumny, aby zapewnić dopasowanie */
+    /* Further reduction of column width to ensure fit */
+    grid-auto-columns: 86px;
     gap: 8px;
 }
 
@@ -388,7 +402,7 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     border: 1px solid var(--border-color);
     border-radius: 8px;
     position: relative;
-    padding: 0.8rem; /* Zmniejszony padding */
+    padding: 0.75rem; /* Zmniejszony padding */
     box-sizing: border-box;
     cursor: pointer;
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
@@ -422,7 +436,6 @@ body.dark-mode .hourly-forecast__item:hover {
 }
 .hourly-forecast__slider-nav:hover { background-color: var(--card-background); }
 .hourly-forecast__slider-nav:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
-/* POPRAWKA: Przyciski wewnątrz kontenera / FIX: Buttons inside the container */
 #hourly-slider-prev { left: 5px; }
 #hourly-slider-next { right: 5px; }
 .hourly-forecast__time { font-size: 0.8rem; margin: 0 0 0.5rem 0; }
@@ -632,7 +645,9 @@ body.dark-mode .daily-forecast__day:hover {
     .detail-col--4 { grid-area: col4; }
     .detail-col--5 { grid-area: col5; }
     
-    .hourly-forecast__header { display: none; }
+    .hourly-forecast__header { display: block; text-align: center; }
+    .hourly-forecast__range-switcher { margin-top: 0.5rem; }
+
     .hourly-forecast__scroll-wrapper { 
         display: block; 
         overflow-x: hidden;
@@ -666,7 +681,6 @@ body.dark-mode .daily-forecast__day:hover {
          display: flex;
          flex-direction: column;
          gap: 8px;
-         /* POPRAWKA: Usunięcie właściwości gridowych, które nie są już potrzebne / FIX: Removing grid properties that are no longer needed */
     }
     .hourly-forecast__item {
         display: flex;
@@ -731,3 +745,4 @@ body.dark-mode .daily-forecast__day:hover {
         justify-content: space-between;
     }
 }
+
