@@ -65,10 +65,12 @@
                 <div class="hourly-forecast__wrapper">
                     <div class="hourly-forecast__header">
                         <h3 class="hourly-forecast__title">Prognoza godzinowa</h3>
-                        <div class="hourly-forecast__range-switcher" id="hourly-range-switcher">
-                            <button data-range="24" class="active">24h</button>
-                            <button data-range="48">48h</button>
-                        </div>
+                    </div>
+                    <!-- ZMIANA: Przełącznik zakresu przeniesiony poza nagłówek dla łatwiejszego stylowania -->
+                    <!-- CHANGE: Range switcher moved outside the header for easier styling -->
+                    <div class="hourly-forecast__range-switcher" id="hourly-range-switcher">
+                        <button data-range="24" class="active">24h</button>
+                        <button data-range="48">48h</button>
                     </div>
                     <div class="hourly-forecast__slider-container">
                         <button class="hourly-forecast__slider-nav" id="hourly-slider-prev" aria-label="Poprzednia strona prognozy">&lt;</button>
@@ -110,3 +112,4 @@
 
 </body>
 </html>
+
