@@ -74,24 +74,14 @@ function convertWindDirection(deg) {
 
 // POPRAWKA: Uproszczona i bardziej niezawodna funkcja tłumacząca
 // FIX: Simplified and more reliable translation function
-function translateOverview(overviewText, t) {
-    if (!overviewText) return '';
+function translateOverview(generatedOverview, t) {
+    if (!generatedOverview) return '';
     
-    let translated = overviewText;
-    // Iterujemy po kluczach tłumaczeń i podmieniamy frazy
-    // Iterate over translation keys and replace phrases
-    for (const [key, value] of Object.entries(t.overview)) {
-        // Pomijamy klucze szablonowe / Skip template keys
-        if (['expect', 'throughout the day', 'and'].includes(key)) continue;
-        
-        // Używamy wyrażenia regularnego, aby podmienić frazę (bez względu na wielkość liter)
-        // Use a regular expression to replace the phrase (case-insensitive)
-        const regex = new RegExp(key, 'gi');
-        translated = translated.replace(regex, value);
-    }
+    // Budujemy zdanie z gotowych, przetłumaczonych fragmentów
+    // We build the sentence from ready, translated parts
+    let sentence = `${t.overview.expect} ${generatedOverview} ${t.overview['throughout the day']}.`;
     
-    translated = translated.charAt(0).toUpperCase() + translated.slice(1);
-    return translated.endsWith('.') ? translated : `${translated}.`;
+    return sentence.charAt(0).toUpperCase() + sentence.slice(1);
 }
 
 
@@ -146,11 +136,13 @@ export function renderCurrentWeather(data, t) {
         <div class="current-weather__header">
             <h3 class="current-weather__city">${data.location.name}</h3>
             <button id="add-favorite-btn" class="favorite-btn" aria-label="Dodaj do ulubionych">
-                <svg class="star-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <svg class="star-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
             </button>
         </div>`;
     
-    const translatedOverview = translateOverview(data.overview, t);
+    // POPRAWKA: Przekazujemy `data.generatedOverview` zamiast `data.overview`
+    // FIX: Passing `data.generatedOverview` instead of `data.overview`
+    const translatedOverview = translateOverview(data.generatedOverview, t);
     const overviewHtml = translatedOverview ? `
         <div class="weather-overview">
             <svg class="weather-overview__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 2C17.5228 2 22 6.47715 22 12V12C22 17.5228 17.5228 22 12 22V22C6.47715 22 2 17.5228 2 12V12C2 6.47715 6.47715 2 12 2V2Z"></path><path d="M13.8284 9.17157L12 11L10.1716 9.17157"></path><path d="M9.17157 13.8284L11 12L9.17157 10.1716"></path><path d="M13.8284 14.8284L12 13L10.1716 14.8284"></path><path d="M14.8284 10.1716L13 12L14.8284 13.8284"></path></svg>
