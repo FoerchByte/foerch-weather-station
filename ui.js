@@ -46,6 +46,11 @@ export function initUI() {
     dom.daily = {
         wrapper: document.querySelector('.daily-forecast__wrapper'),
         container: document.getElementById('daily-forecast-container'),
+        // ZMIANA: Dodanie referencji do elementów slidera
+        // CHANGE: Adding references to slider elements
+        sliderPrevBtn: document.getElementById('daily-slider-prev'),
+        sliderNextBtn: document.getElementById('daily-slider-next'),
+        scrollWrapper: document.querySelector('.daily-forecast__scroll-wrapper'),
     };
     dom.modal = {
         container: document.getElementById('details-modal'),
@@ -293,8 +298,6 @@ export function renderMinutelyForecast(minutelyData) {
                     beginAtZero: true,
                     max: yAxisMax,
                     ticks: {
-                        // POPRAWKA: Dodanie jednostki "mm" do osi Y
-                        // FIX: Adding "mm" unit to the Y-axis
                         callback: function(value) { return value + ' mm'; }
                     }
                 },
@@ -368,6 +371,8 @@ export function renderHourlyForecast(hourlyData, range, t) {
     setTimeout(() => updateSliderButtons(), 0);
 }
 
+// ZMIANA: Renderowanie wzbogaconych kafelków prognozy dziennej
+// CHANGE: Rendering enriched daily forecast tiles
 export function renderDailyForecast(dailyData, t) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -382,6 +387,10 @@ export function renderDailyForecast(dailyData, t) {
             <h4>${dayLabel}</h4>
             <div class="daily-forecast__icon">${getWeatherIconHtml(day.weather[0].icon, day.weather[0].description)}</div>
             <p>${Math.round(day.temp.max)}° / ${Math.round(day.temp.min)}°</p>
+            <div class="daily-forecast__pop">
+                <svg class="daily-forecast__pop-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a5.53 5.53 0 0 0-5.43 6.05L8 16l5.43-9.95A5.53 5.53 0 0 0 8 0zm0 8.87A2.87 2.87 0 1 1 10.87 6 2.87 2.87 0 0 1 8 8.87z"/></svg>
+                <span>${Math.round(day.pop * 100)}%</span>
+            </div>
         </div>`;
     }).join('');
 }
@@ -421,6 +430,19 @@ export function updateSliderButtons() {
     });
 }
 
+// NOWA FUNKCJA: Aktualizacja przycisków slidera prognozy dziennej
+// NEW FUNCTION: Update daily forecast slider buttons
+export function updateDailySliderButtons() {
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    if (isMobile || !dom.daily.scrollWrapper) return;
+    
+    requestAnimationFrame(() => {
+        const { scrollLeft, scrollWidth, clientWidth } = dom.daily.scrollWrapper;
+        dom.daily.sliderPrevBtn.disabled = scrollLeft <= 0;
+        dom.daily.sliderNextBtn.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
+    });
+}
+
 // --- Logika okna modalnego / Modal Logic ---
 
 function buildHourlyModalBody(data, t) {
@@ -436,12 +458,16 @@ function buildHourlyModalBody(data, t) {
     `;
 }
 
+// ZMIANA: Tłumaczenie opisu w oknie modalnym
+// CHANGE: Translating the description in the modal window
 function buildDailyModalBody(data, t) {
     const sunrise = new Date(data.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const sunset = new Date(data.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
+    const translatedSummary = translateOverview(data.summary, t);
+
     return `
-        <div class="modal-detail"><span class="modal-detail__label">Opis</span><span class="modal-detail__value">${data.summary}</span></div>
+        <div class="modal-detail"><span class="modal-detail__label">${t.details.description}</span><span class="modal-detail__value">${translatedSummary}</span></div>
         <div class="modal-detail"><span class="modal-detail__label">${t.forecast.precipChance}</span><span class="modal-detail__value">${Math.round(data.pop * 100)}%</span></div>
         <div class="modal-detail"><span class="modal-detail__label">${t.forecast.temp}</span><div class="modal-detail__value modal-detail__value--temp-grid">
             <span>${t.forecast.morn}:</span><span>${Math.round(data.temp.morn)}°C</span>
