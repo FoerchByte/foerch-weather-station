@@ -46,8 +46,6 @@ export function initUI() {
     dom.daily = {
         wrapper: document.querySelector('.daily-forecast__wrapper'),
         container: document.getElementById('daily-forecast-container'),
-        // ZMIANA: Dodanie referencji do elementów slidera
-        // CHANGE: Adding references to slider elements
         sliderPrevBtn: document.getElementById('daily-slider-prev'),
         sliderNextBtn: document.getElementById('daily-slider-next'),
         scrollWrapper: document.querySelector('.daily-forecast__scroll-wrapper'),
@@ -371,8 +369,6 @@ export function renderHourlyForecast(hourlyData, range, t) {
     setTimeout(() => updateSliderButtons(), 0);
 }
 
-// ZMIANA: Renderowanie wzbogaconych kafelków prognozy dziennej
-// CHANGE: Rendering enriched daily forecast tiles
 export function renderDailyForecast(dailyData, t) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -430,8 +426,6 @@ export function updateSliderButtons() {
     });
 }
 
-// NOWA FUNKCJA: Aktualizacja przycisków slidera prognozy dziennej
-// NEW FUNCTION: Update daily forecast slider buttons
 export function updateDailySliderButtons() {
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
     if (isMobile || !dom.daily.scrollWrapper) return;
@@ -458,13 +452,13 @@ function buildHourlyModalBody(data, t) {
     `;
 }
 
-// ZMIANA: Tłumaczenie opisu w oknie modalnym
-// CHANGE: Translating the description in the modal window
 function buildDailyModalBody(data, t) {
     const sunrise = new Date(data.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const sunset = new Date(data.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    const translatedSummary = translateOverview(data.summary, t);
+    // POPRAWKA: Użycie `generatedOverview` dla spójności
+    // FIX: Using `generatedOverview` for consistency
+    const translatedSummary = translateOverview(data.weather[0].description, t);
 
     return `
         <div class="modal-detail"><span class="modal-detail__label">${t.details.description}</span><span class="modal-detail__value">${translatedSummary}</span></div>
@@ -502,14 +496,12 @@ export function showDetailsModal(data, type, t) {
         dom.modal.container.querySelector('button, a, input, [tabindex]').focus();
     }, 10);
     
-    // Zapisujemy element, który wywołał modal
     activeModalTrigger = document.activeElement;
 }
 
 export function hideDetailsModal() {
     dom.modal.container.classList.remove('is-visible');
     
-    // Przywracamy focus na element, który otworzył modal
     if (activeModalTrigger) {
         activeModalTrigger.focus();
         activeModalTrigger = null;
