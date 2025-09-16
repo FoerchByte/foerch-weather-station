@@ -727,6 +727,10 @@ body.dark-mode .daily-forecast__day:hover {
     .hourly-forecast__day-group:not(:last-child) {
         padding-right: 12px;
     }
+    
+    .hourly-forecast__day-group:not(:last-child)::after {
+        right: 6px; /* POPRAWKA: Przesunięcie linii na środek odstępu */
+    }
 
     /* Prognoza na następne dni: dopasowanie 7 kafelków i ukrycie slidera */
     .daily-forecast__grid {
