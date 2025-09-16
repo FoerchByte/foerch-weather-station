@@ -694,7 +694,6 @@ body.dark-mode .daily-forecast__day:hover {
 /* --- Media Queries / Zapytania medialne --- */
 
 @media (min-width: 1025px) {
-    /* --- POPRAWKA: Przywrócenie przycisków na desktopie --- */
     .hourly-forecast__slider-nav {
         display: flex;
     }
@@ -723,18 +722,16 @@ body.dark-mode .daily-forecast__day:hover {
         display: flex;
     }
     .hourly-forecast__items {
-        /* Ustawiono precyzyjną szerokość kafelka */
         grid-auto-columns: 82.5px; 
     }
     .hourly-forecast__day-group:not(:last-child) {
-        /* Zmniejszono odstęp przy separatorze dnia */
         padding-right: 12px;
     }
 
     /* Prognoza na następne dni: dopasowanie 7 kafelków i ukrycie slidera */
     .daily-forecast__grid {
         grid-template-columns: repeat(7, 1fr);
-        gap: 8px; /* Zmniejszono odstęp */
+        gap: 8px;
     }
     .daily-forecast__day h4 {
         font-size: 0.85rem;
