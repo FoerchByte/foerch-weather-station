@@ -714,7 +714,7 @@ body.dark-mode .daily-forecast__day:hover {
         display: flex;
     }
     .hourly-forecast__items {
-        grid-auto-columns: 80px;
+        grid-auto-columns: 82px;
     }
 
     /* Prognoza na następne dni: dopasowanie 7 kafelków i ukrycie slidera */
