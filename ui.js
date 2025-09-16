@@ -370,13 +370,15 @@ export function renderHourlyForecast(hourlyData, range, t) {
 }
 
 export function renderDailyForecast(dailyData, t) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    dom.daily.container.innerHTML = dailyData.map(day => {
+    // --- PL ---
+    // Zmieniono logikę, aby wyświetlać 7 kolejnych dni, pomijając dzień bieżący.
+    // Używamy .slice(1), aby pominąć element o indeksie 0 (dzisiejszy dzień).
+    // --- EN ---
+    // Changed logic to display the next 7 days, skipping the current day.
+    // We use .slice(1) to skip the element at index 0 (today's data).
+    dom.daily.container.innerHTML = dailyData.slice(1).map(day => {
         const dayDate = new Date(day.dt * 1000);
-        let dayLabel = dayDate.toLocaleDateString('pl-PL', { weekday: 'long' });
-        if (dayDate.getTime() === today.getTime()) dayLabel = t.forecast.today;
+        const dayLabel = dayDate.toLocaleDateString('pl-PL', { weekday: 'long' });
         
         return `
         <div class="daily-forecast__day" data-timestamp="${day.dt}" tabindex="0" role="button">
@@ -507,4 +509,3 @@ export function hideDetailsModal() {
         dom.modal.container.setAttribute('hidden', true);
     }, 300);
 }
-
