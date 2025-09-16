@@ -475,7 +475,10 @@ body.dark-mode .hourly-forecast__item:hover {
     position: relative;
 }
 .daily-forecast__scroll-wrapper {
-    display: flex;
+    /* --- ZMIANA --- */
+    /* Usunięto 'display: flex' aby grid przejął pełną kontrolę nad układem. */
+    /* --- CHANGE --- */
+    /* Removed 'display: flex' to let grid take full control of the layout. */
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -485,17 +488,16 @@ body.dark-mode .hourly-forecast__item:hover {
 }
 .daily-forecast__grid {
     display: grid;
-    grid-auto-flow: column;
-    /* --- ZMIANA --- */
-    /* Zmniejszono szerokość kafelków, aby zmieścić więcej elementów w widoku. */
-    /* --- CHANGE --- */
-    /* Decreased tile width to fit more elements in the view. */
-    grid-auto-columns: 90px;
-    gap: 16px; /* 1rem = 16px */
+    /* --- ZMIANA: Elastyczny grid zamiast stałej szerokości --- */
+    /* Używamy 7 kolumn o równej, elastycznej szerokości (1fr). */
+    /* --- CHANGE: Flexible grid instead of fixed width --- */
+    /* Using 7 columns with equal, flexible width (1fr). */
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px; /* Zmniejszono odstęp dla lepszego dopasowania */
     padding: 0.5rem 0 1rem 0;
 }
 .daily-forecast__day {
-    padding: 1rem;
+    padding: 0.75rem; /* Zmniejszono padding, aby dać więcej miejsca treści */
     background-color: var(--background-color);
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -503,7 +505,7 @@ body.dark-mode .hourly-forecast__item:hover {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.25rem; /* Zmniejszono odstęp między elementami w kafelku */
     cursor: pointer;
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
 }
@@ -517,14 +519,22 @@ body.dark-mode .daily-forecast__day:hover {
 }
 .daily-forecast__day h4 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 0.9rem; /* Lekko zmniejszono czcionkę dla lepszego dopasowania */
     font-weight: 500;
     text-transform: capitalize;
+    white-space: nowrap; /* Zapobiega łamaniu nazw dni */
 }
+
+/* --- ZMIANA: Dodano styl dla paragrafu z temperaturą --- */
+.daily-forecast__day p {
+    margin: 0;
+    white-space: nowrap; /* Zapobiega łamaniu się temperatur */
+}
+
 .daily-forecast__icon {
     width: 64px;
     height: 64px;
-    margin: 0.5rem 0;
+    margin: 0.25rem 0;
 }
 .daily-forecast__pop {
     display: flex;
@@ -703,14 +713,25 @@ body.dark-mode .daily-forecast__day:hover {
     #forecasts-container.show-daily .hourly-forecast__wrapper {
         display: block !important;
     }
+    /* --- ZMIANA: Ukrycie strzałek slidera na szerokich ekranach --- */
+    /* --- CHANGE: Hiding slider arrows on wide screens --- */
+    .daily-forecast__slider-container .daily-forecast__slider-nav {
+        display: none;
+    }
 }
 
-@media (min-width: 1025px) {
-    .hourly-forecast__slider-nav,
-    .daily-forecast__slider-nav {
+@media (max-width: 1024px) {
+    /* --- ZMIANA: Przywrócenie slidera na węższych ekranach --- */
+    /* --- CHANGE: Restoring the slider on narrower screens --- */
+    .daily-forecast__grid {
+        grid-auto-flow: column;
+        grid-auto-columns: 90px; /* Przywracamy stałą szerokość dla przewijania */
+    }
+     .daily-forecast__slider-container .daily-forecast__slider-nav {
         display: flex;
     }
 }
+
 
 @media (max-width: 768px) {
     .weather-app__search { flex-direction: column; }
@@ -828,3 +849,4 @@ body.dark-mode .daily-forecast__day:hover {
         justify-content: space-between;
     }
 }
+
