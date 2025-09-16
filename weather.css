@@ -475,10 +475,6 @@ body.dark-mode .hourly-forecast__item:hover {
     position: relative;
 }
 .daily-forecast__scroll-wrapper {
-    /* --- ZMIANA --- */
-    /* Usunięto 'display: flex' aby grid przejął pełną kontrolę nad układem. */
-    /* --- CHANGE --- */
-    /* Removed 'display: flex' to let grid take full control of the layout. */
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -488,16 +484,12 @@ body.dark-mode .hourly-forecast__item:hover {
 }
 .daily-forecast__grid {
     display: grid;
-    /* --- ZMIANA: Elastyczny grid zamiast stałej szerokości --- */
-    /* Używamy 7 kolumn o równej, elastycznej szerokości (1fr). */
-    /* --- CHANGE: Flexible grid instead of fixed width --- */
-    /* Using 7 columns with equal, flexible width (1fr). */
     grid-template-columns: repeat(7, 1fr);
-    gap: 12px; /* Zmniejszono odstęp dla lepszego dopasowania */
+    gap: 12px;
     padding: 0.5rem 0 1rem 0;
 }
 .daily-forecast__day {
-    padding: 0.75rem; /* Zmniejszono padding, aby dać więcej miejsca treści */
+    padding: 0.75rem;
     background-color: var(--background-color);
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -505,7 +497,7 @@ body.dark-mode .hourly-forecast__item:hover {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.25rem; /* Zmniejszono odstęp między elementami w kafelku */
+    gap: 0.25rem;
     cursor: pointer;
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
 }
@@ -519,16 +511,14 @@ body.dark-mode .daily-forecast__day:hover {
 }
 .daily-forecast__day h4 {
     margin: 0;
-    font-size: 0.9rem; /* Lekko zmniejszono czcionkę dla lepszego dopasowania */
+    font-size: 0.9rem;
     font-weight: 500;
     text-transform: capitalize;
-    white-space: nowrap; /* Zapobiega łamaniu nazw dni */
+    white-space: nowrap;
 }
-
-/* --- ZMIANA: Dodano styl dla paragrafu z temperaturą --- */
 .daily-forecast__day p {
     margin: 0;
-    white-space: nowrap; /* Zapobiega łamaniu się temperatur */
+    white-space: nowrap;
 }
 
 .daily-forecast__icon {
@@ -713,25 +703,32 @@ body.dark-mode .daily-forecast__day:hover {
     #forecasts-container.show-daily .hourly-forecast__wrapper {
         display: block !important;
     }
-    /* --- ZMIANA: Ukrycie strzałek slidera na szerokich ekranach --- */
-    /* --- CHANGE: Hiding slider arrows on wide screens --- */
     .daily-forecast__slider-container .daily-forecast__slider-nav {
         display: none;
     }
 }
 
-@media (max-width: 1024px) {
-    /* --- ZMIANA: Przywrócenie slidera na węższych ekranach --- */
-    /* --- CHANGE: Restoring the slider on narrower screens --- */
-    .daily-forecast__grid {
-        grid-auto-flow: column;
-        grid-auto-columns: 90px; /* Przywracamy stałą szerokość dla przewijania */
-    }
-     .daily-forecast__slider-container .daily-forecast__slider-nav {
+@media (max-width: 1024px) and (orientation: landscape) {
+    /* Prognoza godzinowa: przywrócenie slidera i dopasowanie kafelków */
+    .hourly-forecast__slider-nav {
         display: flex;
     }
-}
+    .hourly-forecast__items {
+        grid-auto-columns: 80px;
+    }
 
+    /* Prognoza na następne dni: dopasowanie 7 kafelków i ukrycie slidera */
+    .daily-forecast__grid {
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+    }
+    .daily-forecast__day h4 {
+        font-size: 0.85rem;
+    }
+    .daily-forecast__slider-container .daily-forecast__slider-nav {
+        display: none;
+    }
+}
 
 @media (max-width: 768px) {
     .weather-app__search { flex-direction: column; }
@@ -746,7 +743,9 @@ body.dark-mode .daily-forecast__day:hover {
     .detail-col--3 .current-weather__detail-item { align-items: center; }
     .detail-col--4 { grid-area: col4; }
     .detail-col--5 { grid-area: col5; }
-    
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
     .hourly-forecast__header { display: block; text-align: center; }
     .hourly-forecast__range-switcher { margin-top: 0.5rem; }
 
@@ -849,4 +848,3 @@ body.dark-mode .daily-forecast__day:hover {
         justify-content: space-between;
     }
 }
-
