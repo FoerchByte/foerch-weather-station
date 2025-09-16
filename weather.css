@@ -470,7 +470,7 @@ body.dark-mode .hourly-forecast__item:hover {
     border-radius: 8px;
 }
 
-/* --- Style dla prognozy 8-dniowej --- */
+/* --- Style dla prognozy dziennej (na następne dni) / Styles for daily forecast --- */
 .daily-forecast__slider-container {
     position: relative;
 }
@@ -486,9 +486,11 @@ body.dark-mode .hourly-forecast__item:hover {
 .daily-forecast__grid {
     display: grid;
     grid-auto-flow: column;
-    /* POPRAWKA: Precyzyjne obliczenie szerokości dla 4 kafelków */
-    /* FIX: Precise width calculation for 4 tiles */
-    grid-auto-columns: 168px;
+    /* --- ZMIANA --- */
+    /* Zmniejszono szerokość kafelków, aby zmieścić więcej elementów w widoku. */
+    /* --- CHANGE --- */
+    /* Decreased tile width to fit more elements in the view. */
+    grid-auto-columns: 90px;
     gap: 16px; /* 1rem = 16px */
     padding: 0.5rem 0 1rem 0;
 }
@@ -826,4 +828,3 @@ body.dark-mode .daily-forecast__day:hover {
         justify-content: space-between;
     }
 }
-
