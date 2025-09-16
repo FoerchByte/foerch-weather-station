@@ -340,8 +340,8 @@ body.dark-mode .weather-alert--warning { color: #ffc107; }
     content: '';
     position: absolute;
     bottom: -1px;
-    left: 15%;
-    width: 70%;
+    left: 25%;
+    width: 50%;
     height: 2px;
     background-color: var(--primary-color);
 }
