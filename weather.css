@@ -691,6 +691,60 @@ body.dark-mode .daily-forecast__day:hover {
     align-items: center;
 }
 
+/* --- Style ścieżki słońca/księżyca / Sun/Moon Path Styles --- */
+.sun-moon-paths-container {
+    display: none; /* Ukryte domyślnie / Hidden by default */
+}
+
+.celestial-path {
+    position: relative;
+    width: 100%;
+    height: 100px; /* Wysokość półkola / Semicircle height */
+    border: 2px dashed var(--border-color);
+    border-top: none;
+    border-radius: 0 0 200px 200px; /* Tworzy półkole / Creates a semicircle */
+    margin: 0.5rem auto 0 auto;
+}
+
+.celestial-path__title {
+    text-align: center;
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--completed-text);
+}
+
+.celestial-path__rotator {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 200px; /* Szerokość kontenera obrotu / Width of the rotator container */
+    height: 100px; /* Połowa szerokości / Half of the width */
+    transform-origin: top center;
+    transition: transform 1s ease-out;
+}
+
+.celestial-path__icon {
+    position: absolute;
+    bottom: -12px; /* Pozycjonowanie ikony na ścieżce / Positioning the icon on the path */
+    left: -12px;
+    font-size: 1.5rem;
+    width: 24px;
+    height: 24px;
+    line-height: 1;
+    transform: rotate(90deg); /* Korekta obrotu ikony / Icon rotation correction */
+}
+
+.celestial-path__times {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+    font-size: 0.85rem;
+    color: var(--completed-text);
+    margin-top: -12px;
+}
+
+
 /* --- Media Queries / Zapytania medialne --- */
 
 @media (min-width: 1025px) {
@@ -862,5 +916,17 @@ body.dark-mode .daily-forecast__day:hover {
         flex-direction: row;
         justify-content: space-between;
     }
+    
+    /* --- Zmiany dla wizualizacji ścieżki Słońca/Księżyca --- */
+    .current-weather__extra-details {
+        grid-template-areas: "col1 col2" "col3 col3" "celestial-paths celestial-paths";
+    }
+    .detail-col--4, .detail-col--5 { display: none; }
+    .sun-moon-paths-container {
+        grid-area: celestial-paths;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
 }
-
