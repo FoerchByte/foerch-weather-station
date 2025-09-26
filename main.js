@@ -178,8 +178,28 @@ function handleGeolocation() {
 }
 
 function processWeatherData(data) {
+    const now = Date.now();
+    const today = data.daily[0];
+
+    const sunPathProgress = Math.max(0, Math.min(100, 
+        (now - (today.sunrise * 1000)) / ((today.sunset - today.sunrise) * 1000) * 100
+    ));
+
+    // --- PL --- Sprawdzamy, czy wschód księżyca jest wcześniejszy niż zachód. Jeśli nie, to znaczy, że zachód nastąpi następnego dnia.
+    // --- EN --- Check if moonrise is earlier than moonset. If not, it means moonset occurs on the next day.
+    const isMoonsetNextDay = today.moonrise > today.moonset;
+    const moonsetTimestamp = isMoonsetNextDay 
+        ? (today.moonset * 1000) + 86400000 // Add 24 hours
+        : (today.moonset * 1000);
+
+    const moonPathProgress = Math.max(0, Math.min(100,
+        (now - (today.moonrise * 1000)) / (moonsetTimestamp - (today.moonrise * 1000)) * 100
+    ));
+
     return {
         ...data,
+        sunPathProgress,
+        moonPathProgress,
         generatedOverview: data.daily[0].weather[0].description,
         roadCondition: (() => {
             const mainWeather = data.current.weather[0].main;
