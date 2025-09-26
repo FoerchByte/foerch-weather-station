@@ -724,29 +724,31 @@ body.dark-mode .daily-forecast__day:hover {
 .celestial-path__rotator {
     position: absolute;
     top: 100%;
-    left: 50%;
-    width: 200px; /* Szerokość kontenera obrotu / Width of the rotator container */
-    height: 100px; /* Połowa szerokości / Half of the width */
+    left: 0; /* ZMIANA/FIX: Wyrównuje rotator z rodzicem, aby origin było na środku */
+    width: 200px;
+    height: 100px;
     transform-origin: top center;
     transition: transform 1s ease-out;
 }
 
 .celestial-path__icon {
     position: absolute;
-    bottom: -12px; /* Pozycjonowanie ikony na ścieżce / Positioning the icon on the path */
-    left: -12px;
+    bottom: 0; /* ZMIANA/FIX: Pozycjonuje na dole ramienia */
+    left: 50%; /* ZMIANA/FIX: Zaczyna pozycjonowanie od środka */
     font-size: 1.5rem;
     width: 24px;
     height: 24px;
     line-height: 1;
-    transform: rotate(90deg); /* Korekta obrotu ikony / Icon rotation correction */
+    /* ZMIANA/FIX: Centruje ikonę i przesuwa w dół, aby była na linii */
+    transform: translate(-50%, 50%) rotate(90deg);
     transition: transform 0.5s ease-in-out;
 }
 
 /* --- PL --- Korekta obrotu ikony po odwróceniu ścieżki.
    --- EN --- Correct icon rotation after flipping the path. */
 .celestial-path.is-night .celestial-path__icon {
-    transform: rotate(-90deg);
+    /* ZMIANA/FIX: Dostosowuje transformację dla odwróconej ścieżki */
+    transform: translate(-50%, 50%) rotate(-90deg);
 }
 
 .celestial-path__times {
