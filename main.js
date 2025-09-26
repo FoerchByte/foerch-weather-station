@@ -387,4 +387,3 @@ function updateMap(lat, lon, cityName, zoomLevel = 13) {
         state.marker = L.marker([lat, lon]).addTo(state.map).bindPopup(cityName).openPopup();
     }
 }
-
