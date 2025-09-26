@@ -698,12 +698,19 @@ body.dark-mode .daily-forecast__day:hover {
 
 .celestial-path {
     position: relative;
-    width: 200px; /* ZMIANA: Stała szerokość dla idealnego półkola / CHANGE: Fixed width for a perfect semicircle */
-    height: 100px; /* Wysokość to połowa szerokości / Height is half of the width */
+    width: 200px;
+    height: 100px;
     border: 2px dashed var(--border-color);
     border-top: none;
-    border-radius: 0 0 100px 100px; /* ZMIANA: Promień dopasowany do wymiarów / CHANGE: Radius adjusted to dimensions */
+    border-radius: 0 0 100px 100px;
     margin: 0.5rem auto 0 auto;
+    transition: transform 0.5s ease-in-out; /* Płynne odwracanie / Smooth flip */
+}
+
+/* --- PL --- Nowa klasa do odwracania ścieżki w nocy.
+   --- EN --- New class to flip the path at night. */
+.celestial-path.is-night {
+    transform: rotate(180deg);
 }
 
 .celestial-path__title {
@@ -733,6 +740,13 @@ body.dark-mode .daily-forecast__day:hover {
     height: 24px;
     line-height: 1;
     transform: rotate(90deg); /* Korekta obrotu ikony / Icon rotation correction */
+    transition: transform 0.5s ease-in-out;
+}
+
+/* --- PL --- Korekta obrotu ikony po odwróceniu ścieżki.
+   --- EN --- Correct icon rotation after flipping the path. */
+.celestial-path.is-night .celestial-path__icon {
+    transform: rotate(-90deg);
 }
 
 .celestial-path__times {
@@ -742,6 +756,11 @@ body.dark-mode .daily-forecast__day:hover {
     font-size: 0.85rem;
     color: var(--completed-text);
     margin-top: -12px;
+    transition: transform 0.5s ease-in-out;
+}
+
+.celestial-path.is-night .celestial-path__times {
+    transform: rotate(180deg);
 }
 
 
