@@ -42,6 +42,8 @@ export const translations = {
             moonrise: 'Wschód księżyca',
             moonset: 'Zachód księżyca',
             description: 'Opis', // ZMIANA: Dodano brakujący klucz
+            daylightHours: 'Długość dnia',
+            moonPhase: 'Faza księżyca',
         },
 
         // --- Prognozy ---
@@ -135,6 +137,8 @@ export const translations = {
             moonrise: 'Moonrise',
             moonset: 'Moonset',
             description: 'Description', // CHANGE: Added missing key
+            daylightHours: 'Daylight Hours',
+            moonPhase: 'Moon Phase',
         },
 
         // --- Forecasts ---
@@ -198,4 +202,3 @@ export const translations = {
         }
     }
 };
-
