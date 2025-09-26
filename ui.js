@@ -161,6 +161,44 @@ export function showContent() {
 
 // --- Renderowanie komponentów / Component Rendering ---
 
+function renderSunPathComponent(data, t) {
+    if (isNaN(data.sunPathProgress)) return '';
+    const rotation = -90 + (data.sunPathProgress * 1.8);
+    return `
+        <div class="sun-path-container">
+            <h4 class="celestial-path__title">${t.details.daylightHours}</h4>
+            <div class="celestial-path sun-path">
+                <div class="celestial-path__rotator" style="transform: rotate(${rotation}deg);">
+                    <div class="celestial-path__icon">☀️</div>
+                </div>
+            </div>
+            <div class="celestial-path__times">
+                <div class="celestial-path__time-start">${data.formattedTimes.sunrise}</div>
+                <div class="celestial-path__time-end">${data.formattedTimes.sunset}</div>
+            </div>
+        </div>
+    `;
+}
+
+function renderMoonPathComponent(data, t) {
+    if (isNaN(data.moonPathProgress)) return '';
+    const rotation = -90 + (data.moonPathProgress * 1.8);
+    return `
+        <div class="moon-path-container">
+            <h4 class="celestial-path__title">${t.details.moonPhase}</h4>
+            <div class="celestial-path moon-path">
+                <div class="celestial-path__rotator" style="transform: rotate(${rotation}deg);">
+                    <div class="celestial-path__icon">🌙</div>
+                </div>
+            </div>
+            <div class="celestial-path__times">
+                <div class="celestial-path__time-start">${data.formattedTimes.moonrise}</div>
+                <div class="celestial-path__time-end">${data.formattedTimes.moonset}</div>
+            </div>
+        </div>
+    `;
+}
+
 export function renderCurrentWeather(data, t) {
     const headerHtml = `
         <div class="current-weather__header">
@@ -198,6 +236,10 @@ export function renderCurrentWeather(data, t) {
             <div class="detail-col detail-col--5">
                 <div class="current-weather__detail-item value-color--moon"><span class="detail-item-header"><span>${t.details.moonrise}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 17H22" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C15.3137 14 18 11.3137 18 8C18 4.68629 15.3137 2 12 2C8.68629 2 6 4.68629 6 8C6 11.3137 8.68629 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C13.6569 14 15 11.3137 15 8C15 4.68629 13.6569 2 12 2" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.moonrise}</span></div>
                 <div class="current-weather__detail-item value-color--moon"><span class="detail-item-header"><span>${t.details.moonset}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 17H22" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C15.3137 14 18 11.3137 18 8C18 4.68629 15.3137 2 12 2C8.68629 2 6 4.68629 6 8C6 11.3137 8.68629 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C13.6569 14 15 11.3137 15 8C15 4.68629 13.6569 2 12 2" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.moonset}</span></div>
+            </div>
+            <div class="sun-moon-paths-container">
+                ${renderSunPathComponent(data, t)}
+                ${renderMoonPathComponent(data, t)}
             </div>
         </div>`;
     
