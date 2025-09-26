@@ -163,11 +163,18 @@ export function showContent() {
 
 function renderSunPathComponent(data, t) {
     if (isNaN(data.sunPathProgress)) return '';
+    
+    // --- PL --- Sprawdzamy, czy słońce jest nad horyzontem.
+    // --- EN --- Check if the sun is above the horizon.
+    const isDay = data.sunPathProgress > 0 && data.sunPathProgress < 100;
+    
     const rotation = -90 + (data.sunPathProgress * 1.8);
+    const pathClass = isDay ? 'is-day' : 'is-night';
+
     return `
         <div class="sun-path-container">
             <h4 class="celestial-path__title">${t.details.daylightHours}</h4>
-            <div class="celestial-path sun-path">
+            <div class="celestial-path sun-path ${pathClass}">
                 <div class="celestial-path__rotator" style="transform: rotate(${rotation}deg);">
                     <div class="celestial-path__icon">☀️</div>
                 </div>
@@ -182,11 +189,18 @@ function renderSunPathComponent(data, t) {
 
 function renderMoonPathComponent(data, t) {
     if (isNaN(data.moonPathProgress)) return '';
+    
+    // --- PL --- Sprawdzamy, czy księżyc jest nad horyzontem.
+    // --- EN --- Check if the moon is above the horizon.
+    const isMoonVisible = data.moonPathProgress > 0 && data.moonPathProgress < 100;
+    
     const rotation = -90 + (data.moonPathProgress * 1.8);
+    const pathClass = isMoonVisible ? 'is-day' : 'is-night'; // Używamy tych samych klas co dla słońca
+
     return `
         <div class="moon-path-container">
             <h4 class="celestial-path__title">${t.details.moonPhase}</h4>
-            <div class="celestial-path moon-path">
+            <div class="celestial-path moon-path ${pathClass}">
                 <div class="celestial-path__rotator" style="transform: rotate(${rotation}deg);">
                     <div class="celestial-path__icon">🌙</div>
                 </div>
@@ -551,3 +565,4 @@ export function hideDetailsModal() {
         dom.modal.container.setAttribute('hidden', true);
     }, 300);
 }
+
