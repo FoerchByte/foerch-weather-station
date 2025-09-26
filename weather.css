@@ -723,33 +723,31 @@ body.dark-mode .daily-forecast__day:hover {
 
 .celestial-path__rotator {
     position: absolute;
-    top: 100%;
-    left: 0; /* ZMIANA/FIX: Wyrównuje rotator z rodzicem, aby origin było na środku */
+    top: 0;
+    left: 50%;
     width: 200px;
     height: 100px;
-    transform-origin: top center;
+    transform-origin: bottom center;
     transition: transform 1s ease-out;
+    transform: translateX(-50%);
 }
 
 .celestial-path__icon {
     position: absolute;
-    bottom: 0; /* ZMIANA/FIX: Pozycjonuje na dole ramienia */
-    left: 50%; /* ZMIANA/FIX: Zaczyna pozycjonowanie od środka */
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 1.5rem;
     width: 24px;
     height: 24px;
     line-height: 1;
-    /* ZMIANA/FIX: Centruje ikonę i przesuwa w dół, aby była na linii */
-    transform: translate(-50%, 50%) rotate(90deg);
     transition: transform 0.5s ease-in-out;
 }
 
-/* --- PL --- Korekta obrotu ikony po odwróceniu ścieżki.
-   --- EN --- Correct icon rotation after flipping the path. */
 .celestial-path.is-night .celestial-path__icon {
-    /* ZMIANA/FIX: Dostosowuje transformację dla odwróconej ścieżki */
-    transform: translate(-50%, 50%) rotate(-90deg);
+    transform: translateX(-50%) rotate(180deg);
 }
+
 
 .celestial-path__times {
     display: flex;
@@ -757,7 +755,7 @@ body.dark-mode .daily-forecast__day:hover {
     padding: 0 10px;
     font-size: 0.85rem;
     color: var(--completed-text);
-    margin-top: -12px;
+    margin-top: 5px;
     transition: transform 0.5s ease-in-out;
 }
 
