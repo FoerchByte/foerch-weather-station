@@ -698,11 +698,11 @@ body.dark-mode .daily-forecast__day:hover {
 
 .celestial-path {
     position: relative;
-    width: 100%;
-    height: 100px; /* Wysokość półkola / Semicircle height */
+    width: 200px; /* ZMIANA: Stała szerokość dla idealnego półkola / CHANGE: Fixed width for a perfect semicircle */
+    height: 100px; /* Wysokość to połowa szerokości / Height is half of the width */
     border: 2px dashed var(--border-color);
     border-top: none;
-    border-radius: 0 0 200px 200px; /* Tworzy półkole / Creates a semicircle */
+    border-radius: 0 0 100px 100px; /* ZMIANA: Promień dopasowany do wymiarów / CHANGE: Radius adjusted to dimensions */
     margin: 0.5rem auto 0 auto;
 }
 
@@ -930,3 +930,4 @@ body.dark-mode .daily-forecast__day:hover {
         margin-top: 1rem;
     }
 }
+
