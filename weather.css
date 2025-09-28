@@ -704,13 +704,11 @@ body.dark-mode .daily-forecast__day:hover {
     border-top: none;
     border-radius: 0 0 100px 100px;
     margin: 0.5rem auto 0 auto;
+    transition: opacity 0.5s;
 }
 
 .celestial-path.is-night {
-    transform: rotate(180deg);
-}
-.sun-path.is-night {
-    opacity: 0.5;
+    opacity: 0.4;
 }
 
 .celestial-path__title {
@@ -723,32 +721,21 @@ body.dark-mode .daily-forecast__day:hover {
 
 .celestial-path__icon {
     position: absolute;
-    bottom: 50%; /* Start from vertical center */
-    left: 50%;   /* Start from horizontal center */
     width: 24px;
     height: 24px;
     font-size: 1.5rem;
     line-height: 1;
-    transform-origin: center center;
-    transition: transform 1s ease-out;
-    /* ZMIANA: Usunięcie zbędnych transformacji, JS zajmie się pozycjonowaniem */
-}
-
-.celestial-path.is-night .celestial-path__icon {
-    opacity: 0.5; /* Lekkie przygaszenie ikony w nocy */
+    transform: translate(-50%, -50%); /* Centrowanie ikony na jej pozycji */
+    transition: top 1s, left 1s, opacity 0.5s;
 }
 
 .celestial-path__times {
     display: flex;
     justify-content: space-between;
-    padding: 0 5px; /* Drobna korekta paddingu */
+    padding: 0 5px;
     font-size: 0.85rem;
     color: var(--completed-text);
     margin-top: 5px;
-}
-
-.celestial-path.is-night ~ .celestial-path__times {
-    transform: rotate(180deg);
 }
 
 
@@ -937,3 +924,4 @@ body.dark-mode .daily-forecast__day:hover {
         margin-top: 1rem;
     }
 }
+
