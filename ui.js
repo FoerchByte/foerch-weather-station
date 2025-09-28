@@ -161,18 +161,30 @@ export function showContent() {
 
 // --- Renderowanie komponentów / Component Rendering ---
 
+function getCelestialPosition(progress) {
+    const angle = Math.PI - (progress / 100) * Math.PI; // Od 180 do 0 stopni
+    const radius = 100; // Promień półokręgu
+    const centerX = 100;
+    const centerY = 100;
+    
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY - radius * Math.sin(angle); // Odejmujemy, bo oś Y rośnie w dół
+    
+    return { x, y };
+}
+
 function renderSunPathComponent(data, t) {
     if (isNaN(data.sunPathProgress)) return '';
     
     const isDay = data.sunPathProgress >= 0 && data.sunPathProgress <= 100;
-    const rotation = data.sunPathProgress * 1.8; // 0% -> 0deg, 100% -> 180deg
-    const pathClass = isDay ? 'is-day' : 'is-night';
+    const { x, y } = getCelestialPosition(data.sunPathProgress);
+    const style = `left: ${x}px; top: ${y}px; opacity: ${isDay ? 1 : 0.3};`;
 
     return `
         <div class="sun-path-container">
             <h4 class="celestial-path__title">${t.details.daylightHours}</h4>
-            <div class="celestial-path ${pathClass}">
-                <div class="celestial-path__icon" style="transform: rotate(${rotation}deg) translateY(-100px) rotate(-${rotation}deg);">${isDay ? '☀️' : '☀️'}</div>
+            <div class="celestial-path ${!isDay ? 'is-night' : ''}">
+                <div class="celestial-path__icon" style="${style}">☀️</div>
             </div>
             <div class="celestial-path__times">
                 <span>${data.formattedTimes.sunrise}</span>
@@ -186,14 +198,14 @@ function renderMoonPathComponent(data, t) {
     if (isNaN(data.moonPathProgress)) return '';
     
     const isMoonVisible = data.moonPathProgress >= 0 && data.moonPathProgress <= 100;
-    const rotation = data.moonPathProgress * 1.8;
-    const pathClass = isMoonVisible ? 'is-day' : 'is-night';
+    const { x, y } = getCelestialPosition(data.moonPathProgress);
+    const style = `left: ${x}px; top: ${y}px; opacity: ${isMoonVisible ? 1 : 0.3};`;
 
     return `
         <div class="moon-path-container">
             <h4 class="celestial-path__title">${t.details.moonPhase}</h4>
-            <div class="celestial-path ${pathClass}">
-                 <div class="celestial-path__icon" style="transform: rotate(${rotation}deg) translateY(-100px) rotate(-${rotation}deg);">${isMoonVisible ? '🌙' : '🌙'}</div>
+            <div class="celestial-path ${!isMoonVisible ? 'is-night' : ''}">
+                 <div class="celestial-path__icon" style="${style}">🌙</div>
             </div>
             <div class="celestial-path__times">
                 <span>${data.formattedTimes.moonrise}</span>
@@ -555,3 +567,4 @@ export function hideDetailsModal() {
         dom.modal.container.setAttribute('hidden', true);
     }, 300);
 }
+
