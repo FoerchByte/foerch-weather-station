@@ -161,6 +161,60 @@ export function showContent() {
 
 // --- Renderowanie komponentów / Component Rendering ---
 
+function getCelestialPosition(progress) {
+    const angle = Math.PI - (progress / 100) * Math.PI; // Od 180 do 0 stopni
+    const radius = 100; // Promień półokręgu
+    const centerX = 100;
+    const centerY = 100;
+    
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY - radius * Math.sin(angle); // Odejmujemy, bo oś Y rośnie w dół
+    
+    return { x, y };
+}
+
+function renderSunPathComponent(data, t) {
+    if (isNaN(data.sunPathProgress)) return '';
+    
+    const isDay = data.sunPathProgress >= 0 && data.sunPathProgress <= 100;
+    const { x, y } = getCelestialPosition(data.sunPathProgress);
+    const style = `left: ${x}px; top: ${y}px; opacity: ${isDay ? 1 : 0.3};`;
+
+    return `
+        <div class="sun-path-container">
+            <h4 class="celestial-path__title">${t.details.daylightHours}</h4>
+            <div class="celestial-path ${!isDay ? 'is-night' : ''}">
+                <div class="celestial-path__icon" style="${style}">☀️</div>
+            </div>
+            <div class="celestial-path__times">
+                <span>${data.formattedTimes.sunrise}</span>
+                <span>${data.formattedTimes.sunset}</span>
+            </div>
+        </div>
+    `;
+}
+
+function renderMoonPathComponent(data, t) {
+    if (isNaN(data.moonPathProgress)) return '';
+    
+    const isMoonVisible = data.moonPathProgress >= 0 && data.moonPathProgress <= 100;
+    const { x, y } = getCelestialPosition(data.moonPathProgress);
+    const style = `left: ${x}px; top: ${y}px; opacity: ${isMoonVisible ? 1 : 0.3};`;
+
+    return `
+        <div class="moon-path-container">
+            <h4 class="celestial-path__title">${t.details.moonPhase}</h4>
+            <div class="celestial-path ${!isMoonVisible ? 'is-night' : ''}">
+                 <div class="celestial-path__icon" style="${style}">🌙</div>
+            </div>
+            <div class="celestial-path__times">
+                <span>${data.formattedTimes.moonrise}</span>
+                <span>${data.formattedTimes.moonset}</span>
+            </div>
+        </div>
+    `;
+}
+
 export function renderCurrentWeather(data, t) {
     const headerHtml = `
         <div class="current-weather__header">
@@ -198,6 +252,10 @@ export function renderCurrentWeather(data, t) {
             <div class="detail-col detail-col--5">
                 <div class="current-weather__detail-item value-color--moon"><span class="detail-item-header"><span>${t.details.moonrise}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 17H22" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C15.3137 14 18 11.3137 18 8C18 4.68629 15.3137 2 12 2C8.68629 2 6 4.68629 6 8C6 11.3137 8.68629 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C13.6569 14 15 11.3137 15 8C15 4.68629 13.6569 2 12 2" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.moonrise}</span></div>
                 <div class="current-weather__detail-item value-color--moon"><span class="detail-item-header"><span>${t.details.moonset}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 17H22" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C15.3137 14 18 11.3137 18 8C18 4.68629 15.3137 2 12 2C8.68629 2 6 4.68629 6 8C6 11.3137 8.68629 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C13.6569 14 15 11.3137 15 8C15 4.68629 13.6569 2 12 2" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.moonset}</span></div>
+            </div>
+            <div class="sun-moon-paths-container">
+                ${renderSunPathComponent(data, t)}
+                ${renderMoonPathComponent(data, t)}
             </div>
         </div>`;
     
@@ -509,3 +567,4 @@ export function hideDetailsModal() {
         dom.modal.container.setAttribute('hidden', true);
     }, 300);
 }
+
