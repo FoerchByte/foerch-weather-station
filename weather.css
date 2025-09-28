@@ -691,9 +691,9 @@ body.dark-mode .daily-forecast__day:hover {
     align-items: center;
 }
 
-/* --- Style ścieżki słońca/księżyca / Sun/Moon Path Styles --- */
+/* --- Style ścieżki słońca/księżyca (FINALNA WERSJA) / Sun/Moon Path Styles (FINAL VERSION) --- */
 .sun-moon-paths-container {
-    display: none; /* Ukryte domyślnie / Hidden by default */
+    display: none;
 }
 
 .celestial-path {
@@ -704,13 +704,13 @@ body.dark-mode .daily-forecast__day:hover {
     border-top: none;
     border-radius: 0 0 100px 100px;
     margin: 0.5rem auto 0 auto;
-    transition: transform 0.5s ease-in-out; /* Płynne odwracanie / Smooth flip */
 }
 
-/* --- PL --- Nowa klasa do odwracania ścieżki w nocy.
-   --- EN --- New class to flip the path at night. */
 .celestial-path.is-night {
     transform: rotate(180deg);
+}
+.sun-path.is-night {
+    opacity: 0.5;
 }
 
 .celestial-path__title {
@@ -721,45 +721,33 @@ body.dark-mode .daily-forecast__day:hover {
     color: var(--completed-text);
 }
 
-.celestial-path__rotator {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 200px;
-    height: 100px;
-    transform-origin: bottom center;
-    transition: transform 1s ease-out;
-    transform: translateX(-50%);
-}
-
 .celestial-path__icon {
     position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 1.5rem;
+    bottom: 50%; /* Start from vertical center */
+    left: 50%;   /* Start from horizontal center */
     width: 24px;
     height: 24px;
+    font-size: 1.5rem;
     line-height: 1;
-    transition: transform 0.5s ease-in-out;
+    transform-origin: center center;
+    transition: transform 1s ease-out;
+    /* ZMIANA: Usunięcie zbędnych transformacji, JS zajmie się pozycjonowaniem */
 }
 
 .celestial-path.is-night .celestial-path__icon {
-    transform: translateX(-50%) rotate(180deg);
+    opacity: 0.5; /* Lekkie przygaszenie ikony w nocy */
 }
-
 
 .celestial-path__times {
     display: flex;
     justify-content: space-between;
-    padding: 0 10px;
+    padding: 0 5px; /* Drobna korekta paddingu */
     font-size: 0.85rem;
     color: var(--completed-text);
     margin-top: 5px;
-    transition: transform 0.5s ease-in-out;
 }
 
-.celestial-path.is-night .celestial-path__times {
+.celestial-path.is-night ~ .celestial-path__times {
     transform: rotate(180deg);
 }
 
@@ -949,4 +937,3 @@ body.dark-mode .daily-forecast__day:hover {
         margin-top: 1rem;
     }
 }
-
