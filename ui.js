@@ -162,13 +162,13 @@ export function showContent() {
 // --- Renderowanie komponentów / Component Rendering ---
 
 function getCelestialPosition(progress) {
-    const angle = Math.PI - (progress / 100) * Math.PI; // Od 180 do 0 stopni
-    const radius = 100; // Promień półokręgu
+    const angle = Math.PI - (progress / 100) * Math.PI; // 0% -> 180deg, 100% -> 0deg
+    const radius = 100; // Promień ścieżki
     const centerX = 100;
     const centerY = 100;
     
     const x = centerX + radius * Math.cos(angle);
-    const y = centerY - radius * Math.sin(angle); // Odejmujemy, bo oś Y rośnie w dół
+    const y = centerY - radius * Math.sin(angle);
     
     return { x, y };
 }
@@ -178,12 +178,12 @@ function renderSunPathComponent(data, t) {
     
     const isDay = data.sunPathProgress >= 0 && data.sunPathProgress <= 100;
     const { x, y } = getCelestialPosition(data.sunPathProgress);
-    const style = `left: ${x}px; top: ${y}px; opacity: ${isDay ? 1 : 0.3};`;
+    const style = `left: ${x}px; top: ${y}px; opacity: ${isDay ? 1 : 0};`;
 
     return `
         <div class="sun-path-container">
             <h4 class="celestial-path__title">${t.details.daylightHours}</h4>
-            <div class="celestial-path ${!isDay ? 'is-night' : ''}">
+            <div class="celestial-path">
                 <div class="celestial-path__icon" style="${style}">☀️</div>
             </div>
             <div class="celestial-path__times">
@@ -199,12 +199,12 @@ function renderMoonPathComponent(data, t) {
     
     const isMoonVisible = data.moonPathProgress >= 0 && data.moonPathProgress <= 100;
     const { x, y } = getCelestialPosition(data.moonPathProgress);
-    const style = `left: ${x}px; top: ${y}px; opacity: ${isMoonVisible ? 1 : 0.3};`;
+    const style = `left: ${x}px; top: ${y}px; opacity: ${isMoonVisible ? 1 : 0};`;
 
     return `
         <div class="moon-path-container">
             <h4 class="celestial-path__title">${t.details.moonPhase}</h4>
-            <div class="celestial-path ${!isMoonVisible ? 'is-night' : ''}">
+            <div class="celestial-path">
                  <div class="celestial-path__icon" style="${style}">🌙</div>
             </div>
             <div class="celestial-path__times">
