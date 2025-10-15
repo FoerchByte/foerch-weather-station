@@ -85,7 +85,7 @@ function getWeatherIconHtml(iconCode, description) {
     const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
     const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg', };
     const iconName = iconMap[iconCode] || 'not-available.svg';
-    return `<img src="${iconBaseUrl}${iconName}" alt="${description}" class="weather-icon-img">`;
+    return `<img src="${iconBaseUrl}" alt="${description}" class="weather-icon-img" style="width: 100%; height: 100%;">`;
 }
 
 function convertWindDirection(deg) {
@@ -108,14 +108,15 @@ function translateOverview(apiDescription, t) {
 // --- Zarządzanie stanem UI / UI State Management ---
 
 export function toggleButtonLoading(button, isLoading) {
-    // Ta funkcja może wymagać dostosowania, jeśli przyciski nie mają spanów
     if (!button) return;
-    const originalText = button.textContent;
     if (isLoading) {
-        button.innerHTML = '<div class="loader"></div>'; // Prostsza implementacja loadera
+        button.dataset.originalText = button.innerHTML;
+        button.innerHTML = `<div class="loader-in-button"></div>`; // Użyj dedykowanej klasy dla loadera
         button.disabled = true;
     } else {
-        button.innerHTML = originalText;
+        if (button.dataset.originalText) {
+            button.innerHTML = button.dataset.originalText;
+        }
         button.disabled = false;
     }
 }
@@ -126,15 +127,14 @@ export function showInitialState() {
 }
 
 export function showLoadingState() {
-    // Zamiast generować HTML, po prostu pokazujemy/ukrywamy kontenery
     hideContent();
-    // Można dodać globalny loader na środku ekranu jeśli potrzeba
+    // Można dodać globalny loader, ale na razie to wystarczy
     console.log("Pokazuję stan ładowania...");
 }
 
 export function showError(message) {
-    // Możemy mieć dedykowany kontener na błędy lub użyć modala
-    alert(message); // Tymczasowe rozwiązanie
+    // Proste, ale skuteczne powiadomienie
+    alert(message); 
     hideContent();
 }
 
@@ -153,7 +153,6 @@ export function showContent() {
 // --- Renderowanie komponentów (NOWA WERSJA) / Component Rendering (NEW VERSION) ---
 
 export function renderCurrentWeather(data, t) {
-    // Zamiast generować cały HTML, aktualizujemy istniejące elementy
     dom.cityName.textContent = data.location.name;
     dom.currentTemp.textContent = `${Math.round(data.current.temp)}°C`;
     dom.weatherDescription.textContent = data.current.weather[0].description;
@@ -162,7 +161,6 @@ export function renderCurrentWeather(data, t) {
     const translatedOverview = translateOverview(data.generatedOverview, t);
     dom.weatherOverview.innerHTML = translatedOverview ? `<p>${translatedOverview}</p>` : '';
 
-    // Siatka z detalami wymaga teraz generowania wewnętrznych elementów
     dom.extraDetailsGrid.innerHTML = `
         <div class="detail-item"><span>${t.details.wind}</span><span>${data.current.wind_speed.toFixed(1)} m/s</span></div>
         <div class="detail-item"><span>${t.details.pressure}</span><span>${data.current.pressure} hPa</span></div>
@@ -171,7 +169,6 @@ export function renderCurrentWeather(data, t) {
         <div class="detail-item"><span>${t.details.sunrise}</span><span>${data.formattedTimes.sunrise}</span></div>
         <div class="detail-item"><span>${t.details.sunset}</span><span>${data.formattedTimes.sunset}</span></div>
     `;
-    // Uwaga: To jest uproszczona wersja siatki. Pełna implementacja wymagałaby więcej klas i ikon.
 }
 
 export function renderWeatherAlerts(data, t) {
@@ -192,20 +189,15 @@ export function renderMinutelyForecast(minutelyData) {
         dom.minutely.chartContainer.innerHTML = `<div class="no-data">Brak opadów w ciągu najbliższej godziny.</div>`;
         return;
     }
-    // Upewniamy się, że canvas tam jest
     if (!dom.minutely.chartContainer.querySelector('canvas')) {
         dom.minutely.chartContainer.innerHTML = `<canvas id="minutely-chart"></canvas>`;
         dom.minutely.chartCanvas = document.getElementById('minutely-chart');
     }
     
-    // Logika Chart.js (bez zmian)
-    // ...
+    // Logika Chart.js (pozostaje taka sama, wymaga importu Chart.js w HTML)
 }
 
 export function renderHourlyForecast(hourlyData, range, t) {
-    // Logika filtrowania danych (bez zmian)
-    // ...
-    // Nowa logika renderowania - generujemy tylko wewnętrzne kafelki dla slidera
     const itemsHtml = hourlyData.slice(0, range).map(item => `
         <div class="hourly-forecast-item glass-card" data-timestamp="${item.dt}">
             <p class="time">${new Date(item.dt * 1000).getHours()}:00</p>
@@ -232,8 +224,13 @@ export function renderDailyForecast(dailyData, t) {
 export function renderFavorites(favorites, currentLocation) {
     if (favorites.length > 0) {
         dom.favoritesContainer.innerHTML = favorites.map(fav => {
-            // Logika sprawdzania aktywnej lokalizacji (bez zmian)
-            const isActive = false; // Uproszczenie
+            const clat = currentLocation ? parseFloat(currentLocation.lat) : NaN;
+            const clon = currentLocation ? parseFloat(currentLocation.lon) : NaN;
+            const flat = parseFloat(fav.lat);
+            const flon = parseFloat(fav.lon);
+            const isActive = !isNaN(clat) && !isNaN(clon) && !isNaN(flat) && !isNaN(flon) &&
+                             flat.toFixed(4) === clat.toFixed(4) &&
+                             flon.toFixed(4) === clon.toFixed(4);
             return `<button class="favorite-location-btn ${isActive ? 'active' : ''}" data-city="${fav.name}">${fav.name}</button>`;
         }).join('');
     } else {
@@ -241,4 +238,3 @@ export function renderFavorites(favorites, currentLocation) {
     }
 }
 
-// ... pozostałe funkcje UI (updateFavoriteButtonState, slidery, modal) wymagają adaptacji ...
