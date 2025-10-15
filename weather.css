@@ -18,6 +18,11 @@
     --border-radius: 16px;
     --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     --transition-speed: 0.3s;
+
+    /* Kolory dla wskaźników */
+    --color-good: #4ade80;
+    --color-moderate: #facc15;
+    --color-bad: #f87171;
 }
 
 body {
@@ -120,6 +125,22 @@ body.light-mode .moon-icon { display: block; }
     font-size: 2rem;
     margin: 0;
 }
+.favorite-btn {
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s, transform 0.2s;
+}
+.favorite-btn:hover {
+    transform: scale(1.1);
+    color: var(--color-moderate);
+}
+.favorite-btn.is-favorite {
+    color: var(--color-moderate);
+}
+
 .current-weather__main {
     display: flex;
     align-items: center;
@@ -150,14 +171,29 @@ body.light-mode .moon-icon { display: block; }
     flex-direction: column;
     gap: 0.25rem;
 }
-.detail-item .label {
+.detail-item .label-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 0.9rem;
     color: var(--text-secondary);
+}
+.detail-item .label-container svg {
+    width: 18px;
+    height: 18px;
+    opacity: 0.8;
 }
 .detail-item .value {
     font-size: 1.2rem;
     font-weight: 500;
+    padding-left: 26px; /* Wyrównanie z etykietą */
+    transition: color var(--transition-speed);
 }
+
+/* --- Kolory Wartości --- */
+.value.aqi-1, .value.aqi-2, .value.uv-low { color: var(--color-good); }
+.value.aqi-3, .value.uv-moderate { color: var(--color-moderate); }
+.value.aqi-4, .value.aqi-5, .value.uv-high, .value.uv-very-high, .value.uv-extreme { color: var(--color-bad); }
 
 /* --- Prognozy --- */
 .forecast-section {
@@ -271,3 +307,4 @@ body.light-mode .moon-icon { display: block; }
         display: block;
     }
 }
+
