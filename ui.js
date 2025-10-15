@@ -49,6 +49,16 @@ export function initUI() {
 
 // --- Funkcje pomocnicze ---
 
+/**
+ * --- PL --- Konwertuje prędkość z m/s na km/h.
+ * --- EN --- Converts speed from m/s to km/h.
+ * @param {number} ms - Prędkość w metrach na sekundę. / Speed in meters per second.
+ * @returns {number} Prędkość w kilometrach na godzinę, zaokrąglona do liczby całkowitej. / Speed in kilometers per hour, rounded to an integer.
+ */
+function convertMsToKmh(ms) {
+    return Math.round(ms * 3.6);
+}
+
 function getWeatherIconHtml(iconCode, description) {
     const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
     const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg', };
@@ -127,7 +137,6 @@ function createDetailItem(icon, label, value, valueClass = '') {
     `;
 }
 
-// --- ZMIANA: Dodanie renderowania Nawierzchni i Księżyca ---
 export function renderCurrentWeather(data, t) {
     dom.cityName.textContent = data.location.name;
     dom.currentTemp.textContent = `${Math.round(data.current.temp)}°C`;
@@ -146,7 +155,6 @@ export function renderCurrentWeather(data, t) {
         uv: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12.5a4.5 4.5 0 1 1 4.5-4.5 4.5 4.5 0 0 1-4.5 4.5z"/><path d="M12 3V1"/><path d="M12 23v-2"/><path d="M20.66 18.34l-1.41-1.41"/><path d="M4.75 6.16 3.34 4.75"/><path d="M20.66 5.66l-1.41 1.41"/><path d="M4.75 17.84l-1.41 1.41"/><path d="M23 12h-2"/><path d="M3 12H1"/></svg>`,
         sunrise: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/></svg>`,
         sunset: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 18-4 4-4-4"/></svg>`,
-        // NOWOŚĆ: Ikony dla nawierzchni i księżyca
         road: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20v2H6.5a2.5 2.5 0 0 1 0-5H20V9H6.5a2.5 2.5 0 0 1 0-5H20V6H6.5a2.5 2.5 0 0 1-2.5 2.5V19.5z"/></svg>`,
         moonrise: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 1 0 10 10 9 9 0 1 1-10-10z"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/></svg>`,
         moonset: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 1 0 10 10 9 9 0 1 1-10-10z"/><path d="M22 22H2"/><path d="m16 18-4 4-4-4"/></svg>`,
@@ -155,7 +163,7 @@ export function renderCurrentWeather(data, t) {
     dom.extraDetailsGrid.innerHTML = `
         ${createDetailItem(icons.feelsLike, t.details.feelsLike, `${Math.round(data.current.feels_like)}°C`)}
         ${createDetailItem(icons.humidity, t.details.humidity, `${data.current.humidity}%`)}
-        ${createDetailItem(icons.wind, t.details.wind, `${data.current.wind_speed.toFixed(1)} m/s`)}
+        ${createDetailItem(icons.wind, t.details.wind, `${convertMsToKmh(data.current.wind_speed)} km/h`)}
         ${createDetailItem(icons.pressure, t.details.pressure, `${data.current.pressure} hPa`)}
         ${createDetailItem(icons.aqi, t.details.aqi, t.values.aqi[data.air_quality.main.aqi - 1], `aqi-${data.air_quality.main.aqi}`)}
         ${createDetailItem(icons.uv, t.details.uvIndex, t.values.uv[data.uvCategory], `uv-${data.uvCategory}`)}
@@ -236,8 +244,8 @@ function buildHourlyModalBody(data, t) {
         <div class="detail-item"><span class="label-container">${t.details.humidity}</span><span class="value">${data.humidity}%</span></div>
         <div class="detail-item"><span class="label-container">${t.details.pressure}</span><span class="value">${data.pressure} hPa</span></div>
         <div class="detail-item"><span class="label-container">${t.details.clouds}</span><span class="value">${data.clouds}%</span></div>
-        <div class="detail-item"><span class="label-container">${t.details.wind}</span><span class="value">${data.wind_speed.toFixed(1)} m/s, ${convertWindDirection(data.wind_deg)}</span></div>
-        <div class="detail-item"><span class="label-container">${t.details.windGust}</span><span class="value">${(data.wind_gust || 0).toFixed(1)} m/s</span></div>
+        <div class="detail-item"><span class="label-container">${t.details.wind}</span><span class="value">${convertMsToKmh(data.wind_speed)} km/h, ${convertWindDirection(data.wind_deg)}</span></div>
+        <div class="detail-item"><span class="label-container">${t.details.windGust}</span><span class="value">${convertMsToKmh(data.wind_gust || 0)} km/h</span></div>
         <div class="detail-item"><span class="label-container">${t.details.uvIndex}</span><span class="value">${Math.round(data.uvi)}</span></div>
         <div class="detail-item"><span class="label-container">${t.details.visibility}</span><span class="value">${data.visibility / 1000} km</span></div>
     `;
@@ -257,7 +265,7 @@ function buildDailyModalBody(data, t) {
             <span>${t.forecast.eve}:</span><span>${Math.round(data.temp.eve)}°C</span>
             <span>${t.forecast.night}:</span><span>${Math.round(data.temp.night)}°C</span>
         </div></div>
-        <div class="detail-item"><span class="label-container">${t.details.wind}</span><span class="value">${data.wind_speed.toFixed(1)} m/s, ${convertWindDirection(data.wind_deg)}</span></div>
+        <div class="detail-item"><span class="label-container">${t.details.wind}</span><span class="value">${convertMsToKmh(data.wind_speed)} km/h, ${convertWindDirection(data.wind_deg)}</span></div>
         <div class="detail-item"><span class="label-container">${t.details.sunrise} / ${t.details.sunset}</span><span class="value">${sunrise} / ${sunset}</span></div>
         <div class="detail-item"><span class="label-container">${t.details.uvIndex}</span><span class="value">${Math.round(data.uvi)}</span></div>
     `;
