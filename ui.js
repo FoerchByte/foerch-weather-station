@@ -13,7 +13,7 @@
 
 // --- Referencje do elementów DOM / DOM Element References ---
 const dom = {};
-let activeModalTrigger = null; // Przechowuje element, który otworzył modal
+let activeModalTrigger = null; 
 
 /**
  * --- PL --- Inicjalizuje moduł, pobierając referencje do elementów DOM v2.0.
@@ -23,7 +23,6 @@ export function initUI() {
     dom.weatherResultContainer = document.getElementById('weather-result-container');
     dom.favoritesContainer = document.getElementById('favorites-container');
     
-    // Elementy renderowane dynamicznie
     dom.cityName = document.getElementById('city-name');
     dom.addFavoriteBtn = document.getElementById('add-favorite-btn');
     dom.currentTemp = document.getElementById('current-temp');
@@ -33,7 +32,6 @@ export function initUI() {
     dom.weatherAlertsContainer = document.getElementById('weather-alerts-container');
     dom.extraDetailsGrid = document.querySelector('.current-weather__extra-details-grid');
     
-    // Kontenery prognoz
     dom.hourly = {
         scrollWrapper: document.getElementById('hourly-forecast-content'),
     };
@@ -41,7 +39,6 @@ export function initUI() {
         scrollWrapper: document.getElementById('daily-forecast-content'),
     };
 
-    // NOWOŚĆ: Referencje do okna modalnego
     dom.modal = {
         overlay: document.getElementById('details-modal'),
         title: document.getElementById('modal-title'),
@@ -130,6 +127,7 @@ function createDetailItem(icon, label, value, valueClass = '') {
     `;
 }
 
+// --- ZMIANA: Dodanie renderowania Nawierzchni i Księżyca ---
 export function renderCurrentWeather(data, t) {
     dom.cityName.textContent = data.location.name;
     dom.currentTemp.textContent = `${Math.round(data.current.temp)}°C`;
@@ -147,7 +145,11 @@ export function renderCurrentWeather(data, t) {
         aqi: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12v-2a4 4 0 0 0-4-4H4"/><path d="M12 16H8a4 4 0 0 1-4-4v-2"/><path d="M20 12h-2a4 4 0 0 0-4-4v-2"/><path d="M20 12v4a4 4 0 0 1-4 4h-2"/></svg>`,
         uv: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12.5a4.5 4.5 0 1 1 4.5-4.5 4.5 4.5 0 0 1-4.5 4.5z"/><path d="M12 3V1"/><path d="M12 23v-2"/><path d="M20.66 18.34l-1.41-1.41"/><path d="M4.75 6.16 3.34 4.75"/><path d="M20.66 5.66l-1.41 1.41"/><path d="M4.75 17.84l-1.41 1.41"/><path d="M23 12h-2"/><path d="M3 12H1"/></svg>`,
         sunrise: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/></svg>`,
-        sunset: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 18-4 4-4-4"/></svg>`
+        sunset: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 18-4 4-4-4"/></svg>`,
+        // NOWOŚĆ: Ikony dla nawierzchni i księżyca
+        road: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20v2H6.5a2.5 2.5 0 0 1 0-5H20V9H6.5a2.5 2.5 0 0 1 0-5H20V6H6.5a2.5 2.5 0 0 1-2.5 2.5V19.5z"/></svg>`,
+        moonrise: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 1 0 10 10 9 9 0 1 1-10-10z"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/></svg>`,
+        moonset: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 1 0 10 10 9 9 0 1 1-10-10z"/><path d="M22 22H2"/><path d="m16 18-4 4-4-4"/></svg>`,
     };
 
     dom.extraDetailsGrid.innerHTML = `
@@ -157,10 +159,14 @@ export function renderCurrentWeather(data, t) {
         ${createDetailItem(icons.pressure, t.details.pressure, `${data.current.pressure} hPa`)}
         ${createDetailItem(icons.aqi, t.details.aqi, t.values.aqi[data.air_quality.main.aqi - 1], `aqi-${data.air_quality.main.aqi}`)}
         ${createDetailItem(icons.uv, t.details.uvIndex, t.values.uv[data.uvCategory], `uv-${data.uvCategory}`)}
+        ${createDetailItem(icons.road, t.details.roadSurface, t.values.road[data.roadCondition.key], `road-${data.roadCondition.key}`)}
         ${createDetailItem(icons.sunrise, t.details.sunrise, data.formattedTimes.sunrise)}
         ${createDetailItem(icons.sunset, t.details.sunset, data.formattedTimes.sunset)}
+        ${createDetailItem(icons.moonrise, t.details.moonrise, data.formattedTimes.moonrise)}
+        ${createDetailItem(icons.moonset, t.details.moonset, data.formattedTimes.moonset)}
     `;
 }
+
 
 export function renderWeatherAlerts(data, t) {
     if (data.alerts && data.alerts.length > 0) {
@@ -222,7 +228,7 @@ export function updateFavoriteButtonState(isFavorite) {
     }
 }
 
-// --- NOWOŚĆ: Logika okna modalnego ---
+// --- Logika okna modalnego ---
 
 function buildHourlyModalBody(data, t) {
     return `
