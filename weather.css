@@ -23,6 +23,7 @@
     --color-good: #4ade80;
     --color-moderate: #facc15;
     --color-bad: #f87171;
+    --color-info: #60a5fa; /* Kolor dla nawierzchni mokrej */
 }
 
 body {
@@ -164,10 +165,11 @@ body.light-mode .moon-icon { display: block; }
     font-weight: 700;
     line-height: 1;
 }
+/* --- ZMIANA: Lepsza siatka dla szczegółów --- */
 .current-weather__extra-details-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem 1rem;
     padding-top: 1rem;
     border-top: 1px solid var(--glass-border-color);
     margin-top: 1rem;
@@ -192,14 +194,16 @@ body.light-mode .moon-icon { display: block; }
 .detail-item .value {
     font-size: 1.2rem;
     font-weight: 500;
-    padding-left: 26px; /* Wyrównanie z etykietą */
+    padding-left: 26px;
     transition: color var(--transition-speed);
 }
 
 /* --- Kolory Wartości --- */
-.value.aqi-1, .value.aqi-2, .value.uv-low { color: var(--color-good); }
+.value.aqi-1, .value.aqi-2, .value.uv-low, .value.road-dry { color: var(--color-good); }
 .value.aqi-3, .value.uv-moderate { color: var(--color-moderate); }
-.value.aqi-4, .value.aqi-5, .value.uv-high, .value.uv-very-high, .value.uv-extreme { color: var(--color-bad); }
+.value.aqi-4, .value.aqi-5, .value.uv-high, .value.uv-very-high, .value.uv-extreme, .value.road-icy { color: var(--color-bad); }
+.value.road-wet { color: var(--color-info); }
+
 
 /* --- Prognozy --- */
 .forecast-section {
@@ -260,7 +264,7 @@ body.light-mode .moon-icon { display: block; }
     gap: 0.5rem;
     padding: 1rem;
     text-align: center;
-    cursor: pointer; /* Dodajemy kursor, bo elementy są klikalne */
+    cursor: pointer;
 }
 .hourly-forecast-item:hover, .daily-forecast-item:hover {
     transform: translateY(-5px);
@@ -275,7 +279,7 @@ body.light-mode .moon-icon { display: block; }
     font-weight: 500;
 }
 
-/* --- NOWOŚĆ: Style dla okna modalnego --- */
+/* --- Style dla okna modalnego --- */
 .modal-overlay {
     position: fixed;
     top: 0;
