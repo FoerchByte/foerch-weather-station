@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="weather.css">
+    <!-- NOWOŚĆ: Dodanie biblioteki Chart.js do obsługi wykresu opadów -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -39,7 +41,7 @@
                     <div class="current-weather__header">
                         <h3 id="city-name"></h3>
                         <button id="add-favorite-btn" class="favorite-btn" aria-label="Dodaj do ulubionych">
-                            <svg class="star-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            <svg class="star-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                         </button>
                     </div>
                     <div class="current-weather__main">
@@ -52,10 +54,7 @@
                     <div id="weather-overview" class="weather-overview"></div>
                     <div id="weather-alerts-container"></div>
 
-                    <!-- ZMIANA: Nowa struktura kafelkowa -->
                     <div class="details-tiles-container">
-                        
-                        <!-- Kafelek 1: Warunki Atmosferyczne -->
                         <div class="detail-tile glass-card">
                             <h4 class="tile-header">Warunki Atmosferyczne</h4>
                             <div class="tile-content">
@@ -65,8 +64,6 @@
                                 <div class="detail-row" id="detail-humidity"></div>
                             </div>
                         </div>
-
-                        <!-- Kafelek 2: Wskaźniki i Bezpieczeństwo -->
                         <div class="detail-tile glass-card">
                             <h4 class="tile-header">Wskaźniki i Bezpieczeństwo</h4>
                             <div class="tile-content">
@@ -75,8 +72,6 @@
                                 <div class="detail-row" id="detail-road"></div>
                             </div>
                         </div>
-
-                        <!-- Kafelek 3: Słońce -->
                         <div class="detail-tile glass-card">
                             <h4 class="tile-header">Słońce</h4>
                             <div class="tile-content">
@@ -84,8 +79,6 @@
                                 <div class="detail-row" id="detail-sunset"></div>
                             </div>
                         </div>
-                        
-                        <!-- Kafelek 4: Księżyc -->
                         <div class="detail-tile glass-card">
                             <h4 class="tile-header">Księżyc</h4>
                             <div class="tile-content">
@@ -93,7 +86,6 @@
                                 <div class="detail-row" id="detail-moonset"></div>
                             </div>
                         </div>
-
                     </div>
                 </section>
                 
@@ -106,11 +98,12 @@
 
                     <div id="minutely-forecast-wrapper" class="forecast-section glass-card active">
                         <h3>Opady w najbliższej godzinie</h3>
-                        <div class="minutely-chart-container">
-                            <canvas id="minutely-chart"></canvas>
+                        <div id="minutely-chart-container" class="minutely-chart-container">
+                            <!-- Canvas lub komunikat renderowany przez JS -->
                         </div>
                     </div>
-
+                    
+                    <!-- ZMIANA: Nowa struktura slidera godzinowego -->
                     <div id="hourly-forecast-wrapper" class="forecast-section glass-card">
                         <div class="forecast-header">
                             <h3>Prognoza godzinowa</h3>
@@ -120,18 +113,21 @@
                             </div>
                         </div>
                         <div class="slider-container">
-                            <button class="slider-nav prev">&lt;</button>
-                            <div id="hourly-forecast-content" class="slider-scroll-wrapper"></div>
-                            <button class="slider-nav next">&gt;</button>
+                            <button id="hourly-slider-prev" class="slider-nav prev">&lt;</button>
+                            <div id="hourly-forecast-content" class="slider-scroll-wrapper">
+                                <!-- Grupy dni i kafelki renderowane przez JS -->
+                            </div>
+                            <button id="hourly-slider-next" class="slider-nav next">&gt;</button>
                         </div>
                     </div>
 
+                    <!-- ZMIANA: Nowa struktura siatki dziennej -->
                     <div id="daily-forecast-wrapper" class="forecast-section glass-card">
-                        <h3>Prognoza na 7 dni</h3>
-                        <div class="slider-container">
-                            <button class="slider-nav prev">&lt;</button>
-                            <div id="daily-forecast-content" class="slider-scroll-wrapper"></div>
-                            <button class="slider-nav next">&gt;</button>
+                        <div class="forecast-header">
+                            <h3>Prognoza na 7 dni</h3>
+                        </div>
+                        <div id="daily-forecast-content" class="daily-forecast-grid">
+                             <!-- 7 kafelków renderowanych przez JS -->
                         </div>
                     </div>
                 </section>
