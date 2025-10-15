@@ -13,6 +13,7 @@
 
 // --- Referencje do elementów DOM / DOM Element References ---
 const dom = {};
+let activeModalTrigger = null; // Przechowuje element, który otworzył modal
 
 /**
  * --- PL --- Inicjalizuje moduł, pobierając referencje do elementów DOM v2.0.
@@ -39,6 +40,14 @@ export function initUI() {
     dom.daily = {
         scrollWrapper: document.getElementById('daily-forecast-content'),
     };
+
+    // NOWOŚĆ: Referencje do okna modalnego
+    dom.modal = {
+        overlay: document.getElementById('details-modal'),
+        title: document.getElementById('modal-title'),
+        body: document.getElementById('modal-body'),
+        closeBtn: document.getElementById('modal-close-btn'),
+    };
 }
 
 // --- Funkcje pomocnicze ---
@@ -58,6 +67,11 @@ function translateOverview(apiDescription, t) {
         return sentence.charAt(0).toUpperCase() + sentence.slice(1);
     }
     return apiDescription.charAt(0).toUpperCase() + apiDescription.slice(1);
+}
+
+function convertWindDirection(deg) {
+    const directions = ['Pn', 'Pn-Wsch', 'Wsch', 'Pd-Wsch', 'Pd', 'Pd-Zach', 'Zach', 'Pn-Zach'];
+    return directions[Math.round(deg / 45) % 8];
 }
 
 // --- Zarządzanie stanem UI ---
@@ -125,7 +139,6 @@ export function renderCurrentWeather(data, t) {
     const translatedOverview = translateOverview(data.generatedOverview, t);
     dom.weatherOverview.innerHTML = translatedOverview ? `<p>${translatedOverview}</p>` : '';
 
-    // NOWOŚĆ: Generowanie siatki z ikonami i kolorami
     const icons = {
         feelsLike: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h-2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M4 12h2.5"/><path d="M17.5 12H20"/></svg>`,
         humidity: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
@@ -203,10 +216,74 @@ export function renderFavorites(favorites, currentLocation) {
     }
 }
 
-// NOWOŚĆ: Funkcja do aktualizacji wyglądu przycisku "Ulubione"
 export function updateFavoriteButtonState(isFavorite) {
     if (dom.addFavoriteBtn) {
         dom.addFavoriteBtn.classList.toggle('is-favorite', isFavorite);
+    }
+}
+
+// --- NOWOŚĆ: Logika okna modalnego ---
+
+function buildHourlyModalBody(data, t) {
+    return `
+        <div class="detail-item"><span class="label-container">${t.details.feelsLike}</span><span class="value">${Math.round(data.feels_like)}°C</span></div>
+        <div class="detail-item"><span class="label-container">${t.details.humidity}</span><span class="value">${data.humidity}%</span></div>
+        <div class="detail-item"><span class="label-container">${t.details.pressure}</span><span class="value">${data.pressure} hPa</span></div>
+        <div class="detail-item"><span class="label-container">${t.details.clouds}</span><span class="value">${data.clouds}%</span></div>
+        <div class="detail-item"><span class="label-container">${t.details.wind}</span><span class="value">${data.wind_speed.toFixed(1)} m/s, ${convertWindDirection(data.wind_deg)}</span></div>
+        <div class="detail-item"><span class="label-container">${t.details.windGust}</span><span class="value">${(data.wind_gust || 0).toFixed(1)} m/s</span></div>
+        <div class="detail-item"><span class="label-container">${t.details.uvIndex}</span><span class="value">${Math.round(data.uvi)}</span></div>
+        <div class="detail-item"><span class="label-container">${t.details.visibility}</span><span class="value">${data.visibility / 1000} km</span></div>
+    `;
+}
+
+function buildDailyModalBody(data, t) {
+    const sunrise = new Date(data.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const sunset = new Date(data.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const translatedSummary = translateOverview(data.weather[0].description, t);
+
+    return `
+        <div class="detail-item"><span class="label-container">${t.details.description}</span><span class="value">${translatedSummary}</span></div>
+        <div class="detail-item"><span class="label-container">${t.forecast.precipChance}</span><span class="value">${Math.round(data.pop * 100)}%</span></div>
+        <div class="detail-item"><span class="label-container">${t.forecast.temp}</span><div class="value modal-detail-value--temp-grid">
+            <span>${t.forecast.morn}:</span><span>${Math.round(data.temp.morn)}°C</span>
+            <span>${t.forecast.day}:</span><span>${Math.round(data.temp.day)}°C</span>
+            <span>${t.forecast.eve}:</span><span>${Math.round(data.temp.eve)}°C</span>
+            <span>${t.forecast.night}:</span><span>${Math.round(data.temp.night)}°C</span>
+        </div></div>
+        <div class="detail-item"><span class="label-container">${t.details.wind}</span><span class="value">${data.wind_speed.toFixed(1)} m/s, ${convertWindDirection(data.wind_deg)}</span></div>
+        <div class="detail-item"><span class="label-container">${t.details.sunrise} / ${t.details.sunset}</span><span class="value">${sunrise} / ${sunset}</span></div>
+        <div class="detail-item"><span class="label-container">${t.details.uvIndex}</span><span class="value">${Math.round(data.uvi)}</span></div>
+    `;
+}
+
+export function showDetailsModal(data, type, t) {
+    const date = new Date(data.dt * 1000);
+    let title = '', bodyHtml = '';
+
+    if (type === 'hourly') {
+        title = `Prognoza na ${date.toLocaleDateString('pl-PL', { weekday: 'long' })}, ${date.getHours()}:00`;
+        bodyHtml = buildHourlyModalBody(data, t);
+    } else if (type === 'daily') {
+        title = `Prognoza na ${date.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}`;
+        bodyHtml = buildDailyModalBody(data, t);
+    }
+
+    dom.modal.title.textContent = title;
+    dom.modal.body.innerHTML = bodyHtml;
+
+    activeModalTrigger = document.activeElement;
+    dom.modal.overlay.hidden = false;
+    setTimeout(() => {
+        dom.modal.closeBtn.focus();
+    }, 10);
+}
+
+export function hideDetailsModal() {
+    dom.modal.overlay.hidden = true;
+    if (activeModalTrigger) {
+        activeModalTrigger.focus();
+        activeModalTrigger = null;
     }
 }
 
