@@ -21,11 +21,6 @@ let state = {
     favorites: [],
     currentLang: 'pl',
     currentHourlyRange: 24,
-    map: null,
-    marker: null,
-    precipitationLayer: null,
-    lightTileLayer: null,
-    darkTileLayer: null,
 };
 
 
@@ -43,7 +38,7 @@ function toggleTheme() {
 
 // --- Inicjalizacja Aplikacji / Application Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-    setTheme(localStorage.getItem('theme') || 'dark'); // Domyślnie ciemny
+    setTheme(localStorage.getItem('theme') || 'dark');
     ui.initUI();
     loadFavorites();
     bindEvents();
@@ -76,6 +71,8 @@ function bindEvents() {
         dailySliderNext: document.querySelector('#daily-forecast-wrapper .slider-nav.next'),
         dailyScrollWrapper: document.getElementById('daily-forecast-content'),
         forecastSwitcherMobile: document.querySelector('.forecast-switcher-mobile'),
+        modalOverlay: document.getElementById('details-modal'),
+        modalCloseBtn: document.getElementById('modal-close-btn'),
     };
 
     const addSafeListener = (element, event, handler) => {
@@ -94,6 +91,14 @@ function bindEvents() {
     addSafeListener(domElements.dailySliderPrev, 'click', () => handleSliderScroll(domElements.dailyScrollWrapper, -1));
     addSafeListener(domElements.dailySliderNext, 'click', () => handleSliderScroll(domElements.dailyScrollWrapper, 1));
     addSafeListener(domElements.forecastSwitcherMobile, 'click', handleMobileForecastSwitch);
+    
+    // NOWOŚĆ: Nasłuch na kliknięcia w prognozy i zamykanie modala
+    addSafeListener(domElements.hourlyScrollWrapper, 'click', (e) => handleForecastItemClick(e, 'hourly'));
+    addSafeListener(domElements.dailyScrollWrapper, 'click', (e) => handleForecastItemClick(e, 'daily'));
+    addSafeListener(domElements.modalCloseBtn, 'click', ui.hideDetailsModal);
+    addSafeListener(domElements.modalOverlay, 'click', (e) => {
+        if (e.target === domElements.modalOverlay) ui.hideDetailsModal();
+    });
 }
 
 
@@ -163,7 +168,7 @@ function updateFullUI() {
     ui.renderDailyForecast(state.currentWeather.daily, t);
     
     loadFavorites(); 
-    updateFavoriteButtonState(); // NOWOŚĆ
+    updateFavoriteButtonState();
 }
 
 
@@ -201,6 +206,19 @@ function handleMobileForecastSwitch(event) {
     document.getElementById(`${forecastType}-forecast-wrapper`)?.classList.add('active');
 }
 
+// NOWOŚĆ: Handler do otwierania modala
+function handleForecastItemClick(event, type) {
+    const itemEl = event.target.closest('.hourly-forecast-item, .daily-forecast-item');
+    if (!itemEl) return;
+
+    const timestamp = parseInt(itemEl.dataset.timestamp, 10);
+    const data = (type === 'hourly' ? state.currentWeather.hourly : state.currentWeather.daily).find(item => item.dt === timestamp);
+    
+    if (data) {
+        ui.showDetailsModal(data, type, translations[state.currentLang]);
+    }
+}
+
 // --- Logika Ulubionych ---
 function loadFavorites() {
     state.favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
@@ -228,7 +246,7 @@ function toggleFavorite() {
     
     saveFavorites();
     loadFavorites(); 
-    updateFavoriteButtonState(); // NOWOŚĆ
+    updateFavoriteButtonState();
 }
 
 function handleFavoriteClick(event) {
@@ -241,7 +259,6 @@ function handleFavoriteClick(event) {
     }
 }
 
-// NOWOŚĆ
 function updateFavoriteButtonState() {
     if (!state.currentLocation) return;
     const locationId = `${state.currentLocation.lat},${state.currentLocation.lon}`;
