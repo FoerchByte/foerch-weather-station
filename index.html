@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- POPRAWKA: Upewniono się, że ścieżka do CSS jest poprawna -->
     <link rel="stylesheet" href="weather.css">
     
     <!-- Skrypty dla mapy i wykresów (do odkomentowania w przyszłości) -->
@@ -39,7 +38,6 @@
                 <button id="geolocation-btn">Użyj mojej lokalizacji</button>
             </section>
 
-            <!-- POPRAWKA: Domyślnie ukryty, aby uniknąć "mignięcia" statycznej treści -->
             <div id="weather-result-container" style="display: none;">
                 
                 <section class="current-weather-card glass-card">
@@ -48,7 +46,7 @@
                         <button id="add-favorite-btn" class="favorite-btn" aria-label="Dodaj do ulubionych">⭐</button>
                     </div>
                     <div class="current-weather__main">
-                        <div class="current-weather__icon"></div>
+                        <div id="current-weather-icon" class="current-weather__icon"></div>
                         <div class="current-weather__details">
                             <span id="current-temp" class="current-weather__temp"></span>
                             <span id="weather-description"></span>
@@ -56,7 +54,42 @@
                     </div>
                     <div id="weather-overview" class="weather-overview"></div>
                     <div id="weather-alerts-container"></div>
-                    <div class="current-weather__extra-details-grid"></div>
+                    
+                    <!-- REFAKTORYZACJA: Bardziej szczegółowa siatka dla łatwiejszego stylowania -->
+                    <div class="current-weather__extra-details-grid">
+                        <div class="detail-item" id="detail-feels-like">
+                            <span class="label">Odczuwalna</span>
+                            <span class="value">--</span>
+                        </div>
+                         <div class="detail-item" id="detail-humidity">
+                            <span class="label">Wilgotność</span>
+                            <span class="value">--</span>
+                        </div>
+                        <div class="detail-item" id="detail-wind">
+                            <span class="label">Wiatr</span>
+                            <span class="value">--</span>
+                        </div>
+                        <div class="detail-item" id="detail-pressure">
+                            <span class="label">Ciśnienie</span>
+                            <span class="value">--</span>
+                        </div>
+                        <div class="detail-item" id="detail-aqi">
+                            <span class="label">Jakość pow.</span>
+                            <span class="value">--</span>
+                        </div>
+                        <div class="detail-item" id="detail-uv">
+                            <span class="label">Indeks UV</span>
+                            <span class="value">--</span>
+                        </div>
+                        <div class="detail-item" id="detail-sunrise">
+                            <span class="label">Wschód słońca</span>
+                            <span class="value">--</span>
+                        </div>
+                        <div class="detail-item" id="detail-sunset">
+                            <span class="label">Zachód słońca</span>
+                            <span class="value">--</span>
+                        </div>
+                    </div>
                 </section>
 
                 <section id="map-container" class="map-section glass-card">
@@ -88,7 +121,7 @@
                         </div>
                         <div class="slider-container">
                             <button class="slider-nav prev">&lt;</button>
-                            <div class="slider-scroll-wrapper"></div>
+                            <div class="slider-scroll-wrapper" id="hourly-forecast-content"></div>
                             <button class="slider-nav next">&gt;</button>
                         </div>
                     </div>
@@ -97,7 +130,7 @@
                         <h3>Prognoza na 7 dni</h3>
                         <div class="slider-container">
                             <button class="slider-nav prev">&lt;</button>
-                            <div class="slider-scroll-wrapper"></div>
+                            <div class="slider-scroll-wrapper" id="daily-forecast-content"></div>
                             <button class="slider-nav next">&gt;</button>
                         </div>
                     </div>
@@ -106,7 +139,6 @@
         </main>
     </div>
     
-    <!-- POPRAWKA KRYTYCZNA: Dodano brakujący tag wczytujący skrypt aplikacji -->
     <script type="module" src="main.js"></script>
 </body>
 </html>
