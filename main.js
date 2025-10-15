@@ -1,240 +1,232 @@
 /**
  * --- PL ---
- * Moduł UI (Interfejsu Użytkownika) dla wersji 2.0.
- * Odpowiada za wszelkie manipulacje w drzewie DOM - renderowanie danych,
- * aktualizowanie widoków, pokazywanie/ukrywanie elementów, zarządzanie klasami CSS.
- * Operuje na istniejącej strukturze HTML zdefiniowanej w index.html.
+ * Główny plik aplikacji v2.0 (Orkiestrator).
+ * Łączy wszystkie moduły i zarządza stanem oraz logiką.
+ * Wersja dostosowana do nowej struktury HTML i modułu UI.
  * --- EN ---
- * UI (User Interface) Module for version 2.0.
- * Responsible for all DOM manipulations - rendering data, updating views,
- * showing/hiding elements, managing CSS classes.
- * Operates on the existing HTML structure defined in index.html.
+ * Main application file v2.0 (Orchestrator).
+ * Connects all modules and manages state and logic.
+ * Version adapted for the new HTML structure and UI module.
  */
 
-// --- Referencje do elementów DOM / DOM Element References ---
-const dom = {};
+// --- Import modułów / Module Imports ---
+import { translations } from './translations.js';
+import * as api from './api.js';
+import * as ui from './ui.js';
 
-// --- Stan wewnętrzny modułu UI / Internal UI Module State ---
-let minutelyChart = null;
-let activeModalTrigger = null; 
+// --- Stan Aplikacji / Application State ---
+let state = {
+    currentWeather: null,
+    currentLocation: null,
+    favorites: [],
+    currentLang: 'pl',
+    currentHourlyRange: 24,
+    map: null,
+    marker: null,
+    precipitationLayer: null,
+    lightTileLayer: null,
+    darkTileLayer: null,
+};
 
-/**
- * --- PL --- Inicjalizuje moduł, pobierając referencje do elementów DOM v2.0.
- * --- EN --- Initializes the module by caching DOM element references for v2.0.
- */
-export function initUI() {
-    // --- Główne elementy / Main Elements ---
-    dom.searchBtn = document.getElementById('search-weather-btn');
-    dom.cityInput = document.getElementById('city-input');
-    dom.geoBtn = document.getElementById('geolocation-btn');
-    dom.themeToggle = document.getElementById('theme-toggle');
-    dom.weatherResultContainer = document.getElementById('weather-result-container');
-    dom.favoritesContainer = document.getElementById('favorites-container');
+// --- Inicjalizacja Aplikacji / Application Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    ui.initUI();
+    // initMap(); // Mapa wymaga Leaflet, można ją dodać później
+    loadFavorites();
+    bindEvents();
     
-    // --- Kontenery prognoz / Forecast Containers ---
-    dom.forecastsContainer = document.querySelector('.forecasts-container');
-    dom.mapContainer = document.getElementById('map-container');
-    dom.forecastSwitcherMobile = document.querySelector('.forecast-switcher-mobile');
-    
-    // --- Prognoza Minutowa / Minutely Forecast ---
-    dom.minutely = {
-        wrapper: document.getElementById('minutely-forecast-wrapper'),
-        chartCanvas: document.getElementById('minutely-chart'),
-        chartContainer: document.querySelector('.minutely-chart-container'),
-    };
-    
-    // --- Prognoza Godzinowa / Hourly Forecast ---
-    dom.hourly = {
-        wrapper: document.getElementById('hourly-forecast-wrapper'),
-        rangeSwitcher: document.querySelector('.hourly-range-switcher'),
-        scrollWrapper: document.querySelector('#hourly-forecast-wrapper .slider-scroll-wrapper'),
-        sliderPrevBtn: document.querySelector('#hourly-forecast-wrapper .slider-nav.prev'),
-        sliderNextBtn: document.querySelector('#hourly-forecast-wrapper .slider-nav.next'),
-    };
-
-    // --- Prognoza Dzienna / Daily Forecast ---
-    dom.daily = {
-        wrapper: document.getElementById('daily-forecast-wrapper'),
-        scrollWrapper: document.querySelector('#daily-forecast-wrapper .slider-scroll-wrapper'),
-        sliderPrevBtn: document.querySelector('#daily-forecast-wrapper .slider-nav.prev'),
-        sliderNextBtn: document.querySelector('#daily-forecast-wrapper .slider-nav.next'),
-    };
-
-    // --- Okno Modalne / Modal ---
-    dom.modal = {
-        overlay: document.getElementById('details-modal'),
-        title: document.getElementById('modal-title'),
-        body: document.getElementById('modal-body'),
-        closeBtn: document.querySelector('.modal-close-btn'),
-    };
-    
-    // --- Elementy renderowane dynamicznie / Dynamically rendered elements ---
-    dom.cityName = document.getElementById('city-name');
-    dom.addFavoriteBtn = document.getElementById('add-favorite-btn');
-    dom.currentTemp = document.getElementById('current-temp');
-    dom.weatherDescription = document.getElementById('weather-description');
-    dom.weatherIcon = document.querySelector('.current-weather__icon');
-    dom.weatherOverview = document.getElementById('weather-overview');
-    dom.weatherAlertsContainer = document.getElementById('weather-alerts-container');
-    dom.extraDetailsGrid = document.querySelector('.current-weather__extra-details-grid');
-}
-
-// --- Funkcje pomocnicze (bez zmian) / Helper Functions (unchanged) ---
-
-function getWeatherIconHtml(iconCode, description) {
-    const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
-    const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg', };
-    const iconName = iconMap[iconCode] || 'not-available.svg';
-    return `<img src="${iconBaseUrl}" alt="${description}" class="weather-icon-img" style="width: 100%; height: 100%;">`;
-}
-
-function convertWindDirection(deg) {
-    const directions = ['Pn', 'Pn-Wsch', 'Wsch', 'Pd-Wsch', 'Pd', 'Pd-Zach', 'Zach', 'Pn-Zach'];
-    return directions[Math.round(deg / 45) % 8];
-}
-
-function translateOverview(apiDescription, t) {
-    if (!apiDescription) return '';
-    const translationEntry = t.overview[apiDescription.toLowerCase()];
-    if (translationEntry && translationEntry.genitive) {
-        let sentence = `${t.overview.expect} ${translationEntry.genitive} ${t.overview['throughout the day']}.`;
-        return sentence.charAt(0).toUpperCase() + sentence.slice(1);
-    }
-    return apiDescription.charAt(0).toUpperCase() + apiDescription.slice(1);
-}
-
-// ... inne funkcje pomocnicze ...
-
-// --- Zarządzanie stanem UI / UI State Management ---
-
-export function toggleButtonLoading(button, isLoading) {
-    if (!button) return;
-    if (isLoading) {
-        button.dataset.originalText = button.innerHTML;
-        button.innerHTML = `<div class="loader-in-button"></div>`; // Użyj dedykowanej klasy dla loadera
-        button.disabled = true;
+    const lastCity = localStorage.getItem('lastCity');
+    if (lastCity) {
+        document.getElementById('city-input').value = lastCity;
+        handleSearch(lastCity);
+    } else if (state.favorites.length > 0) {
+        handleSearch(state.favorites[0].name);
     } else {
-        if (button.dataset.originalText) {
-            button.innerHTML = button.dataset.originalText;
+        ui.showInitialState();
+    }
+});
+
+// --- Powiązanie Eventów (NOWA WERSJA) / Event Binding (NEW VERSION) ---
+function bindEvents() {
+    const dom = { // Ponowne pobranie referencji dla czytelności
+        searchBtn: document.getElementById('search-weather-btn'),
+        cityInput: document.getElementById('city-input'),
+        geoBtn: document.getElementById('geolocation-btn'),
+        themeToggle: document.getElementById('theme-toggle'),
+        favoritesContainer: document.getElementById('favorites-container'),
+        hourly: {
+            rangeSwitcher: document.querySelector('.hourly-range-switcher'),
+            sliderPrevBtn: document.querySelector('#hourly-forecast-wrapper .slider-nav.prev'),
+            sliderNextBtn: document.querySelector('#hourly-forecast-wrapper .slider-nav.next'),
+            scrollWrapper: document.querySelector('#hourly-forecast-wrapper .slider-scroll-wrapper'),
+        },
+        daily: {
+            sliderPrevBtn: document.querySelector('#daily-forecast-wrapper .slider-nav.prev'),
+            sliderNextBtn: document.querySelector('#daily-forecast-wrapper .slider-nav.next'),
+            scrollWrapper: document.querySelector('#daily-forecast-wrapper .slider-scroll-wrapper'),
+        },
+        modal: {
+            overlay: document.getElementById('details-modal'),
+            closeBtn: document.querySelector('.modal-close-btn'),
+        },
+        forecastSwitcherMobile: document.querySelector('.forecast-switcher-mobile'),
+    };
+
+    dom.searchBtn.addEventListener('click', () => handleSearch(dom.cityInput.value.trim()));
+    dom.cityInput.addEventListener('keyup', e => { if (e.key === 'Enter') handleSearch(dom.cityInput.value.trim()); });
+    dom.geoBtn.addEventListener('click', handleGeolocation);
+    // dom.themeToggle.addEventListener('click', toggleTheme);
+    
+    dom.favoritesContainer.addEventListener('click', handleFavoriteClick);
+
+    // Nowe eventy dla sliderów i przełączników
+    dom.hourly.rangeSwitcher.addEventListener('click', handleHourlyRangeSwitch);
+    dom.hourly.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, -1));
+    dom.hourly.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, 1));
+    
+    dom.daily.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, -1));
+    dom.daily.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, 1));
+    
+    if(dom.forecastSwitcherMobile) {
+        dom.forecastSwitcherMobile.addEventListener('click', handleMobileForecastSwitch);
+    }
+}
+
+// --- Główna Logika (z drobnymi zmianami) / Main Logic (with minor changes) ---
+async function handleSearch(query) {
+    if (!query) return;
+
+    const buttonToLoad = (typeof query === 'object' && query.latitude) 
+        ? document.getElementById('geolocation-btn') 
+        : document.getElementById('search-weather-btn');
+        
+    ui.toggleButtonLoading(buttonToLoad, true);
+    ui.showLoadingState();
+
+    try {
+        const data = await api.getWeatherData(query);
+        state.currentWeather = processWeatherData(data);
+        state.currentLocation = data.location;
+        if (typeof query === 'string') localStorage.setItem('lastCity', query);
+        
+        updateFullUI(query);
+        
+    } catch (error) {
+        ui.showError(error.message);
+    } finally {
+        ui.toggleButtonLoading(buttonToLoad, false);
+    }
+}
+
+function handleGeolocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => handleSearch({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+            () => ui.showError(translations[state.currentLang].errors.location)
+        );
+    }
+}
+
+function processWeatherData(data) {
+    // Ta funkcja pozostaje praktycznie bez zmian, bo operuje na danych, a nie na DOM
+    return {
+        ...data,
+        generatedOverview: data.daily[0].weather[0].description,
+        roadCondition: (() => { /* ... */ return { key: 'dry', class: 'roadDry' }; })(),
+        uvCategory: (() => { /* ... */ return 'low'; })(),
+        formattedTimes: {
+            sunrise: new Date(data.current.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            sunset: new Date(data.current.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         }
-        button.disabled = false;
-    }
+    };
 }
 
-export function showInitialState() {
-    dom.favoritesContainer.innerHTML = `<p>Dodaj swoje ulubione lokalizacje za pomocą ikony gwiazdki ⭐</p>`;
-    hideContent();
-}
-
-export function showLoadingState() {
-    hideContent();
-    // Można dodać globalny loader, ale na razie to wystarczy
-    console.log("Pokazuję stan ładowania...");
-}
-
-export function showError(message) {
-    // Proste, ale skuteczne powiadomienie
-    alert(message); 
-    hideContent();
-}
-
-function hideContent() {
-    if (dom.weatherResultContainer) {
-        dom.weatherResultContainer.style.display = 'none';
-    }
-}
-
-export function showContent() {
-    if (dom.weatherResultContainer) {
-        dom.weatherResultContainer.style.display = 'block';
-    }
-}
-
-// --- Renderowanie komponentów (NOWA WERSJA) / Component Rendering (NEW VERSION) ---
-
-export function renderCurrentWeather(data, t) {
-    dom.cityName.textContent = data.location.name;
-    dom.currentTemp.textContent = `${Math.round(data.current.temp)}°C`;
-    dom.weatherDescription.textContent = data.current.weather[0].description;
-    dom.weatherIcon.innerHTML = getWeatherIconHtml(data.current.weather[0].icon, data.current.weather[0].description);
+function updateFullUI(query) {
+    const t = translations[state.currentLang];
     
-    const translatedOverview = translateOverview(data.generatedOverview, t);
-    dom.weatherOverview.innerHTML = translatedOverview ? `<p>${translatedOverview}</p>` : '';
-
-    dom.extraDetailsGrid.innerHTML = `
-        <div class="detail-item"><span>${t.details.wind}</span><span>${data.current.wind_speed.toFixed(1)} m/s</span></div>
-        <div class="detail-item"><span>${t.details.pressure}</span><span>${data.current.pressure} hPa</span></div>
-        <div class="detail-item"><span>${t.details.aqi}</span><span>${t.values.aqi[data.air_quality.main.aqi - 1]}</span></div>
-        <div class="detail-item"><span>${t.details.uvIndex}</span><span>${t.values.uv[data.uvCategory]}</span></div>
-        <div class="detail-item"><span>${t.details.sunrise}</span><span>${data.formattedTimes.sunrise}</span></div>
-        <div class="detail-item"><span>${t.details.sunset}</span><span>${data.formattedTimes.sunset}</span></div>
-    `;
+    ui.showContent(); // Odkrywamy kontener z wynikami
+    
+    ui.renderCurrentWeather(state.currentWeather, t);
+    ui.renderWeatherAlerts(state.currentWeather, t);
+    ui.renderMinutelyForecast(state.currentWeather.minutely);
+    ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
+    ui.renderDailyForecast(state.currentWeather.daily, t);
+    
+    loadFavorites(); // Odświeżamy ulubione, żeby podświetlić aktywną
+    document.getElementById('add-favorite-btn').addEventListener('click', toggleFavorite);
+    // updateFavoriteButtonState();
+    
+    // updateMap(state.currentLocation.lat, state.currentLocation.lon, state.currentLocation.name);
 }
 
-export function renderWeatherAlerts(data, t) {
-    if (data.alerts && data.alerts.length > 0) {
-        const alert = data.alerts[0];
-        dom.weatherAlertsContainer.innerHTML = `<div class="alert warning"><strong>${alert.event}</strong>: ${alert.description}</div>`;
-        dom.weatherAlertsContainer.style.display = 'block';
+// --- Handlery Zdarzeń UI (NOWE) / UI Event Handlers (NEW) ---
+function handleHourlyRangeSwitch(event) {
+    const btn = event.target.closest('button');
+    if (!btn || btn.classList.contains('active')) return;
+    
+    state.currentHourlyRange = parseInt(btn.dataset.range, 10);
+    
+    document.querySelector('.hourly-range-switcher .active').classList.remove('active');
+    btn.classList.add('active');
+    
+    ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, translations[state.currentLang]);
+}
+
+function handleSliderScroll(scrollWrapper, direction) {
+    const scrollAmount = scrollWrapper.clientWidth * 0.8 * direction;
+    scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+}
+
+function handleMobileForecastSwitch(event) {
+    const btn = event.target.closest('button');
+    if (!btn || btn.classList.contains('active')) return;
+
+    const forecastType = btn.dataset.forecast;
+    
+    // Zdejmij klasę 'active' z obecnego przycisku i sekcji
+    const currentActiveBtn = document.querySelector('.forecast-switcher-mobile .active');
+    const currentActiveSection = document.querySelector('.forecast-section.active');
+    if(currentActiveBtn) currentActiveBtn.classList.remove('active');
+    if(currentActiveSection) currentActiveSection.classList.remove('active');
+
+    // Dodaj klasę 'active' do nowego przycisku i odpowiadającej mu sekcji
+    btn.classList.add('active');
+    document.getElementById(`${forecastType}-forecast-wrapper`).classList.add('active');
+}
+
+// --- Logika Ulubionych (bez zmian) / Favorites Logic (unchanged) ---
+function loadFavorites() {
+    state.favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
+    ui.renderFavorites(state.favorites, state.currentLocation);
+}
+
+function saveFavorites() {
+    localStorage.setItem('weatherFavorites', JSON.stringify(state.favorites));
+}
+
+function toggleFavorite() {
+    if (!state.currentLocation) return;
+    const locationId = `${state.currentLocation.lat},${state.currentLocation.lon}`;
+    const index = state.favorites.findIndex(fav => `${fav.lat},${fav.lon}` === locationId);
+    
+    if (index > -1) {
+        state.favorites.splice(index, 1);
     } else {
-        dom.weatherAlertsContainer.innerHTML = '';
-        dom.weatherAlertsContainer.style.display = 'none';
-    }
-}
-
-export function renderMinutelyForecast(minutelyData) {
-    const hasPrecipitation = minutelyData && minutelyData.some(minute => minute.precipitation > 0);
-    
-    if (!hasPrecipitation) {
-        dom.minutely.chartContainer.innerHTML = `<div class="no-data">Brak opadów w ciągu najbliższej godziny.</div>`;
-        return;
-    }
-    if (!dom.minutely.chartContainer.querySelector('canvas')) {
-        dom.minutely.chartContainer.innerHTML = `<canvas id="minutely-chart"></canvas>`;
-        dom.minutely.chartCanvas = document.getElementById('minutely-chart');
+        if (state.favorites.length >= 5) return;
+        state.favorites.push(state.currentLocation);
     }
     
-    // Logika Chart.js (pozostaje taka sama, wymaga importu Chart.js w HTML)
+    saveFavorites();
+    loadFavorites(); // Prosty sposób na odświeżenie widoku
 }
 
-export function renderHourlyForecast(hourlyData, range, t) {
-    const itemsHtml = hourlyData.slice(0, range).map(item => `
-        <div class="hourly-forecast-item glass-card" data-timestamp="${item.dt}">
-            <p class="time">${new Date(item.dt * 1000).getHours()}:00</p>
-            <div class="icon">${getWeatherIconHtml(item.weather[0].icon, item.weather[0].description)}</div>
-            <p class="temp">${Math.round(item.temp)}°C</p>
-        </div>
-    `).join('');
-
-    dom.hourly.scrollWrapper.innerHTML = itemsHtml;
-}
-
-export function renderDailyForecast(dailyData, t) {
-    const itemsHtml = dailyData.slice(1).map(day => `
-        <div class="daily-forecast-item glass-card" data-timestamp="${day.dt}">
-            <p class="day">${new Date(day.dt * 1000).toLocaleDateString('pl-PL', { weekday: 'short' })}</p>
-            <div class="icon">${getWeatherIconHtml(day.weather[0].icon, day.weather[0].description)}</div>
-            <p class="temp">${Math.round(day.temp.max)}° / ${Math.round(day.temp.min)}°</p>
-        </div>
-    `).join('');
-    
-    dom.daily.scrollWrapper.innerHTML = itemsHtml;
-}
-
-export function renderFavorites(favorites, currentLocation) {
-    if (favorites.length > 0) {
-        dom.favoritesContainer.innerHTML = favorites.map(fav => {
-            const clat = currentLocation ? parseFloat(currentLocation.lat) : NaN;
-            const clon = currentLocation ? parseFloat(currentLocation.lon) : NaN;
-            const flat = parseFloat(fav.lat);
-            const flon = parseFloat(fav.lon);
-            const isActive = !isNaN(clat) && !isNaN(clon) && !isNaN(flat) && !isNaN(flon) &&
-                             flat.toFixed(4) === clat.toFixed(4) &&
-                             flon.toFixed(4) === clon.toFixed(4);
-            return `<button class="favorite-location-btn ${isActive ? 'active' : ''}" data-city="${fav.name}">${fav.name}</button>`;
-        }).join('');
-    } else {
-        showInitialState();
+function handleFavoriteClick(event) {
+    const btn = event.target.closest('.favorite-location-btn');
+    if (!btn) return;
+    const cityName = btn.dataset.city;
+    if (cityName) {
+        document.getElementById('city-input').value = cityName;
+        handleSearch(cityName);
     }
 }
 
