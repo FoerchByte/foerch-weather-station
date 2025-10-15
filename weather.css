@@ -12,11 +12,12 @@
     --glass-background: rgba(30, 41, 59, 0.6);
     --glass-border-color: rgba(255, 255, 255, 0.1);
     --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
+    --text-secondary: #94a3b8;
     --accent-color: #38bdf8;
     --accent-color-hover: #0ea5e9;
     --border-radius: 16px;
     --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --transition-speed: 0.3s;
 }
 
 body {
@@ -33,7 +34,7 @@ body {
     margin: 0 auto;
 }
 
-/* --- Efekt Glassmorphism --- */
+/* --- Efekt Glassmorphism & Animacje --- */
 .glass-card {
     background: var(--glass-background);
     backdrop-filter: blur(10px);
@@ -43,6 +44,7 @@ body {
     box-shadow: var(--card-shadow);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
 }
 
 /* --- Nagłówek --- */
@@ -64,7 +66,6 @@ body {
     font-size: 1.5rem;
     cursor: pointer;
 }
-/* Logika pokazywania słońca/księżyca (do sterowania przez JS) */
 .moon-icon { display: none; }
 body.light-mode .sun-icon { display: none; }
 body.light-mode .moon-icon { display: block; }
@@ -86,6 +87,11 @@ body.light-mode .moon-icon { display: block; }
     padding: 0.75rem 1rem;
     border-radius: 10px;
     font-size: 1rem;
+    transition: box-shadow var(--transition-speed);
+}
+.search-section input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent-color);
 }
 .search-section button {
     background-color: var(--accent-color);
@@ -95,19 +101,22 @@ body.light-mode .moon-icon { display: block; }
     border-radius: 10px;
     cursor: pointer;
     font-weight: 500;
-    transition: background-color 0.2s;
+    transition: background-color var(--transition-speed);
 }
 .search-section button:hover {
     background-color: var(--accent-color-hover);
 }
 
 /* --- Karta Aktualnej Pogody --- */
-.current-weather__header {
+.current-weather-card .current-weather__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid var(--glass-border-color);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
 }
-.current-weather__header h3 {
+.current-weather-card h3 {
     font-size: 2rem;
     margin: 0;
 }
@@ -115,7 +124,7 @@ body.light-mode .moon-icon { display: block; }
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: 2rem;
     margin: 1.5rem 0;
     text-align: left;
 }
@@ -127,6 +136,27 @@ body.light-mode .moon-icon { display: block; }
     font-size: 4rem;
     font-weight: 700;
     line-height: 1;
+}
+.current-weather__extra-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--glass-border-color);
+    margin-top: 1rem;
+}
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.detail-item .label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+.detail-item .value {
+    font-size: 1.2rem;
+    font-weight: 500;
 }
 
 /* --- Prognozy --- */
@@ -152,11 +182,12 @@ body.light-mode .moon-icon { display: block; }
     gap: 1rem;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    padding-bottom: 1rem; /* Miejsce na scrollbar */
-    scrollbar-width: none; /* Ukryj scrollbar dla Firefox */
+    padding: 1rem; /* Daje przestrzeń na cień */
+    margin: -1rem; /* Kompensuje padding */
+    scrollbar-width: none;
 }
 .slider-scroll-wrapper::-webkit-scrollbar {
-    display: none; /* Ukryj scrollbar dla Chrome, Safari, Opera */
+    display: none;
 }
 .slider-nav {
     background: var(--glass-background);
@@ -168,27 +199,55 @@ body.light-mode .moon-icon { display: block; }
     cursor: pointer;
     font-size: 1.5rem;
     z-index: 10;
+    opacity: 0.7;
+    transition: opacity var(--transition-speed);
+}
+.slider-nav:hover {
+    opacity: 1;
 }
 .slider-nav.prev { margin-right: 0.5rem; }
 .slider-nav.next { margin-left: 0.5rem; }
 
+.hourly-forecast-item, .daily-forecast-item {
+    scroll-snap-align: start;
+    flex: 0 0 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+}
+.hourly-forecast-item:hover, .daily-forecast-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+}
+.hourly-forecast-item .icon, .daily-forecast-item .icon {
+    width: 60px;
+    height: 60px;
+}
+.hourly-forecast-item .temp, .daily-forecast-item .temp {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
 /* --- Responsywność --- */
 .forecast-switcher-mobile {
-    display: none; /* Ukryty na desktopie */
+    display: none;
 }
 
 @media (max-width: 768px) {
     body { padding: 0.5rem; }
     .glass-card { padding: 1rem; }
     .search-section { flex-direction: column; }
-    .search-section input, .search-section button { width: 100%; }
+    .search-section input, .search-section button { width: 100%; box-sizing: border-box; }
     
     .header-bar h1 { font-size: 1.5rem; }
     .current-weather__temp { font-size: 3rem; }
     .current-weather__icon { width: 80px; height: 80px; }
-    .slider-nav { display: none; } /* Slidery na mobile obsługujemy przez swipe */
+    .slider-nav { display: none; }
 
-    /* Pokazujemy przełącznik i ukrywamy sekcje na mobile */
     .forecast-switcher-mobile {
         display: flex;
         justify-content: space-around;
@@ -198,24 +257,17 @@ body.light-mode .moon-icon { display: block; }
         margin-bottom: 1rem;
     }
      .forecast-switcher-mobile button {
-        flex: 1;
-        background: none;
-        border: none;
-        color: var(--text-secondary);
-        padding: 0.5rem;
-        border-radius: 8px;
-        cursor: pointer;
+        flex: 1; background: none; border: none; color: var(--text-secondary);
+        padding: 0.5rem; border-radius: 8px; cursor: pointer;
     }
      .forecast-switcher-mobile button.active {
-        background: var(--accent-color);
-        color: white;
-        font-weight: bold;
+        background: var(--accent-color); color: white; font-weight: bold;
     }
 
     .forecast-section {
-        display: none; /* Domyślnie wszystkie sekcje ukryte */
+        display: none;
     }
     .forecast-section.active {
-        display: block; /* Pokazujemy tylko aktywną */
+        display: block;
     }
 }
