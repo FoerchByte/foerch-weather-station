@@ -11,18 +11,13 @@
  * Operates on the existing HTML structure defined in index.html.
  */
 
-// --- Referencje do elementów DOM / DOM Element References ---
 const dom = {};
 let activeModalTrigger = null; 
+let minutelyChart = null;
 
-/**
- * --- PL --- Inicjalizuje moduł, pobierając referencje do elementów DOM v2.0.
- * --- EN --- Initializes the module by caching DOM element references for v2.0.
- */
 export function initUI() {
     dom.weatherResultContainer = document.getElementById('weather-result-container');
     dom.favoritesContainer = document.getElementById('favorites-container');
-    
     dom.cityName = document.getElementById('city-name');
     dom.addFavoriteBtn = document.getElementById('add-favorite-btn');
     dom.currentTemp = document.getElementById('current-temp');
@@ -30,16 +25,15 @@ export function initUI() {
     dom.weatherIcon = document.getElementById('current-weather-icon');
     dom.weatherOverview = document.getElementById('weather-overview');
     dom.weatherAlertsContainer = document.getElementById('weather-alerts-container');
-    
-    // ZMIANA: Usunięto referencję do starej siatki
-    
     dom.hourly = {
         scrollWrapper: document.getElementById('hourly-forecast-content'),
     };
     dom.daily = {
-        scrollWrapper: document.getElementById('daily-forecast-content'),
+        grid: document.getElementById('daily-forecast-content'),
     };
-
+    dom.minutely = {
+        container: document.getElementById('minutely-chart-container'),
+    };
     dom.modal = {
         overlay: document.getElementById('details-modal'),
         title: document.getElementById('modal-title'),
@@ -47,8 +41,6 @@ export function initUI() {
         closeBtn: document.getElementById('modal-close-btn'),
     };
 }
-
-// --- Funkcje pomocnicze ---
 
 function convertMsToKmh(ms) {
     return Math.round(ms * 3.6);
@@ -76,8 +68,6 @@ function convertWindDirection(deg) {
     return directions[Math.round(deg / 45) % 8];
 }
 
-// --- Zarządzanie stanem UI ---
-
 export function toggleButtonLoading(button, isLoading) {
     if (!button) return;
     if (isLoading) {
@@ -85,9 +75,7 @@ export function toggleButtonLoading(button, isLoading) {
         button.innerHTML = `<div class="loader-in-button"></div>`;
         button.disabled = true;
     } else {
-        if (button.dataset.originalText) {
-            button.innerHTML = button.dataset.originalText;
-        }
+        if (button.dataset.originalText) button.innerHTML = button.dataset.originalText;
         button.disabled = false;
     }
 }
@@ -97,54 +85,26 @@ export function showInitialState() {
     hideContent();
 }
 
-export function showLoadingState() {
-    hideContent();
-}
+export function showLoadingState() { hideContent(); }
+export function showError(message) { alert(message); hideContent(); }
+function hideContent() { if (dom.weatherResultContainer) dom.weatherResultContainer.style.display = 'none'; }
+export function showContent() { if (dom.weatherResultContainer) dom.weatherResultContainer.style.display = 'block'; }
 
-export function showError(message) {
-    alert(message); 
-    hideContent();
-}
-
-function hideContent() {
-    if (dom.weatherResultContainer) {
-        dom.weatherResultContainer.style.display = 'none';
-    }
-}
-
-export function showContent() {
-    if (dom.weatherResultContainer) {
-        dom.weatherResultContainer.style.display = 'block';
-    }
-}
-
-// --- Renderowanie komponentów ---
-
-// ZMIANA: Nowa, uproszczona funkcja do renderowania pojedynczej danej w kafelku
 function renderDetailRow(containerId, icon, label, value, valueClass = '') {
     const container = document.getElementById(containerId);
     if (!container) return;
-
     container.innerHTML = `
-        <div class="label-container">
-            ${icon}
-            <span class="label">${label}</span>
-        </div>
-        <span class="value ${valueClass}">${value}</span>
-    `;
+        <div class="label-container">${icon}<span class="label">${label}</span></div>
+        <span class="value ${valueClass}">${value}</span>`;
 }
 
-
-// ZMIANA: Całkowicie nowa logika renderowania dla układu kafelkowego
 export function renderCurrentWeather(data, t) {
     dom.cityName.textContent = data.location.name;
     dom.currentTemp.textContent = `${Math.round(data.current.temp)}°C`;
     dom.weatherDescription.textContent = data.current.weather[0].description;
     dom.weatherIcon.innerHTML = getWeatherIconHtml(data.current.weather[0].icon, data.current.weather[0].description);
-    
     const translatedOverview = translateOverview(data.generatedOverview, t);
     dom.weatherOverview.innerHTML = translatedOverview ? `<p>${translatedOverview}</p>` : '';
-
     const icons = {
         feelsLike: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h-2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M4 12h2.5"/><path d="M17.5 12H20"/></svg>`,
         humidity: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
@@ -158,27 +118,18 @@ export function renderCurrentWeather(data, t) {
         moonrise: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 1 0 10 10 9 9 0 1 1-10-10z"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/></svg>`,
         moonset: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 1 0 10 10 9 9 0 1 1-10-10z"/><path d="M22 22H2"/><path d="m16 18-4 4-4-4"/></svg>`,
     };
-
-    // Kafelek 1: Warunki Atmosferyczne
     renderDetailRow('detail-feels-like', icons.feelsLike, t.details.feelsLike, `${Math.round(data.current.feels_like)}°C`);
     renderDetailRow('detail-wind', icons.wind, t.details.wind, `${convertMsToKmh(data.current.wind_speed)} km/h`);
     renderDetailRow('detail-pressure', icons.pressure, t.details.pressure, `${data.current.pressure} hPa`);
     renderDetailRow('detail-humidity', icons.humidity, t.details.humidity, `${data.current.humidity}%`);
-
-    // Kafelek 2: Wskaźniki i Bezpieczeństwo
     renderDetailRow('detail-aqi', icons.aqi, t.details.aqi, t.values.aqi[data.air_quality.main.aqi - 1], `aqi-${data.air_quality.main.aqi}`);
     renderDetailRow('detail-uv', icons.uv, t.details.uvIndex, t.values.uv[data.uvCategory], `uv-${data.uvCategory}`);
     renderDetailRow('detail-road', icons.road, t.details.roadSurface, t.values.road[data.roadCondition.key], `road-${data.roadCondition.key}`);
-
-    // Kafelek 3: Słońce
     renderDetailRow('detail-sunrise', icons.sunrise, t.details.sunrise, data.formattedTimes.sunrise);
     renderDetailRow('detail-sunset', icons.sunset, t.details.sunset, data.formattedTimes.sunset);
-    
-    // Kafelek 4: Księżyc
     renderDetailRow('detail-moonrise', icons.moonrise, t.details.moonrise, data.formattedTimes.moonrise);
     renderDetailRow('detail-moonset', icons.moonset, t.details.moonset, data.formattedTimes.moonset);
 }
-
 
 export function renderWeatherAlerts(data, t) {
     if (data.alerts && data.alerts.length > 0) {
@@ -191,21 +142,94 @@ export function renderWeatherAlerts(data, t) {
     }
 }
 
-export function renderMinutelyForecast(minutelyData) {
-    // Ta funkcja wymaga biblioteki Chart.js
+// ZMIANA: Pełna implementacja wykresu opadów
+export function renderMinutelyForecast(minutelyData, t) {
+    const container = dom.minutely.container;
+    if (!container) return;
+
+    if (minutelyChart) {
+        minutelyChart.destroy();
+        minutelyChart = null;
+    }
+
+    const hasPrecipitation = minutelyData && minutelyData.some(minute => minute.precipitation > 0);
+    if (!hasPrecipitation) {
+        container.innerHTML = `<div class="no-data">Brak opadów w ciągu najbliższej godziny.</div>`;
+        return;
+    }
+
+    container.innerHTML = `<canvas id="minutely-chart"></canvas>`;
+    const ctx = container.querySelector('#minutely-chart').getContext('2d');
+    
+    const labels = minutelyData.map((_, index) => index % 10 === 0 ? `${index}m` : '');
+    const data = minutelyData.map(minute => minute.precipitation);
+
+    minutelyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: 'rgba(56, 189, 248, 0.6)',
+                borderColor: 'rgba(56, 189, 248, 1)',
+                borderWidth: 1,
+                barThickness: 'flex',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            scales: {
+                y: { display: false, beginAtZero: true },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: 'rgba(255, 255, 255, 0.7)' }
+                }
+            }
+        }
+    });
 }
 
+// ZMIANA: Nowa logika renderowania z grupowaniem po dniach
 export function renderHourlyForecast(hourlyData, range, t) {
-    const itemsHtml = hourlyData.slice(0, range).map(item => `
-        <div class="hourly-forecast-item glass-card" data-timestamp="${item.dt}">
-            <p class="time">${new Date(item.dt * 1000).getHours()}:00</p>
-            <div class="icon">${getWeatherIconHtml(item.weather[0].icon, item.weather[0].description)}</div>
-            <p class="temp">${Math.round(item.temp)}°C</p>
-        </div>
-    `).join('');
-    if(dom.hourly.scrollWrapper) dom.hourly.scrollWrapper.innerHTML = itemsHtml;
+    const forecastToShow = hourlyData.slice(0, range);
+    
+    const groupedByDay = forecastToShow.reduce((acc, item) => {
+        const dayKey = new Date(item.dt * 1000).toLocaleDateString('pl-PL', { weekday: 'long' });
+        if (!acc[dayKey]) acc[dayKey] = [];
+        acc[dayKey].push(item);
+        return acc;
+    }, {});
+    
+    const todayKey = new Date().toLocaleDateString('pl-PL', { weekday: 'long' });
+    const tomorrowKey = new Date(Date.now() + 864e5).toLocaleDateString('pl-PL', { weekday: 'long' });
+
+    let finalHtml = '';
+    for (const [day, items] of Object.entries(groupedByDay)) {
+        let dayLabel = day;
+        if (day === todayKey) dayLabel = t.forecast.today;
+        if (day === tomorrowKey) dayLabel = t.forecast.tomorrow;
+
+        const itemsHtml = items.map(item => `
+            <div class="hourly-forecast-item glass-card" data-timestamp="${item.dt}">
+                <p class="time">${new Date(item.dt * 1000).getHours()}:00</p>
+                <div class="icon">${getWeatherIconHtml(item.weather[0].icon, item.weather[0].description)}</div>
+                <p class="temp">${Math.round(item.temp)}°C</p>
+            </div>`).join('');
+        
+        finalHtml += `
+            <div class="hourly-day-group">
+                <h5 class="hourly-day-group-header">${dayLabel}</h5>
+                <div class="items-wrapper">${itemsHtml}</div>
+            </div>`;
+    }
+    
+    if(dom.hourly.scrollWrapper) dom.hourly.scrollWrapper.innerHTML = finalHtml;
 }
 
+
+// ZMIANA: Renderowanie do siatki zamiast slidera
 export function renderDailyForecast(dailyData, t) {
     const itemsHtml = dailyData.slice(1, 8).map(day => `
         <div class="daily-forecast-item glass-card" data-timestamp="${day.dt}">
@@ -214,7 +238,7 @@ export function renderDailyForecast(dailyData, t) {
             <p class="temp">${Math.round(day.temp.max)}° / ${Math.round(day.temp.min)}°</p>
         </div>
     `).join('');
-    if(dom.daily.scrollWrapper) dom.daily.scrollWrapper.innerHTML = itemsHtml;
+    if(dom.daily.grid) dom.daily.grid.innerHTML = itemsHtml;
 }
 
 export function renderFavorites(favorites, currentLocation) {
@@ -240,8 +264,6 @@ export function updateFavoriteButtonState(isFavorite) {
     }
 }
 
-// --- Logika okna modalnego ---
-
 function buildHourlyModalBody(data, t) {
     return `
         <div class="detail-item"><span class="label-container">${t.details.feelsLike}</span><span class="value">${Math.round(data.feels_like)}°C</span></div>
@@ -259,7 +281,6 @@ function buildDailyModalBody(data, t) {
     const sunrise = new Date(data.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const sunset = new Date(data.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const translatedSummary = translateOverview(data.weather[0].description, t);
-
     return `
         <div class="detail-item"><span class="label-container">${t.details.description}</span><span class="value">${translatedSummary}</span></div>
         <div class="detail-item"><span class="label-container">${t.forecast.precipChance}</span><span class="value">${Math.round(data.pop * 100)}%</span></div>
@@ -278,7 +299,6 @@ function buildDailyModalBody(data, t) {
 export function showDetailsModal(data, type, t) {
     const date = new Date(data.dt * 1000);
     let title = '', bodyHtml = '';
-
     if (type === 'hourly') {
         title = `Prognoza na ${date.toLocaleDateString('pl-PL', { weekday: 'long' })}, ${date.getHours()}:00`;
         bodyHtml = buildHourlyModalBody(data, t);
@@ -286,15 +306,11 @@ export function showDetailsModal(data, type, t) {
         title = `Prognoza na ${date.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}`;
         bodyHtml = buildDailyModalBody(data, t);
     }
-
     dom.modal.title.textContent = title;
     dom.modal.body.innerHTML = bodyHtml;
-
     activeModalTrigger = document.activeElement;
     dom.modal.overlay.hidden = false;
-    setTimeout(() => {
-        dom.modal.closeBtn.focus();
-    }, 10);
+    setTimeout(() => { dom.modal.closeBtn.focus(); }, 10);
 }
 
 export function hideDetailsModal() {
