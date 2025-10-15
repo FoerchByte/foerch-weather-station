@@ -92,7 +92,6 @@ function bindEvents() {
     addSafeListener(domElements.dailySliderNext, 'click', () => handleSliderScroll(domElements.dailyScrollWrapper, 1));
     addSafeListener(domElements.forecastSwitcherMobile, 'click', handleMobileForecastSwitch);
     
-    // NOWOŚĆ: Nasłuch na kliknięcia w prognozy i zamykanie modala
     addSafeListener(domElements.hourlyScrollWrapper, 'click', (e) => handleForecastItemClick(e, 'hourly'));
     addSafeListener(domElements.dailyScrollWrapper, 'click', (e) => handleForecastItemClick(e, 'daily'));
     addSafeListener(domElements.modalCloseBtn, 'click', ui.hideDetailsModal);
@@ -137,10 +136,22 @@ function handleGeolocation() {
     }
 }
 
+// --- ZMIANA: Przywrócenie pełnej logiki przetwarzania danych ---
 function processWeatherData(data) {
     return {
         ...data,
         generatedOverview: data.daily[0].weather[0].description,
+        // NOWOŚĆ: Przywrócona logika warunków na drodze
+        roadCondition: (() => {
+            const mainWeather = data.current.weather[0].main;
+            if (data.current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(mainWeather)) {
+                return { key: 'dry', class: 'roadDry' };
+            }
+            if (data.current.temp <= 2) {
+                return { key: 'icy', class: 'roadIcy' };
+            }
+            return { key: 'wet', class: 'roadWet' };
+        })(),
         uvCategory: (() => {
             const uvIndex = Math.round(data.current.uvi);
             if (uvIndex >= 11) return 'extreme';
@@ -149,9 +160,12 @@ function processWeatherData(data) {
             if (uvIndex >= 3) return 'moderate';
             return 'low';
         })(),
+        // NOWOŚĆ: Dodane formatowanie czasów dla księżyca
         formattedTimes: {
             sunrise: new Date(data.current.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             sunset: new Date(data.current.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            moonrise: new Date(data.daily[0].moonrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            moonset: new Date(data.daily[0].moonset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         }
     };
 }
@@ -206,7 +220,6 @@ function handleMobileForecastSwitch(event) {
     document.getElementById(`${forecastType}-forecast-wrapper`)?.classList.add('active');
 }
 
-// NOWOŚĆ: Handler do otwierania modala
 function handleForecastItemClick(event, type) {
     const itemEl = event.target.closest('.hourly-forecast-item, .daily-forecast-item');
     if (!itemEl) return;
