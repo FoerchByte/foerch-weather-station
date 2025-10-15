@@ -28,8 +28,23 @@ let state = {
     darkTileLayer: null,
 };
 
+
+// --- Logika Motywu / Theme Logic ---
+function setTheme(theme) {
+    document.body.classList.toggle('dark-mode', theme === 'dark');
+    localStorage.setItem('theme', theme);
+    // if (state.map) updateMapTileLayer(); // Odkomentuj, gdy mapa będzie aktywna
+}
+
+function toggleTheme() {
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    setTheme(isDarkMode ? 'light' : 'dark');
+}
+
+
 // --- Inicjalizacja Aplikacji / Application Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+    setTheme(localStorage.getItem('theme') || 'light');
     ui.initUI();
     // initMap(); // Mapa wymaga Leaflet, można ją dodać później
     loadFavorites();
@@ -46,51 +61,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- Powiązanie Eventów (NOWA WERSJA) / Event Binding (NEW VERSION) ---
+// --- Powiązanie Eventów (Wersja Finalna) / Event Binding (Final Version) ---
 function bindEvents() {
-    const dom = { // Ponowne pobranie referencji dla czytelności
+    const domElements = {
         searchBtn: document.getElementById('search-weather-btn'),
         cityInput: document.getElementById('city-input'),
         geoBtn: document.getElementById('geolocation-btn'),
         themeToggle: document.getElementById('theme-toggle'),
         favoritesContainer: document.getElementById('favorites-container'),
-        hourly: {
-            rangeSwitcher: document.querySelector('.hourly-range-switcher'),
-            sliderPrevBtn: document.querySelector('#hourly-forecast-wrapper .slider-nav.prev'),
-            sliderNextBtn: document.querySelector('#hourly-forecast-wrapper .slider-nav.next'),
-            scrollWrapper: document.querySelector('#hourly-forecast-wrapper .slider-scroll-wrapper'),
-        },
-        daily: {
-            sliderPrevBtn: document.querySelector('#daily-forecast-wrapper .slider-nav.prev'),
-            sliderNextBtn: document.querySelector('#daily-forecast-wrapper .slider-nav.next'),
-            scrollWrapper: document.querySelector('#daily-forecast-wrapper .slider-scroll-wrapper'),
-        },
-        modal: {
-            overlay: document.getElementById('details-modal'),
-            closeBtn: document.querySelector('.modal-close-btn'),
-        },
+        addFavoriteBtn: document.getElementById('add-favorite-btn'),
+        hourlyRangeSwitcher: document.querySelector('.hourly-range-switcher'),
+        hourlySliderPrev: document.querySelector('#hourly-forecast-wrapper .slider-nav.prev'),
+        hourlySliderNext: document.querySelector('#hourly-forecast-wrapper .slider-nav.next'),
+        hourlyScrollWrapper: document.querySelector('#hourly-forecast-wrapper .slider-scroll-wrapper'),
+        dailySliderPrev: document.querySelector('#daily-forecast-wrapper .slider-nav.prev'),
+        dailySliderNext: document.querySelector('#daily-forecast-wrapper .slider-nav.next'),
+        dailyScrollWrapper: document.querySelector('#daily-forecast-wrapper .slider-scroll-wrapper'),
         forecastSwitcherMobile: document.querySelector('.forecast-switcher-mobile'),
     };
 
-    dom.searchBtn.addEventListener('click', () => handleSearch(dom.cityInput.value.trim()));
-    dom.cityInput.addEventListener('keyup', e => { if (e.key === 'Enter') handleSearch(dom.cityInput.value.trim()); });
-    dom.geoBtn.addEventListener('click', handleGeolocation);
-    // dom.themeToggle.addEventListener('click', toggleTheme);
-    
-    dom.favoritesContainer.addEventListener('click', handleFavoriteClick);
+    // Funkcja pomocnicza do bezpiecznego dodawania eventów
+    const addSafeListener = (element, event, handler) => {
+        if (element) {
+            element.addEventListener(event, handler);
+        } else {
+            console.warn(`Element for event '${event}' not found.`);
+        }
+    };
 
-    // Nowe eventy dla sliderów i przełączników
-    dom.hourly.rangeSwitcher.addEventListener('click', handleHourlyRangeSwitch);
-    dom.hourly.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, -1));
-    dom.hourly.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, 1));
-    
-    dom.daily.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, -1));
-    dom.daily.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, 1));
-    
-    if(dom.forecastSwitcherMobile) {
-        dom.forecastSwitcherMobile.addEventListener('click', handleMobileForecastSwitch);
-    }
+    addSafeListener(domElements.searchBtn, 'click', () => handleSearch(domElements.cityInput.value.trim()));
+    addSafeListener(domElements.cityInput, 'keyup', e => { if (e.key === 'Enter') handleSearch(domElements.cityInput.value.trim()); });
+    addSafeListener(domElements.geoBtn, 'click', handleGeolocation);
+    addSafeListener(domElements.themeToggle, 'click', toggleTheme);
+    addSafeListener(domElements.favoritesContainer, 'click', handleFavoriteClick);
+    addSafeListener(domElements.addFavoriteBtn, 'click', toggleFavorite);
+    addSafeListener(domElements.hourlyRangeSwitcher, 'click', handleHourlyRangeSwitch);
+    addSafeListener(domElements.hourlySliderPrev, 'click', () => handleSliderScroll(domElements.hourlyScrollWrapper, -1));
+    addSafeListener(domElements.hourlySliderNext, 'click', () => handleSliderScroll(domElements.hourlyScrollWrapper, 1));
+    addSafeListener(domElements.dailySliderPrev, 'click', () => handleSliderScroll(domElements.dailyScrollWrapper, -1));
+    addSafeListener(domElements.dailySliderNext, 'click', () => handleSliderScroll(domElements.dailyScrollWrapper, 1));
+    addSafeListener(domElements.forecastSwitcherMobile, 'click', handleMobileForecastSwitch);
 }
+
 
 // --- Główna Logika (z drobnymi zmianami) / Main Logic (with minor changes) ---
 async function handleSearch(query) {
@@ -109,7 +121,7 @@ async function handleSearch(query) {
         state.currentLocation = data.location;
         if (typeof query === 'string') localStorage.setItem('lastCity', query);
         
-        updateFullUI(query);
+        updateFullUI();
         
     } catch (error) {
         ui.showError(error.message);
@@ -128,12 +140,24 @@ function handleGeolocation() {
 }
 
 function processWeatherData(data) {
-    // Ta funkcja pozostaje praktycznie bez zmian, bo operuje na danych, a nie na DOM
+    // Przywrócono pełną logikę przetwarzania danych
     return {
         ...data,
         generatedOverview: data.daily[0].weather[0].description,
-        roadCondition: (() => { /* ... */ return { key: 'dry', class: 'roadDry' }; })(),
-        uvCategory: (() => { /* ... */ return 'low'; })(),
+        roadCondition: (() => {
+            const mainWeather = data.current.weather[0].main;
+            if (data.current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(mainWeather)) return { key: 'dry', class: 'roadDry' };
+            if (data.current.temp <= 2) return { key: 'icy', class: 'roadIcy' };
+            return { key: 'wet', class: 'roadWet' };
+        })(),
+        uvCategory: (() => {
+            const uvIndex = Math.round(data.current.uvi);
+            if (uvIndex >= 11) return 'extreme';
+            if (uvIndex >= 8) return 'very-high';
+            if (uvIndex >= 6) return 'high';
+            if (uvIndex >= 3) return 'moderate';
+            return 'low';
+        })(),
         formattedTimes: {
             sunrise: new Date(data.current.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             sunset: new Date(data.current.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -141,7 +165,7 @@ function processWeatherData(data) {
     };
 }
 
-function updateFullUI(query) {
+function updateFullUI() {
     const t = translations[state.currentLang];
     
     ui.showContent(); // Odkrywamy kontener z wynikami
@@ -153,11 +177,10 @@ function updateFullUI(query) {
     ui.renderDailyForecast(state.currentWeather.daily, t);
     
     loadFavorites(); // Odświeżamy ulubione, żeby podświetlić aktywną
-    document.getElementById('add-favorite-btn').addEventListener('click', toggleFavorite);
-    // updateFavoriteButtonState();
-    
+    // updateFavoriteButtonState(); // Tę funkcję zintegrujemy później
     // updateMap(state.currentLocation.lat, state.currentLocation.lon, state.currentLocation.name);
 }
+
 
 // --- Handlery Zdarzeń UI (NOWE) / UI Event Handlers (NEW) ---
 function handleHourlyRangeSwitch(event) {
@@ -173,6 +196,7 @@ function handleHourlyRangeSwitch(event) {
 }
 
 function handleSliderScroll(scrollWrapper, direction) {
+    if (!scrollWrapper) return;
     const scrollAmount = scrollWrapper.clientWidth * 0.8 * direction;
     scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 }
@@ -183,15 +207,16 @@ function handleMobileForecastSwitch(event) {
 
     const forecastType = btn.dataset.forecast;
     
-    // Zdejmij klasę 'active' z obecnego przycisku i sekcji
     const currentActiveBtn = document.querySelector('.forecast-switcher-mobile .active');
-    const currentActiveSection = document.querySelector('.forecast-section.active');
     if(currentActiveBtn) currentActiveBtn.classList.remove('active');
-    if(currentActiveSection) currentActiveSection.classList.remove('active');
-
-    // Dodaj klasę 'active' do nowego przycisku i odpowiadającej mu sekcji
     btn.classList.add('active');
-    document.getElementById(`${forecastType}-forecast-wrapper`).classList.add('active');
+
+    // Pokazujemy/ukrywamy odpowiednie sekcje za pomocą klas
+    document.querySelectorAll('.forecast-section').forEach(section => {
+        section.style.display = 'none';
+    });
+    const sectionToShow = document.getElementById(`${forecastType}-forecast-wrapper`);
+    if(sectionToShow) sectionToShow.style.display = 'block';
 }
 
 // --- Logika Ulubionych (bez zmian) / Favorites Logic (unchanged) ---
@@ -212,7 +237,10 @@ function toggleFavorite() {
     if (index > -1) {
         state.favorites.splice(index, 1);
     } else {
-        if (state.favorites.length >= 5) return;
+        if (state.favorites.length >= 5) {
+            console.warn("Maksymalna liczba ulubionych osiągnięta.");
+            return;
+        }
         state.favorites.push(state.currentLocation);
     }
     
