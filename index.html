@@ -3,23 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stacja Pogody v2.0 - Wzorzec</title>
+    <title>Stacja Pogody v2.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- POPRAWKA: Zmieniono ścieżkę, aby pasowała do nazwy pliku w Twoim projekcie -->
+    <!-- POPRAWKA: Upewniono się, że ścieżka do CSS jest poprawna -->
     <link rel="stylesheet" href="weather.css">
+    
+    <!-- Skrypty dla mapy i wykresów (do odkomentowania w przyszłości) -->
+    <!-- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" /> -->
+    <!-- <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
 </head>
 <body>
 
-    <!-- Główny kontener całej aplikacji -->
     <div class="app-container">
         
-        <!-- Pasek nagłówka -->
         <header class="header-bar">
             <h1>Stacja Pogody</h1>
             <button id="theme-toggle" class="theme-toggle" aria-label="Zmień motyw">
-                <!-- Ikony SVG dla słońca i księżyca zostaną dodane przez CSS/JS -->
                 <span class="sun-icon">☀️</span>
                 <span class="moon-icon">🌙</span>
             </button>
@@ -27,73 +29,55 @@
 
         <main class="weather-app-content">
 
-            <!-- Sekcja Ulubionych Lokalizacji -->
             <section id="favorites-container" class="favorites-section glass-card">
-                <p>Dodaj swoje ulubione lokalizacje za pomocą ikony gwiazdki ⭐</p>
+                <!-- Treść generowana przez ui.js -->
             </section>
 
-            <!-- Sekcja Wyszukiwania -->
             <section class="search-section glass-card">
                 <input type="text" id="city-input" placeholder="Wpisz nazwę miasta...">
                 <button id="search-weather-btn">Szukaj</button>
                 <button id="geolocation-btn">Użyj mojej lokalizacji</button>
             </section>
 
-            <!-- Główny kontener na wyniki -->
-            <div id="weather-result-container">
-                 <!-- Ta sekcja będzie dynamicznie wypełniana przez ui.js -->
-                 <!-- Poniżej przykład struktury, którą ui.js będzie musiał generować -->
+            <!-- POPRAWKA: Domyślnie ukryty, aby uniknąć "mignięcia" statycznej treści -->
+            <div id="weather-result-container" style="display: none;">
                 
-                <!-- Karta z aktualną pogodą -->
                 <section class="current-weather-card glass-card">
                     <div class="current-weather__header">
-                        <h3 id="city-name">Łódź</h3>
+                        <h3 id="city-name"></h3>
                         <button id="add-favorite-btn" class="favorite-btn" aria-label="Dodaj do ulubionych">⭐</button>
                     </div>
                     <div class="current-weather__main">
-                        <div class="current-weather__icon">
-                            <!-- SVG lub IMG ikony pogody -->
-                        </div>
+                        <div class="current-weather__icon"></div>
                         <div class="current-weather__details">
-                            <span id="current-temp" class="current-weather__temp">8°C</span>
-                            <span id="weather-description">Zachmurzenie duże</span>
+                            <span id="current-temp" class="current-weather__temp"></span>
+                            <span id="weather-description"></span>
                         </div>
                     </div>
-                    <div id="weather-overview" class="weather-overview">
-                        <p>Spodziewaj się dużego zachmurzenia przez cały dzień.</p>
-                    </div>
-                    <div id="weather-alerts-container">
-                        <!-- Alerty pogodowe będą wstawiane tutaj -->
-                    </div>
-                    <div class="current-weather__extra-details-grid">
-                        <!-- Siatka ze szczegółowymi danymi (wiatr, AQI, etc.) -->
-                    </div>
+                    <div id="weather-overview" class="weather-overview"></div>
+                    <div id="weather-alerts-container"></div>
+                    <div class="current-weather__extra-details-grid"></div>
                 </section>
 
-                <!-- Kontener na mapę -->
                 <section id="map-container" class="map-section glass-card">
                     <div id="map"></div>
                 </section>
                 
-                 <!-- Główny kontener na wszystkie prognozy -->
                 <section class="forecasts-container">
 
-                    <!-- Przełącznik widoczny tylko na mobile -->
                     <div class="forecast-switcher-mobile">
                         <button data-forecast="minutely" class="active">Najbliższa godzina</button>
                         <button data-forecast="hourly">Godzinowa</button>
                         <button data-forecast="daily">Dzienna</button>
                     </div>
 
-                    <!-- Prognoza minutowa (wykres) -->
-                    <div id="minutely-forecast-wrapper" class="forecast-section glass-card">
+                    <div id="minutely-forecast-wrapper" class="forecast-section glass-card active">
                         <h3>Opady w najbliższej godzinie</h3>
                         <div class="minutely-chart-container">
                             <canvas id="minutely-chart"></canvas>
                         </div>
                     </div>
 
-                    <!-- Prognoza godzinowa (slider) -->
                     <div id="hourly-forecast-wrapper" class="forecast-section glass-card">
                         <div class="forecast-header">
                             <h3>Prognoza godzinowa</h3>
@@ -104,21 +88,16 @@
                         </div>
                         <div class="slider-container">
                             <button class="slider-nav prev">&lt;</button>
-                            <div class="slider-scroll-wrapper">
-                                <!-- Elementy prognozy godzinowej renderowane przez JS -->
-                            </div>
+                            <div class="slider-scroll-wrapper"></div>
                             <button class="slider-nav next">&gt;</button>
                         </div>
                     </div>
 
-                    <!-- Prognoza dzienna (slider) -->
                     <div id="daily-forecast-wrapper" class="forecast-section glass-card">
                         <h3>Prognoza na 7 dni</h3>
                         <div class="slider-container">
                             <button class="slider-nav prev">&lt;</button>
-                            <div class="slider-scroll-wrapper">
-                                <!-- Elementy prognozy dziennej renderowane przez JS -->
-                            </div>
+                            <div class="slider-scroll-wrapper"></div>
                             <button class="slider-nav next">&gt;</button>
                         </div>
                     </div>
@@ -126,19 +105,9 @@
             </div>
         </main>
     </div>
-
-    <!-- Struktura okna modalnego (domyślnie ukryte) -->
-    <div id="details-modal" class="modal-overlay" hidden>
-        <div class="modal-content glass-card">
-            <div class="modal-header">
-                <h2 id="modal-title">Szczegóły prognozy</h2>
-                <button class="modal-close-btn">&times;</button>
-            </div>
-            <div id="modal-body" class="modal-body">
-                <!-- Szczegóły renderowane przez JS -->
-            </div>
-        </div>
-    </div>
     
+    <!-- POPRAWKA KRYTYCZNA: Dodano brakujący tag wczytujący skrypt aplikacji -->
+    <script type="module" src="main.js"></script>
 </body>
 </html>
+
