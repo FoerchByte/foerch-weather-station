@@ -33,7 +33,6 @@ let state = {
 function setTheme(theme) {
     document.body.classList.toggle('dark-mode', theme === 'dark');
     localStorage.setItem('theme', theme);
-    // if (state.map) updateMapTileLayer(); // Odkomentuj, gdy mapa będzie aktywna
 }
 
 function toggleTheme() {
@@ -44,9 +43,8 @@ function toggleTheme() {
 
 // --- Inicjalizacja Aplikacji / Application Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-    setTheme(localStorage.getItem('theme') || 'light');
+    setTheme(localStorage.getItem('theme') || 'dark'); // Domyślnie ciemny
     ui.initUI();
-    // initMap(); // Mapa wymaga Leaflet, można ją dodać później
     loadFavorites();
     bindEvents();
     
@@ -61,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- Powiązanie Eventów (Wersja Finalna) / Event Binding (Final Version) ---
+// --- Powiązanie Eventów ---
 function bindEvents() {
     const domElements = {
         searchBtn: document.getElementById('search-weather-btn'),
@@ -73,20 +71,15 @@ function bindEvents() {
         hourlyRangeSwitcher: document.querySelector('.hourly-range-switcher'),
         hourlySliderPrev: document.querySelector('#hourly-forecast-wrapper .slider-nav.prev'),
         hourlySliderNext: document.querySelector('#hourly-forecast-wrapper .slider-nav.next'),
-        hourlyScrollWrapper: document.querySelector('#hourly-forecast-wrapper .slider-scroll-wrapper'),
+        hourlyScrollWrapper: document.getElementById('hourly-forecast-content'),
         dailySliderPrev: document.querySelector('#daily-forecast-wrapper .slider-nav.prev'),
         dailySliderNext: document.querySelector('#daily-forecast-wrapper .slider-nav.next'),
-        dailyScrollWrapper: document.querySelector('#daily-forecast-wrapper .slider-scroll-wrapper'),
+        dailyScrollWrapper: document.getElementById('daily-forecast-content'),
         forecastSwitcherMobile: document.querySelector('.forecast-switcher-mobile'),
     };
 
-    // Funkcja pomocnicza do bezpiecznego dodawania eventów
     const addSafeListener = (element, event, handler) => {
-        if (element) {
-            element.addEventListener(event, handler);
-        } else {
-            console.warn(`Element for event '${event}' not found.`);
-        }
+        if (element) element.addEventListener(event, handler);
     };
 
     addSafeListener(domElements.searchBtn, 'click', () => handleSearch(domElements.cityInput.value.trim()));
@@ -104,7 +97,7 @@ function bindEvents() {
 }
 
 
-// --- Główna Logika (z drobnymi zmianami) / Main Logic (with minor changes) ---
+// --- Główna Logika ---
 async function handleSearch(query) {
     if (!query) return;
 
@@ -140,16 +133,9 @@ function handleGeolocation() {
 }
 
 function processWeatherData(data) {
-    // Przywrócono pełną logikę przetwarzania danych
     return {
         ...data,
         generatedOverview: data.daily[0].weather[0].description,
-        roadCondition: (() => {
-            const mainWeather = data.current.weather[0].main;
-            if (data.current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(mainWeather)) return { key: 'dry', class: 'roadDry' };
-            if (data.current.temp <= 2) return { key: 'icy', class: 'roadIcy' };
-            return { key: 'wet', class: 'roadWet' };
-        })(),
         uvCategory: (() => {
             const uvIndex = Math.round(data.current.uvi);
             if (uvIndex >= 11) return 'extreme';
@@ -168,7 +154,7 @@ function processWeatherData(data) {
 function updateFullUI() {
     const t = translations[state.currentLang];
     
-    ui.showContent(); // Odkrywamy kontener z wynikami
+    ui.showContent();
     
     ui.renderCurrentWeather(state.currentWeather, t);
     ui.renderWeatherAlerts(state.currentWeather, t);
@@ -176,13 +162,12 @@ function updateFullUI() {
     ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
     ui.renderDailyForecast(state.currentWeather.daily, t);
     
-    loadFavorites(); // Odświeżamy ulubione, żeby podświetlić aktywną
-    // updateFavoriteButtonState(); // Tę funkcję zintegrujemy później
-    // updateMap(state.currentLocation.lat, state.currentLocation.lon, state.currentLocation.name);
+    loadFavorites(); 
+    updateFavoriteButtonState(); // NOWOŚĆ
 }
 
 
-// --- Handlery Zdarzeń UI (NOWE) / UI Event Handlers (NEW) ---
+// --- Handlery Zdarzeń UI ---
 function handleHourlyRangeSwitch(event) {
     const btn = event.target.closest('button');
     if (!btn || btn.classList.contains('active')) return;
@@ -207,19 +192,16 @@ function handleMobileForecastSwitch(event) {
 
     const forecastType = btn.dataset.forecast;
     
-    const currentActiveBtn = document.querySelector('.forecast-switcher-mobile .active');
-    if(currentActiveBtn) currentActiveBtn.classList.remove('active');
+    document.querySelector('.forecast-switcher-mobile .active')?.classList.remove('active');
     btn.classList.add('active');
 
-    // Pokazujemy/ukrywamy odpowiednie sekcje za pomocą klas
     document.querySelectorAll('.forecast-section').forEach(section => {
-        section.style.display = 'none';
+        section.classList.remove('active');
     });
-    const sectionToShow = document.getElementById(`${forecastType}-forecast-wrapper`);
-    if(sectionToShow) sectionToShow.style.display = 'block';
+    document.getElementById(`${forecastType}-forecast-wrapper`)?.classList.add('active');
 }
 
-// --- Logika Ulubionych (bez zmian) / Favorites Logic (unchanged) ---
+// --- Logika Ulubionych ---
 function loadFavorites() {
     state.favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
     ui.renderFavorites(state.favorites, state.currentLocation);
@@ -245,7 +227,8 @@ function toggleFavorite() {
     }
     
     saveFavorites();
-    loadFavorites(); // Prosty sposób na odświeżenie widoku
+    loadFavorites(); 
+    updateFavoriteButtonState(); // NOWOŚĆ
 }
 
 function handleFavoriteClick(event) {
@@ -256,5 +239,13 @@ function handleFavoriteClick(event) {
         document.getElementById('city-input').value = cityName;
         handleSearch(cityName);
     }
+}
+
+// NOWOŚĆ
+function updateFavoriteButtonState() {
+    if (!state.currentLocation) return;
+    const locationId = `${state.currentLocation.lat},${state.currentLocation.lon}`;
+    const isFav = state.favorites.some(fav => `${fav.lat},${fav.lon}` === locationId);
+    ui.updateFavoriteButtonState(isFav);
 }
 
