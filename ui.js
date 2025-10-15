@@ -30,7 +30,8 @@ export function initUI() {
     dom.weatherIcon = document.getElementById('current-weather-icon');
     dom.weatherOverview = document.getElementById('weather-overview');
     dom.weatherAlertsContainer = document.getElementById('weather-alerts-container');
-    dom.extraDetailsGrid = document.querySelector('.current-weather__extra-details-grid');
+    
+    // ZMIANA: Usunięto referencję do starej siatki
     
     dom.hourly = {
         scrollWrapper: document.getElementById('hourly-forecast-content'),
@@ -49,12 +50,6 @@ export function initUI() {
 
 // --- Funkcje pomocnicze ---
 
-/**
- * --- PL --- Konwertuje prędkość z m/s na km/h.
- * --- EN --- Converts speed from m/s to km/h.
- * @param {number} ms - Prędkość w metrach na sekundę. / Speed in meters per second.
- * @returns {number} Prędkość w kilometrach na godzinę, zaokrąglona do liczby całkowitej. / Speed in kilometers per hour, rounded to an integer.
- */
 function convertMsToKmh(ms) {
     return Math.round(ms * 3.6);
 }
@@ -125,18 +120,22 @@ export function showContent() {
 
 // --- Renderowanie komponentów ---
 
-function createDetailItem(icon, label, value, valueClass = '') {
-    return `
-        <div class="detail-item">
-            <div class="label-container">
-                ${icon}
-                <span class="label">${label}</span>
-            </div>
-            <span class="value ${valueClass}">${value}</span>
+// ZMIANA: Nowa, uproszczona funkcja do renderowania pojedynczej danej w kafelku
+function renderDetailRow(containerId, icon, label, value, valueClass = '') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="label-container">
+            ${icon}
+            <span class="label">${label}</span>
         </div>
+        <span class="value ${valueClass}">${value}</span>
     `;
 }
 
+
+// ZMIANA: Całkowicie nowa logika renderowania dla układu kafelkowego
 export function renderCurrentWeather(data, t) {
     dom.cityName.textContent = data.location.name;
     dom.currentTemp.textContent = `${Math.round(data.current.temp)}°C`;
@@ -160,19 +159,24 @@ export function renderCurrentWeather(data, t) {
         moonset: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 1 0 10 10 9 9 0 1 1-10-10z"/><path d="M22 22H2"/><path d="m16 18-4 4-4-4"/></svg>`,
     };
 
-    dom.extraDetailsGrid.innerHTML = `
-        ${createDetailItem(icons.feelsLike, t.details.feelsLike, `${Math.round(data.current.feels_like)}°C`)}
-        ${createDetailItem(icons.humidity, t.details.humidity, `${data.current.humidity}%`)}
-        ${createDetailItem(icons.wind, t.details.wind, `${convertMsToKmh(data.current.wind_speed)} km/h`)}
-        ${createDetailItem(icons.pressure, t.details.pressure, `${data.current.pressure} hPa`)}
-        ${createDetailItem(icons.aqi, t.details.aqi, t.values.aqi[data.air_quality.main.aqi - 1], `aqi-${data.air_quality.main.aqi}`)}
-        ${createDetailItem(icons.uv, t.details.uvIndex, t.values.uv[data.uvCategory], `uv-${data.uvCategory}`)}
-        ${createDetailItem(icons.road, t.details.roadSurface, t.values.road[data.roadCondition.key], `road-${data.roadCondition.key}`)}
-        ${createDetailItem(icons.sunrise, t.details.sunrise, data.formattedTimes.sunrise)}
-        ${createDetailItem(icons.sunset, t.details.sunset, data.formattedTimes.sunset)}
-        ${createDetailItem(icons.moonrise, t.details.moonrise, data.formattedTimes.moonrise)}
-        ${createDetailItem(icons.moonset, t.details.moonset, data.formattedTimes.moonset)}
-    `;
+    // Kafelek 1: Warunki Atmosferyczne
+    renderDetailRow('detail-feels-like', icons.feelsLike, t.details.feelsLike, `${Math.round(data.current.feels_like)}°C`);
+    renderDetailRow('detail-wind', icons.wind, t.details.wind, `${convertMsToKmh(data.current.wind_speed)} km/h`);
+    renderDetailRow('detail-pressure', icons.pressure, t.details.pressure, `${data.current.pressure} hPa`);
+    renderDetailRow('detail-humidity', icons.humidity, t.details.humidity, `${data.current.humidity}%`);
+
+    // Kafelek 2: Wskaźniki i Bezpieczeństwo
+    renderDetailRow('detail-aqi', icons.aqi, t.details.aqi, t.values.aqi[data.air_quality.main.aqi - 1], `aqi-${data.air_quality.main.aqi}`);
+    renderDetailRow('detail-uv', icons.uv, t.details.uvIndex, t.values.uv[data.uvCategory], `uv-${data.uvCategory}`);
+    renderDetailRow('detail-road', icons.road, t.details.roadSurface, t.values.road[data.roadCondition.key], `road-${data.roadCondition.key}`);
+
+    // Kafelek 3: Słońce
+    renderDetailRow('detail-sunrise', icons.sunrise, t.details.sunrise, data.formattedTimes.sunrise);
+    renderDetailRow('detail-sunset', icons.sunset, t.details.sunset, data.formattedTimes.sunset);
+    
+    // Kafelek 4: Księżyc
+    renderDetailRow('detail-moonrise', icons.moonrise, t.details.moonrise, data.formattedTimes.moonrise);
+    renderDetailRow('detail-moonset', icons.moonset, t.details.moonset, data.formattedTimes.moonset);
 }
 
 
