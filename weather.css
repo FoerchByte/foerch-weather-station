@@ -37,7 +37,6 @@ body {
     min-height: 100vh;
 }
 
-/* ZMIANA: Poszerzenie głównego kontenera */
 .app-container {
     max-width: 960px;
     margin: 0 auto;
@@ -54,6 +53,16 @@ body {
     margin-bottom: 1.5rem;
     transition: transform var(--transition-speed), box-shadow var(--transition-speed);
 }
+
+/* ZMIANA: Implementacja "wewnętrznego kontenera" dla głównych kart */
+.current-weather-card,
+.forecasts-container > .glass-card {
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1.5rem;
+}
+
 
 .header-bar {
     display: flex; justify-content: space-between; align-items: center;
@@ -194,13 +203,12 @@ body.light-mode .moon-icon { display: block; }
 }
 .slider-nav:hover { opacity: 1; background-color: var(--glass-background); }
 
-/* ZMIANA: Dostosowanie pozycji przycisków */
-.slider-nav.prev { left: -22px; }
-.slider-nav.next { right: -22px; }
+/* ZMIANA: Pozycjonowanie przycisków w "buforze" */
+.slider-nav.prev { left: -50px; }
+.slider-nav.next { right: -50px; }
 
 .slider-scroll-wrapper {
     display: flex; gap: 1rem; overflow-x: hidden;
-    /* Usunięto padding i margin, aby uzyskać więcej miejsca */
     scroll-behavior: smooth;
 }
 .hourly-day-group { display: flex; flex-direction: column; }
@@ -210,9 +218,10 @@ body.light-mode .moon-icon { display: block; }
 }
 .hourly-day-group .items-wrapper { display: flex; gap: 1rem; }
 
+/* ZMIANA: Precyzyjne dopasowanie szerokości kafelków */
 .hourly-forecast-item {
     scroll-snap-align: start;
-    flex: 0 0 90px;
+    flex: 0 0 108px;
     display: flex;
     flex-direction: column; align-items: center; justify-content: center;
     gap: 0.5rem; 
@@ -278,6 +287,12 @@ body.light-mode .moon-icon { display: block; }
 }
 
 .forecast-switcher-mobile { display: none; }
+
+@media (max-width: 1024px) { /* ZMIANA: Zmiana breakpointu dla lepszego dopasowania */
+    .slider-nav.prev { left: -22px; }
+    .slider-nav.next { right: -22px; }
+}
+
 
 @media (max-width: 768px) {
     body { padding: 0.5rem; }
