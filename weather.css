@@ -170,13 +170,15 @@ body.light-mode .moon-icon { display: block; }
 }
 .hourly-day-group .items-wrapper { display: flex; gap: 1rem; }
 
-/* ZMIANA: Zastosowanie stałej szerokości bazowej dla kafelka godzinowego */
+/* OSTATECZNA KOREKTA: Dalsze zmniejszenie szerokości i paddingu */
 .hourly-forecast-item {
     scroll-snap-align: start;
-    flex: 0 0 93px; /* Stała szerokość bazowa, aby 7 kafelków się zmieściło - dostosowana wartość */
+    flex: 0 0 90px; /* Zmniejszono szerokość bazową */
     display: flex;
     flex-direction: column; align-items: center; justify-content: center;
-    gap: 0.5rem; padding: 1rem; text-align: center; cursor: pointer;
+    gap: 0.5rem; 
+    padding: 0.75rem; /* Zmniejszono padding */
+    text-align: center; cursor: pointer;
     background: var(--inner-glass-background);
 }
 .hourly-forecast-item:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); }
