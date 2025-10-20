@@ -27,16 +27,14 @@
     --alert-border-color: rgba(250, 204, 21, 0.5);
     --alert-text-color: #facc15;
 
-    /* --- NOWOŚĆ: Zmienne dla architektury dwuwarstwowej --- */
-    /* --- NEW: Variables for the two-layer architecture --- */
+    /* --- ZMIANA: Zmniejszono wewnętrzny kontener, aby stworzyć więcej "oddechu" dla przycisków --- */
+    /* --- CHANGE: Reduced inner container width to create more "breathing room" for buttons --- */
     --outer-container-width: 960px;
-    --inner-container-width: 900px;
+    --inner-container-width: 860px; /* Było 900px */
     --tile-gap: 1rem; /* 16px */
     
-    /* --- NOWOŚĆ: Dynamiczne obliczanie szerokości kafelka --- */
-    /* --- NEW: Dynamic calculation of tile width --- */
-    /* Formuła: (szerokość wewnętrznego kontenera - (liczba odstępów * szerokość odstępu)) / liczba kafelków */
-    /* Formula: (inner container width - (number of gaps * gap width)) / number of tiles */
+    /* --- Formuła automatycznie dostosowuje szerokość kafelka do nowej szerokości kontenera --- */
+    /* --- The formula automatically adjusts tile width to the new container width --- */
     --hourly-tile-width: calc((var(--inner-container-width) - (6 * var(--tile-gap))) / 7);
 }
 
@@ -68,17 +66,8 @@ body {
     transition: transform var(--transition-speed), box-shadow var(--transition-speed);
 }
 
-/* ZMIANA: Usunięto regułę, aby móc precyzyjniej kontrolować szerokość kart */
-/* CHANGE: Rule removed to allow for more precise control over card widths */
-/* .current-weather-card,
-.forecasts-container > .glass-card {
-    max-width: 900px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 1.5rem;
-} */
-/* Zamiast tego, dodajemy ją z powrotem, ale z wykluczeniem slidera godzinowego */
-/* Instead, we add it back, but excluding the hourly slider */
+/* PL: Ustawiamy szerokość głównych kart na nową, węższą wartość */
+/* EN: Setting the main cards' width to the new, narrower value */
 .current-weather-card,
 #daily-forecast-wrapper,
 #minutely-forecast-wrapper {
@@ -152,9 +141,16 @@ body.light-mode .moon-icon { display: block; }
 }
 .alert-details p { margin: 0; }
 
+/* --- ZMIANA: Wymuszenie 2 kolumn dla kafelków z detalami na desktopie --- */
+/* --- CHANGE: Forcing a 2-column layout for detail tiles on desktop --- */
 .details-tiles-container {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border-color);
+    display: grid;
+    /* PL: Zwiększono minimalną szerokość, aby w kontenerze 860-900px nie zmieściły się 3 kafelki */
+    /* EN: Increased the minimum width so that 3 tiles cannot fit into an 860-900px container */
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--glass-border-color);
     margin-top: 1rem;
 }
 .detail-tile { padding: 1rem; margin-bottom: 0; background: var(--inner-glass-background); }
@@ -173,8 +169,6 @@ body.light-mode .moon-icon { display: block; }
 .value.aqi-4, .value.aqi-5, .value.uv-high, .value.uv-very-high, .value.uv-extreme, .value.road-icy { color: var(--color-bad); }
 .value.road-wet { color: var(--color-info); }
 
-/* PL: Ogólne style sekcji prognozy pozostają bez zmian */
-/* EN: General forecast section styles remain unchanged */
 .forecast-section { padding: 1.5rem; }
 .forecast-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
 .forecast-header h3 { margin: 0; font-size: 1.5rem; }
@@ -182,27 +176,12 @@ body.light-mode .moon-icon { display: block; }
 .hourly-range-switcher button { flex: 1; background: none; border: none; color: var(--text-secondary); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 500; transition: background-color 0.2s, color 0.2s; }
 .hourly-range-switcher button.active { background: var(--accent-color); color: white; }
 
-/*
- * --- KLUCZOWA ZMIANA: Implementacja architektury dwuwarstwowej ---
- * --- KEY CHANGE: Implementation of the two-layer architecture ---
-*/
-
-/* PL: Krok 1. Kontener `.slider-container` staje się ZEWNĘTRZNĄ warstwą 960px.
-   Jest on punktem odniesienia (`position: relative`) dla przycisków.
-   EN: Step 1. The `.slider-container` becomes the 960px OUTER layer.
-   It serves as the positioning context (`position: relative`) for the buttons.
-*/
 .slider-container {
     position: relative;
     max-width: var(--outer-container-width);
     margin: 0 auto;
 }
 
-/* PL: Krok 2. Przyciski są pozycjonowane absolutnie WEWNĄTRZ kontenera 960px.
-   `left: 0` i `right: 0` umieszczają je na samych krawędziach, czyli w strefie buforowej.
-   EN: Step 2. The buttons are positioned absolutely INSIDE the 960px container.
-   `left: 0` and `right: 0` place them at the very edges, i.e., in the buffer zone.
-*/
 .slider-nav {
     background: var(--inner-glass-background); border: 1px solid var(--glass-border-color);
     color: var(--text-primary); border-radius: 50%; width: 44px; height: 44px;
@@ -215,22 +194,15 @@ body.light-mode .moon-icon { display: block; }
 .slider-nav.prev { left: 0; }
 .slider-nav.next { right: 0; }
 
-/* PL: Krok 3. Wrapper `.slider-scroll-wrapper` staje się WEWNĘTRZNĄ warstwą 900px.
-   Służy jako "wizjer" dla kafelków i ukrywa te, które się nie mieszczą.
-   EN: Step 3. The `.slider-scroll-wrapper` becomes the 900px INNER layer.
-   It serves as a "viewport" for the tiles and hides those that don't fit.
-*/
 .slider-scroll-wrapper {
     max-width: var(--inner-container-width);
-    margin: 0 auto; /* Centruje wizjer 900px wewnątrz kontenera 960px */
+    margin: 0 auto;
     display: flex;
     gap: var(--tile-gap);
     overflow-x: hidden;
     scroll-behavior: smooth;
 }
 
-/* PL: Pozostałe style dla grupowania po dniach zostają bez zmian */
-/* EN: Other styles for day grouping remain unchanged */
 .hourly-day-group { display: flex; flex-direction: column; }
 .hourly-day-group-header {
     margin: 0 0 0.5rem 0; font-size: 0.9rem; font-weight: 500;
@@ -238,15 +210,9 @@ body.light-mode .moon-icon { display: block; }
 }
 .hourly-day-group .items-wrapper { display: flex; gap: var(--tile-gap); }
 
-
-/* PL: Krok 4. Szerokość kafelka jest pobierana z dynamicznie obliczonej zmiennej.
-   Koniec z "magicznymi liczbami"! Gwarantuje to idealne dopasowanie 7 kafelków.
-   EN: Step 4. The tile width is taken from the dynamically calculated variable.
-   No more "magic numbers"! This guarantees a perfect fit for 7 tiles.
-*/
 .hourly-forecast-item {
     scroll-snap-align: start;
-    flex: 0 0 var(--hourly-tile-width); /* Użycie zmiennej CSS */
+    flex: 0 0 var(--hourly-tile-width);
     display: flex;
     flex-direction: column; align-items: center; justify-content: center;
     gap: 0.5rem; 
@@ -313,11 +279,6 @@ body.light-mode .moon-icon { display: block; }
 
 .forecast-switcher-mobile { display: none; }
 
-/* ZMIANA: Usunięto zbędny breakpoint dla przycisków, ponieważ teraz skalują się poprawnie */
-/* CHANGE: Removed unnecessary breakpoint for buttons as they now scale correctly */
-/* @media (max-width: 1024px) { ... } */
-
-
 @media (max-width: 768px) {
     body { padding: 0.5rem; }
     .glass-card { padding: 1rem; }
@@ -328,12 +289,16 @@ body.light-mode .moon-icon { display: block; }
     .current-weather__temp { font-size: 3rem; }
     .current-weather__icon { width: 80px; height: 80px; }
 
-    /* PL: Na mobile przyciski są ukryte, a scroll jest naturalny (dotykiem) */
-    /* EN: On mobile, buttons are hidden, and scrolling is native (touch) */
     .slider-nav { display: none; }
     .slider-scroll-wrapper { overflow-x: auto; }
 
     .daily-forecast-grid { grid-template-columns: repeat(4, 1fr); }
+
+    /* PL: Wymuszamy jedną kolumnę dla kafelków z detalami na mobile */
+    /* EN: Forcing a single column for detail tiles on mobile */
+    .details-tiles-container {
+        grid-template-columns: 1fr;
+    }
 
     .forecast-switcher-mobile {
         display: flex; justify-content: space-around; background-color: var(--glass-background);
@@ -350,3 +315,4 @@ body.light-mode .moon-icon { display: block; }
     .forecast-section { display: none; }
     .forecast-section.active { display: block; }
 }
+
