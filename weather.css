@@ -26,6 +26,18 @@
     --alert-background: rgba(250, 204, 21, 0.1); /* Żółty dla ostrzeżeń */
     --alert-border-color: rgba(250, 204, 21, 0.5);
     --alert-text-color: #facc15;
+
+    /* --- NOWOŚĆ: Zmienne dla architektury dwuwarstwowej --- */
+    /* --- NEW: Variables for the two-layer architecture --- */
+    --outer-container-width: 960px;
+    --inner-container-width: 900px;
+    --tile-gap: 1rem; /* 16px */
+    
+    /* --- NOWOŚĆ: Dynamiczne obliczanie szerokości kafelka --- */
+    /* --- NEW: Dynamic calculation of tile width --- */
+    /* Formuła: (szerokość wewnętrznego kontenera - (liczba odstępów * szerokość odstępu)) / liczba kafelków */
+    /* Formula: (inner container width - (number of gaps * gap width)) / number of tiles */
+    --hourly-tile-width: calc((var(--inner-container-width) - (6 * var(--tile-gap))) / 7);
 }
 
 body {
@@ -38,7 +50,9 @@ body {
 }
 
 .app-container {
-    max-width: 960px;
+    /* PL: Główny kontener aplikacji, definiuje maksymalną szerokość 960px */
+    /* EN: Main application container, defines the max-width of 960px */
+    max-width: var(--outer-container-width);
     margin: 0 auto;
 }
 
@@ -54,13 +68,23 @@ body {
     transition: transform var(--transition-speed), box-shadow var(--transition-speed);
 }
 
-/* ZMIANA: Implementacja "wewnętrznego kontenera" dla głównych kart */
-.current-weather-card,
+/* ZMIANA: Usunięto regułę, aby móc precyzyjniej kontrolować szerokość kart */
+/* CHANGE: Rule removed to allow for more precise control over card widths */
+/* .current-weather-card,
 .forecasts-container > .glass-card {
     max-width: 900px;
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 1.5rem;
+} */
+/* Zamiast tego, dodajemy ją z powrotem, ale z wykluczeniem slidera godzinowego */
+/* Instead, we add it back, but excluding the hourly slider */
+.current-weather-card,
+#daily-forecast-wrapper,
+#minutely-forecast-wrapper {
+    max-width: var(--inner-container-width);
+    margin-left: auto;
+    margin-right: auto;
 }
 
 
@@ -116,56 +140,31 @@ body.light-mode .moon-icon { display: block; }
 .current-weather__temp { font-size: 4rem; font-weight: 700; line-height: 1; }
 
 .weather-alert {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1rem;
-    margin: 1rem 0;
-    border-radius: 12px;
-    background-color: var(--alert-background);
-    border: 1px solid var(--alert-border-color);
-    color: var(--alert-text-color);
+    display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem;
+    margin: 1rem 0; border-radius: 12px; background-color: var(--alert-background);
+    border: 1px solid var(--alert-border-color); color: var(--alert-text-color);
 }
-.alert-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 1.1rem;
-    font-weight: bold;
-}
-.alert-header svg {
-    width: 24px;
-    height: 24px;
-}
+.alert-header { display: flex; align-items: center; gap: 0.75rem; font-size: 1.1rem; font-weight: bold; }
+.alert-header svg { width: 24px; height: 24px; }
 .alert-details {
-    padding-left: calc(24px + 0.75rem);
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    line-height: 1.6;
+    padding-left: calc(24px + 0.75rem); font-size: 0.9rem;
+    color: var(--text-secondary); line-height: 1.6;
 }
-.alert-details p {
-    margin: 0;
-}
-
+.alert-details p { margin: 0; }
 
 .details-tiles-container {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem; padding-top: 1rem;
-    border-top: 1px solid var(--glass-border-color); margin-top: 1rem;
+    gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border-color);
+    margin-top: 1rem;
 }
-.detail-tile {
-    padding: 1rem; margin-bottom: 0; background: var(--inner-glass-background);
-}
+.detail-tile { padding: 1rem; margin-bottom: 0; background: var(--inner-glass-background); }
 .tile-header {
     margin: 0 0 1rem 0; font-size: 1rem; font-weight: 500;
-    color: var(--text-secondary); border-bottom: 1px solid var(--glass-border-color);
-    padding-bottom: 0.75rem;
+    color: var(--text-secondary); border-bottom: 1px solid var(--glass-border-color); padding-bottom: 0.75rem;
 }
 .tile-content { display: flex; flex-direction: column; gap: 1rem; }
 .detail-row { display: flex; justify-content: space-between; align-items: center; }
-.detail-row .label-container {
-    display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem;
-}
+.detail-row .label-container { display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; }
 .detail-row .label-container svg { width: 20px; height: 20px; color: var(--text-secondary); }
 .detail-row .value { font-size: 1.1rem; font-weight: 500; transition: color var(--transition-speed); }
 
@@ -174,26 +173,36 @@ body.light-mode .moon-icon { display: block; }
 .value.aqi-4, .value.aqi-5, .value.uv-high, .value.uv-very-high, .value.uv-extreme, .value.road-icy { color: var(--color-bad); }
 .value.road-wet { color: var(--color-info); }
 
+/* PL: Ogólne style sekcji prognozy pozostają bez zmian */
+/* EN: General forecast section styles remain unchanged */
 .forecast-section { padding: 1.5rem; }
-.forecast-header {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;
-}
+.forecast-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
 .forecast-header h3 { margin: 0; font-size: 1.5rem; }
+.hourly-range-switcher { display: flex; background-color: var(--inner-glass-background); border-radius: 10px; padding: 4px; }
+.hourly-range-switcher button { flex: 1; background: none; border: none; color: var(--text-secondary); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 500; transition: background-color 0.2s, color 0.2s; }
+.hourly-range-switcher button.active { background: var(--accent-color); color: white; }
 
-.hourly-range-switcher {
-    display: flex; background-color: var(--inner-glass-background);
-    border-radius: 10px; padding: 4px;
-}
-.hourly-range-switcher button {
-    flex: 1; background: none; border: none; color: var(--text-secondary);
-    padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;
-    font-weight: 500; transition: background-color 0.2s, color 0.2s;
-}
-.hourly-range-switcher button.active {
-    background: var(--accent-color); color: white;
+/*
+ * --- KLUCZOWA ZMIANA: Implementacja architektury dwuwarstwowej ---
+ * --- KEY CHANGE: Implementation of the two-layer architecture ---
+*/
+
+/* PL: Krok 1. Kontener `.slider-container` staje się ZEWNĘTRZNĄ warstwą 960px.
+   Jest on punktem odniesienia (`position: relative`) dla przycisków.
+   EN: Step 1. The `.slider-container` becomes the 960px OUTER layer.
+   It serves as the positioning context (`position: relative`) for the buttons.
+*/
+.slider-container {
+    position: relative;
+    max-width: var(--outer-container-width);
+    margin: 0 auto;
 }
 
-.slider-container { position: relative; }
+/* PL: Krok 2. Przyciski są pozycjonowane absolutnie WEWNĄTRZ kontenera 960px.
+   `left: 0` i `right: 0` umieszczają je na samych krawędziach, czyli w strefie buforowej.
+   EN: Step 2. The buttons are positioned absolutely INSIDE the 960px container.
+   `left: 0` and `right: 0` place them at the very edges, i.e., in the buffer zone.
+*/
 .slider-nav {
     background: var(--inner-glass-background); border: 1px solid var(--glass-border-color);
     color: var(--text-primary); border-radius: 50%; width: 44px; height: 44px;
@@ -203,25 +212,41 @@ body.light-mode .moon-icon { display: block; }
 }
 .slider-nav:hover { opacity: 1; background-color: var(--glass-background); }
 
-/* ZMIANA: Pozycjonowanie przycisków w "buforze" */
-.slider-nav.prev { left: -50px; }
-.slider-nav.next { right: -50px; }
+.slider-nav.prev { left: 0; }
+.slider-nav.next { right: 0; }
 
+/* PL: Krok 3. Wrapper `.slider-scroll-wrapper` staje się WEWNĘTRZNĄ warstwą 900px.
+   Służy jako "wizjer" dla kafelków i ukrywa te, które się nie mieszczą.
+   EN: Step 3. The `.slider-scroll-wrapper` becomes the 900px INNER layer.
+   It serves as a "viewport" for the tiles and hides those that don't fit.
+*/
 .slider-scroll-wrapper {
-    display: flex; gap: 1rem; overflow-x: hidden;
+    max-width: var(--inner-container-width);
+    margin: 0 auto; /* Centruje wizjer 900px wewnątrz kontenera 960px */
+    display: flex;
+    gap: var(--tile-gap);
+    overflow-x: hidden;
     scroll-behavior: smooth;
 }
+
+/* PL: Pozostałe style dla grupowania po dniach zostają bez zmian */
+/* EN: Other styles for day grouping remain unchanged */
 .hourly-day-group { display: flex; flex-direction: column; }
 .hourly-day-group-header {
     margin: 0 0 0.5rem 0; font-size: 0.9rem; font-weight: 500;
     color: var(--text-secondary); text-transform: capitalize; padding-left: 0.5rem;
 }
-.hourly-day-group .items-wrapper { display: flex; gap: 1rem; }
+.hourly-day-group .items-wrapper { display: flex; gap: var(--tile-gap); }
 
-/* ZMIANA: Precyzyjne dopasowanie szerokości kafelków */
+
+/* PL: Krok 4. Szerokość kafelka jest pobierana z dynamicznie obliczonej zmiennej.
+   Koniec z "magicznymi liczbami"! Gwarantuje to idealne dopasowanie 7 kafelków.
+   EN: Step 4. The tile width is taken from the dynamically calculated variable.
+   No more "magic numbers"! This guarantees a perfect fit for 7 tiles.
+*/
 .hourly-forecast-item {
     scroll-snap-align: start;
-    flex: 0 0 108px;
+    flex: 0 0 var(--hourly-tile-width); /* Użycie zmiennej CSS */
     display: flex;
     flex-direction: column; align-items: center; justify-content: center;
     gap: 0.5rem; 
@@ -288,10 +313,9 @@ body.light-mode .moon-icon { display: block; }
 
 .forecast-switcher-mobile { display: none; }
 
-@media (max-width: 1024px) { /* ZMIANA: Zmiana breakpointu dla lepszego dopasowania */
-    .slider-nav.prev { left: -22px; }
-    .slider-nav.next { right: -22px; }
-}
+/* ZMIANA: Usunięto zbędny breakpoint dla przycisków, ponieważ teraz skalują się poprawnie */
+/* CHANGE: Removed unnecessary breakpoint for buttons as they now scale correctly */
+/* @media (max-width: 1024px) { ... } */
 
 
 @media (max-width: 768px) {
@@ -303,10 +327,13 @@ body.light-mode .moon-icon { display: block; }
     .header-bar h1 { font-size: 1.5rem; }
     .current-weather__temp { font-size: 3rem; }
     .current-weather__icon { width: 80px; height: 80px; }
+
+    /* PL: Na mobile przyciski są ukryte, a scroll jest naturalny (dotykiem) */
+    /* EN: On mobile, buttons are hidden, and scrolling is native (touch) */
     .slider-nav { display: none; }
     .slider-scroll-wrapper { overflow-x: auto; }
-    .daily-forecast-grid { grid-template-columns: repeat(4, 1fr); }
 
+    .daily-forecast-grid { grid-template-columns: repeat(4, 1fr); }
 
     .forecast-switcher-mobile {
         display: flex; justify-content: space-around; background-color: var(--glass-background);
@@ -323,4 +350,3 @@ body.light-mode .moon-icon { display: block; }
     .forecast-section { display: none; }
     .forecast-section.active { display: block; }
 }
-
