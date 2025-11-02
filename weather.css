@@ -53,17 +53,17 @@
     /* ZMIANA: Główny kontener (spójna szerokość) */
     --outer-container-width: 960px;
     
-    /* ZMIANA: Wewnętrzny kontener na treść (aby zrobić miejsce na przyciski) */
-    /* 960px - (2 * 44px przycisk) - (2 * 5px margines) = 862px */
-    --inner-container-width: 862px;
+    /* ZMIANA: Usunięcie --inner-container-width. Będziemy używać Flexbox */
     
-    --tile-gap: 1rem; /* 16px */
+    --tile-gap: 12px; /* ZMIANA: Nieco mniejszy odstęp */
     
-    /* --- ZMIANA: Statyczna szerokość kafelka dla 7 kafelków w 862px --- */
-    /* PL: Używamy 109px. (7 * 109px) + (6 * 16px) = 763px + 96px = 859px (mieści się w 862px)
-       EN: Using 109px. (7 * 109px) + (6 * 16px) = 763px + 96px = 859px (fits in 862px)
+    /* --- ZMIANA: Statyczna szerokość kafelka dla 7 kafelków --- */
+    /* PL: Używamy 103px. (7 * 103px) + (6 * 12px) = 721px + 72px = 793px 
+       To zmieści się w kontenerze flex.
+       EN: Using 103px. (7 * 103px) + (6 * 12px) = 721px + 72px = 793px
+       This will fit in the flex container.
     */
-    --hourly-tile-width: 109px;
+    --hourly-tile-width: 103px;
 }
 
 /* --- PL: Definicja motywu jasnego --- */
@@ -100,28 +100,23 @@ body {
     border: 1px solid var(--glass-border-color);
     border-radius: var(--border-radius);
     box-shadow: var(--card-shadow);
-    /* ZMIANA: Ustawienie paddingu na 1.5rem (24px) */
     padding: 1.5rem;
     margin-bottom: 1.5rem;
     transition: background-color var(--transition-speed), border-color var(--transition-speed);
-    /* ZMIANA: Wszystkie karty mają teraz --outer-container-width */
-    max-width: var(--outer-container-width);
-    margin-left: auto;
-    margin-right: auto;
-    box-sizing: border-box; /* Ważne dla spójności paddingu */
+    /* ZMIANA: Usunięcie max-width. .app-container to kontroluje */
+    box-sizing: border-box; 
+    width: 100%; /* ZMIANA: Karty są teraz płynne */
 }
-
-/* ZMIANA: Usunięcie nadpisywania max-width dla poszczególnych kart */
-/* .current-weather-card, ... #map-section { ... } - ta reguła jest teraz w .glass-card */
 
 
 .header-bar {
     display: flex; justify-content: space-between; align-items: center;
     padding: 0 1rem; margin-bottom: 1.5rem;
-    /* ZMIANA: Nagłówek też ma 960px */
-    max-width: var(--outer-container-width);
+    /* ZMIANA: Usunięcie max-width. .app-container to kontroluje */
     margin-left: auto;
     margin-right: auto;
+    width: 100%;
+    box-sizing: border-box; /* ZMIANA: Dodanie box-sizing */
 }
 .header-bar h1 { font-size: 1.8rem; margin: 0; }
 .theme-toggle {
@@ -287,31 +282,41 @@ body.light-mode .moon-icon { display: none; }
 .hourly-range-switcher button { flex: 1; background: none; border: none; color: var(--text-secondary); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 500; transition: background-color 0.2s, color 0.2s; white-space: nowrap; }
 .hourly-range-switcher button.active { background: var(--accent-color); color: white; }
 
+/* ZMIANA: Użycie Flexbox do layoutu slidera */
 .slider-container {
     position: relative;
-    /* ZMIANA: Kontener slidera jest teraz względny, bez sztywnej szerokości */
-    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 5px; /* Mały odstęp między przyciskami a sliderem */
 }
 
 .slider-nav {
     background: var(--inner-glass-background); border: 1px solid var(--glass-border-color);
     color: var(--text-primary); border-radius: 50%; width: 44px; height: 44px;
     cursor: pointer; font-size: 1.5rem; z-index: 10;
-    position: absolute; top: 50%; transform: translateY(-70%); 
+    /* ZMIANA: Usunięcie absolute */
+    position: static; 
+    transform: none;
     opacity: 0.7; transition: opacity var(--transition-speed), background-color var(--transition-speed);
+    flex-shrink: 0; /* ZMIANA: Przyciski się nie kurczą */
+    display: flex; /* ZMIANA: Do centrowania strzałki */
+    align-items: center;
+    justify-content: center;
 }
 .slider-nav:hover { opacity: 1; background-color: var(--glass-background); }
-/* ZMIANA: Przyciski na zewnątrz treści (5px od krawędzi karty 960px) */
-.slider-nav.prev { left: 5px; }
-.slider-nav.next { right: 5px; }
+/* ZMIANA: Usunięcie left/right */
+/* .slider-nav.prev { left: 5px; } */
+/* .slider-nav.next { right: 5px; } */
 
 .slider-scroll-wrapper {
-    /* ZMIANA: Szerokość scrolla to --inner-container-width (862px) */
-    max-width: var(--inner-container-width);
-    margin: 0 auto; /* Centruje scroll wewnątrz karty 960px */
+    /* ZMIANA: Slider wypełnia dostępną przestrzeń */
+    flex-grow: 1;
+    max-width: 100%; 
+    margin: 0; 
     display: flex;
     gap: var(--tile-gap);
-    overflow-x: auto;
+    overflow-x: hidden; /* ZMIANA: Ukryte na desktopie, JS będzie scrollował */
     scroll-behavior: smooth;
     scrollbar-width: none; /* Firefox */
 }
@@ -334,7 +339,6 @@ body.light-mode .moon-icon { display: none; }
     min-width: 90px; 
     display: flex;
     flex-direction: column; align-items: center; justify-content: center;
-    /* ZMIANA: Większy odstęp i padding dla "podłużnego" wyglądu */
     gap: 0.75rem;
     padding: 1.25rem 0.5rem;
     text-align: center; cursor: pointer;
@@ -344,7 +348,6 @@ body.light-mode .moon-icon { display: none; }
 }
 .hourly-forecast-item:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); }
 .hourly-forecast-item .time { font-size: 0.9rem; margin: 0; }
-/* ZMIANA: Powiększenie ikony dla "podłużnego" wyglądu */
 .hourly-forecast-item .icon { width: 50px; height: 50px; margin: 0.25rem 0; }
 .hourly-forecast-item .temp { font-size: 1.1rem; font-weight: 500; margin: 0; }
 
@@ -352,14 +355,12 @@ body.light-mode .moon-icon { display: none; }
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: var(--tile-gap);
-    /* ZMIANA: Siatka dzienna też ma mieć wewnętrzną szerokość */
-    max-width: var(--inner-container-width);
+    /* ZMIANA: Usunięcie max-width, polegamy na .glass-card */
     margin: 0 auto;
 }
 .daily-forecast-item {
     display: flex; flex-direction: column; align-items: center;
     justify-content: center; 
-    /* ZMIANA: Większy odstęp i padding */
     gap: 0.5rem; 
     padding: 1.25rem 0.5rem; 
     text-align: center;
@@ -369,7 +370,6 @@ body.light-mode .moon-icon { display: none; }
 }
 .daily-forecast-item:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); }
 .daily-forecast-item .day { font-size: 0.9rem; font-weight: 500; margin: 0; text-transform: capitalize; }
-/* ZMIANA: Powiększenie ikony */
 .daily-forecast-item .icon { width: 50px; height: 50px; margin: 0.25rem 0; }
 .daily-forecast-item .temp { font-size: 1.1rem; font-weight: 500; margin: 0; }
 
@@ -377,8 +377,7 @@ body.light-mode .moon-icon { display: none; }
     min-height: 150px; 
     height: 150px; 
     position: relative; 
-    /* ZMIANA: Wykres też ma mieć wewnętrzną szerokość */
-    max-width: var(--inner-container-width);
+    /* ZMIANA: Usunięcie max-width, polegamy na .glass-card */
     margin: 0 auto;
 }
 .no-data {
@@ -449,8 +448,7 @@ body.light-mode .moon-icon { display: none; }
     .slider-scroll-wrapper { 
         overflow-x: auto; 
         padding-bottom: 0.5rem; 
-        /* ZMIANA: Na mobilkach slider zajmuje całą szerokość */
-        max-width: 100%;
+        max-width: 100%; /* ZMIANA: Na mobilkach slider zajmuje całą szerokość */
     }
     
     .hourly-forecast-item {
@@ -500,8 +498,8 @@ body.light-mode .moon-icon { display: none; }
     @media (min-width: 769px) {
         .forecast-switcher-mobile { display: none; }
         .forecast-section { display: block !important; }
-        /* Przywracamy przyciski slidera na desktopie */
-        .slider-nav { display: flex; align-items: center; justify-content: center; } 
+        /* ZMIANA: Przywracamy przyciski slidera na desktopie */
+        .slider-nav { display: flex; } 
         /* Wyłączamy scroll na desktopie, bo mamy przyciski */
         .slider-scroll-wrapper { overflow-x: hidden; } 
     }
