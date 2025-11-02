@@ -198,7 +198,6 @@ export const translations = {
             'thunderstorm': { nominative: 'thunderstorm', genitive: 'a thunderstorm' },
             'thunderstorm with light rain': { nominative: 'thunderstorm with light rain', genitive: 'a thunderstorm with light rain' },
             'thunderstorm with rain': { nominative: 'thunderstorm with rain', genitive: 'a thunderstorm with rain' },
-Telecommunications
             'heavy thunderstorm': { nominative: 'heavy thunderstorm', genitive: 'a heavy thunderstorm' },
         }
     }
