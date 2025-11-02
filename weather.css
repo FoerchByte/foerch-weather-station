@@ -467,7 +467,7 @@ body.light-mode .moon-icon { display: none; }
         /* ZMIANA: Przechodzimy na układ rzędu dla listy mobilnej */
         flex-direction: row;
         justify-content: space-between;
-        padding: 0.5rem 1rem; /* Lepsze wypełnienie dla listy */
+        padding: 1rem; /* ZMIANA: Zwiększony padding (było 0.5rem 1rem) */
         gap: 0.5rem;
     }
     
@@ -504,4 +504,5 @@ body.light-mode .moon-icon { display: none; }
     .slider-nav { display: flex; } 
     .slider-scroll-wrapper { overflow-x: hidden; } 
 }
+
 
