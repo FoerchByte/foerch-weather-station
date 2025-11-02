@@ -53,12 +53,13 @@
     --inner-container-width: 860px;
     --tile-gap: 1rem; /* 16px */
     
-    /* PL: Szerokość kafelka godzinowego. (860px - 7 * 16px) / 8 = ~93.5px
-       Używamy 8 kafelków, aby zapewnić "oddech" i miejsce na częściowe kafelki przy przewijaniu.
-       EN: Hourly tile width. (860px - 7 * 16px) / 8 = ~93.5px
-       We use 8 tiles to ensure "breathing room" and space for partial tiles when scrolling.
+    /* --- ZMIANA: Obliczenie dla 7 kafelków --- */
+    /* PL: Szerokość kafelka godzinowego. (860px - 6 * 16px) / 7 = ~109.14px
+       Używamy 7 kafelków, aby wypełnić slider.
+       EN: Hourly tile width. (860px - 6 * 16px) / 7 = ~109.14px
+       We use 7 tiles to fill the slider.
     */
-    --hourly-tile-width: calc((var(--inner-container-width) - (7 * var(--tile-gap))) / 8);
+    --hourly-tile-width: calc((var(--inner-container-width) - (6 * var(--tile-gap))) / 7);
 }
 
 /* --- PL: Definicja motywu jasnego --- */
@@ -280,7 +281,8 @@ body.light-mode .moon-icon { display: none; }
 
 .slider-container {
     position: relative;
-    max-width: var(--outer-container-width);
+    /* ZMIANA: Kontener slidera ma teraz szerokość wewnętrzną, aby wyrównać karty */
+    max-width: var(--inner-container-width);
     margin: 0 auto;
 }
 
@@ -292,11 +294,12 @@ body.light-mode .moon-icon { display: none; }
     opacity: 0.7; transition: opacity var(--transition-speed), background-color var(--transition-speed);
 }
 .slider-nav:hover { opacity: 1; background-color: var(--glass-background); }
-.slider-nav.prev { left: -22px; } /* ZMIANA: Wypchnięcie przycisków na zewnątrz */
-.slider-nav.next { right: -22px; }
+/* ZMIANA: Wciśnięcie przycisków do środka */
+.slider-nav.prev { left: 5px; }
+.slider-nav.next { right: 5px; }
 
 .slider-scroll-wrapper {
-    max-width: var(--inner-container-width);
+    /* ZMIANA: Usunięto max-width, rodzic .slider-container to kontroluje */
     margin: 0 auto;
     display: flex;
     gap: var(--tile-gap);
@@ -321,13 +324,14 @@ body.light-mode .moon-icon { display: none; }
 
 .hourly-forecast-item {
     scroll-snap-align: start;
-    /* ZMIANA: Elastyczna szerokość kafelka */
+    /* ZMIANA: Elastyczna szerokość kafelka (z formuły na 7) */
     flex: 0 0 var(--hourly-tile-width);
     min-width: 90px; /* Zapewnia minimalną czytelność */
     display: flex;
     flex-direction: column; align-items: center; justify-content: center;
-    gap: 0.25rem; /* ZMIANA: Mniejszy odstęp */
-    padding: 0.75rem 0.5rem; /* ZMIANA: Mniejszy padding */
+    /* ZMIANA: Większy odstęp i padding dla "podłużnego" wyglądu */
+    gap: 0.5rem;
+    padding: 1rem 0.5rem;
     text-align: center; cursor: pointer;
     background: var(--inner-glass-background);
     border-radius: 12px;
@@ -335,7 +339,8 @@ body.light-mode .moon-icon { display: none; }
 }
 .hourly-forecast-item:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); }
 .hourly-forecast-item .time { font-size: 0.9rem; margin: 0; }
-.hourly-forecast-item .icon { width: 40px; height: 40px; margin: 0.25rem 0; }
+/* ZMIANA: Powiększenie ikony dla "podłużnego" wyglądu */
+.hourly-forecast-item .icon { width: 50px; height: 50px; margin: 0.25rem 0; }
 .hourly-forecast-item .temp { font-size: 1.1rem; font-weight: 500; margin: 0; }
 
 /* ZMIANA: Prognoza dzienna - poprawna siatka 7-kolumnowa */
@@ -471,7 +476,8 @@ body.light-mode .moon-icon { display: none; }
         .forecast-switcher-mobile { display: none; }
         .forecast-section { display: block !important; }
         /* Przywracamy przyciski slidera na desktopie, jeśli chcemy */
-        /* .slider-nav { display: block; } */
-        /* .slider-scroll-wrapper { overflow-x: hidden; } */
+        .slider-nav { display: flex; align-items: center; justify-content: center; } /* ZMIANA: Przywrócenie przycisków na desktopie */
+        .slider-scroll-wrapper { overflow-x: hidden; } /* ZMIANA: Wyłączenie scrolla na desktopie */
     }
 }
+
