@@ -21,7 +21,7 @@
     --light-shadow: 0 8px 32px 0 rgba(100, 116, 139, 0.37);
 
     --dark-bg: linear-gradient(135deg, #0f172a, #1e293b, #334155);
-    --dark-glass-bg: rgba(30, 41, 59, 0.6);
+    --dark-glass-bg: rgba(30, 41, 59, 0.6);A
     --dark-glass-border: rgba(255, 255, 255, 0.1);
     --dark-inner-glass-bg: rgba(15, 23, 42, 0.5);
     --dark-text-primary: #f8fafc;
@@ -628,10 +628,17 @@ body.light-mode .moon-icon { display: none; }
         * but narrower than 960px. The default tile width (105.5px) is too large.
         * This rule shrinks the tiles to fit 7.
     */
+    
+    /* ZMIANA: Ściśnięcie odstępów */
+    #hourly-forecast-content.slider-scroll-wrapper,
+    .hourly-day-group .items-wrapper {
+        gap: 8px; /* Było 12px */
+    }
+    
     .hourly-forecast-item {
-        flex-basis: 90px; /* Zmniejszamy z 105.5px */
-        min-width: 80px;  /* Zmniejszamy z 90px */
-        padding: 1rem 0.25rem; /* Mniej paddingu bocznego */
+        flex-basis: 84px; /* Zmniejszamy z 90px */
+        min-width: 78px;  /* Zmniejszamy z 80px */
+        padding: 1rem 0.25rem; 
     }
 
     .hourly-forecast-item .icon {
