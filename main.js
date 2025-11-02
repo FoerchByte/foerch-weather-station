@@ -65,7 +65,7 @@
        EN: Using 106px. (7 * 106px) + (6 * 12px) = 742px + 72px = 814px
        This EXACTLY fills the --content-limiter-width
     */
-    --hourly-tile-width: 105.5px;
+    --hourly-tile-width: 105px;
 }
 
 /* --- PL: Definicja motywu jasnego --- */
