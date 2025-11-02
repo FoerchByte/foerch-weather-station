@@ -99,11 +99,12 @@ function bindEvents() {
     addSafeListener(domElements.favoritesContainer, 'click', handleFavoriteClick);
     addSafeListener(domElements.addFavoriteBtn, 'click', toggleFavorite);
     addSafeListener(domElements.hourlyRangeSwitcher, 'click', handleHourlyRangeSwitch);
-    addSafeListener(domElements.hourlySliderPrev, 'click', () => handleSliderScroll(domElements.hourlyScrollWrapper, -1));
-    addSafeListener(domElements.hourlySliderNext, 'click', () => handleSliderScroll(domElements.hourlyScrollWrapper, 1));
     
-    // ZMIANA: Usunięto listenery dla slidera dziennego, bo to teraz siatka
-    
+    /* ZMIANA: Użycie nowej, precyzyjnej logiki przewijania */
+    addSafeListener(domElements.hourlySliderPrev, 'click', () => handleSliderScroll(domElements.hourlyScrollWrapper, -1, 7));
+    addSafeListener(domElements.hourlySliderNext, 'click', () => handleSliderScroll(domElements.hourlyScrollWrapper, 1, 7));
+    addSafeListener(domElements.dailySliderPrev, 'click', () => handleSliderScroll(domElements.dailyScrollWrapper, -1));
+    addSafeListener(domElements.dailySliderNext, 'click', () => handleSliderScroll(domElements.dailyScrollWrapper, 1));
     addSafeListener(domElements.forecastSwitcherMobile, 'click', handleMobileForecastSwitch);
     
     // ZMIANA: Dodano nasłuch na kliknięcia w kontenerach prognoz (delegacja zdarzeń)
@@ -234,10 +235,28 @@ function handleHourlyRangeSwitch(event) {
     ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, translations[state.currentLang]);
 }
 
-function handleSliderScroll(scrollWrapper, direction) {
+/* ZMIANA: Przywrócenie inteligentnej logiki przewijania z v1.0 */
+/**
+ * --- PL --- Przewija kontener slidera o określoną liczbę kafelków.
+ * --- EN --- Scrolls the slider container by a specific number of items.
+ * @param {HTMLElement} scrollWrapper - Kontener do przewijania
+ * @param {number} direction - Kierunek (-1 dla lewo, 1 dla prawo)
+ * @param {number} [itemsToScroll=7] - Liczba kafelków do przewinięcia
+ */
+function handleSliderScroll(scrollWrapper, direction, itemsToScroll = 7) {
     if (!scrollWrapper) return;
-    // ZMIANA: Przewijanie o 80% szerokości kontenera
-    const scrollAmount = (scrollWrapper.clientWidth * 0.8) * direction;
+
+    const firstItem = scrollWrapper.querySelector('.hourly-forecast-item, .daily-forecast-item');
+    if (!firstItem) return;
+
+    // Pobieramy rzeczywiste wartości z CSS
+    const computedStyle = getComputedStyle(scrollWrapper);
+    const gap = parseFloat(computedStyle.gap) || 12; // 12px to fallback
+    const itemWidth = firstItem.offsetWidth;
+
+    // Obliczamy dokładną odległość przewinięcia
+    const scrollAmount = (itemWidth + gap) * itemsToScroll * direction;
+    
     scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 }
 
@@ -408,3 +427,4 @@ function updateMap(lat, lon, cityName, zoomLevel = 13) {
         }
     }
 }
+
