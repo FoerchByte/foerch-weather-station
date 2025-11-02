@@ -422,13 +422,26 @@ body.light-mode .moon-icon { display: none; }
 }
 .modal-body .detail-row:last-child { border-bottom: none; }
 .modal-body .label-container { font-size: 1rem; }
-.modal-body .value { font-size: 1.1rem; }
+.modal-body .value { font-size: 1.1rem; font-weight: 500; transition: color var(--transition-speed); }
 .modal-detail-value--temp-grid {
     display: grid; grid-template-columns: auto 1fr;
     gap: 0.25rem 1rem; align-items: center;
     font-size: 1rem;
 }
 .modal-detail-value--temp-grid span:nth-child(odd) { color: var(--text-secondary); }
+
+/* ZMIANA: Wyrównanie temperatur w modalu do prawej */
+.modal-detail-value--temp-grid span:nth-child(even) {
+    text-align: right;
+    font-weight: 500;
+}
+
+/* ZMIANA: Mniejsza czcionka dla opisu w modalu */
+.modal-body .detail-row:first-child .value {
+    font-size: 1rem; /* Było 1.1rem */
+    line-height: 1.5; /* Lepsze czytanie dłuższego tekstu */
+    font-weight: 400; /* Zdejmujemy pogrubienie z opisu */
+}
 
 /* POPRAWKA: Układ siatki temperatur w modalu */
 .modal-body .detail-row--temp-grid {
