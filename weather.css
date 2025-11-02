@@ -495,7 +495,7 @@ body.light-mode .moon-icon { display: none; }
         /* ZMIANA: Przechodzimy na układ rzędu dla listy mobilnej */
         flex-direction: row;
         justify-content: space-between;
-        padding: 1.5rem 1.5rem; /* ZMIANA: Kolejne zwiększenie paddingu */
+        padding: 1rem 1.5rem; /* ZMIANA: Było 1.5rem 1.5rem */
         gap: 1rem; 
         align-items: center; 
     }
@@ -593,7 +593,7 @@ body.light-mode .moon-icon { display: none; }
         justify-content: space-between;
         align-items: center;
         /* Używamy tych samych wartości co w .daily-forecast-item dla spójności */
-        padding: 1.5rem 1.5rem; 
+        padding: 1rem 1.5rem; /* ZMIANA: Było 1.5rem 1.5rem */
         flex: 1 1 auto; /* Reset flex-basis */
         min-width: 100%; /* Pełna szerokość */
         gap: 1rem;
