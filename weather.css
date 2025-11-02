@@ -637,7 +637,7 @@ body.light-mode .moon-icon { display: none; }
     
     .hourly-forecast-item {
         /* ZMIANA: Zwiększamy, aby "wypchać" ósmy kafelek */
-        flex-basis: 70px; /* Było 84px */
+        flex-basis: 50px; /* Było 84px */
         min-width: 90px;  /* Było 78px */
         padding: 1rem 0.25rem; 
     }
