@@ -11,58 +11,15 @@
 :root {
     --font-family: 'Inter', sans-serif;
     
-    /* --- ZMIANA: Zdefiniowanie obu motywów za pomocą zmiennych --- */
-    --light-bg: linear-gradient(135deg, #f0f9ff, #e0f2fe, #bae6fd);
-    --light-glass-bg: rgba(255, 255, 255, 0.6);
-    --light-glass-border: rgba(0, 0, 0, 0.1);
-    --light-inner-glass-bg: rgba(240, 249, 255, 0.7);
-    --light-text-primary: #0c4a6e;
-    --light-text-secondary: #38a169;
-    --light-shadow: 0 8px 32px 0 rgba(100, 116, 139, 0.37);
-
-    --dark-bg: linear-gradient(135deg, #0f172a, #1e293b, #334155);
-    --dark-glass-bg: rgba(30, 41, 59, 0.6);
-    --dark-glass-border: rgba(255, 255, 255, 0.1);
-    --dark-inner-glass-bg: rgba(15, 23, 42, 0.5);
-    --dark-text-primary: #f8fafc;
-    --dark-text-secondary: #94a3b8;
-    --dark-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-
-    /* --- Domyślne wartości (dla motywu ciemnego) --- */
-    --background-gradient: var(--dark-bg);
-    --glass-background: var(--dark-glass-bg);
-    --glass-border-color: var(--dark-glass-border);
-    --inner-glass-background: var(--dark-inner-glass-bg);
-    --text-primary: var(--dark-text-primary);
-    --text-secondary: var(--dark-text-secondary);
-    --card-shadow: var(--dark-shadow);
-    
-    --accent-color: #38bdf8;
-    --accent-color-hover: #0ea5e9;
-    --border-radius: 16px;
-    --transition-speed: 0.3s;
-    --color-good: #4ade80;
-    --color-moderate: #facc15;
-    --color-bad: #f87171;
-    --color-info: #60a5fa;
-    --alert-background: rgba(250, 204, 21, 0.1);
-    --alert-border-color: rgba(250, 204, 21, 0.5);
-    --alert-text-color: #facc15;
-
-    --outer-container-width: 960px;
-    
-    /* ZMIANA: Usunięcie --inner-container-width. Wszystko będzie miało 960px */
-    /* --inner-container-width: 860px; */ 
-    
     --tile-gap: 1rem; /* 16px */
     
-    /* --- ZMIANA: Obliczenie dla 7 kafelków w kontenerze 960px --- */
-    /* PL: Szerokość kafelka godzinowego. (960px - 6 * 16px) / 7 = ~123.4px
-       Używamy 7 kafelków, aby wypełnić slider.
-       EN: Hourly tile width. (960px - 6 * 16px) / 7 = ~123.4px
-       We use 7 tiles to fill the slider.
+    /* --- ZMIANA: Użycie statycznej szerokości kafelka zamiast calc() --- */
+    /* PL: Używamy 123px, aby zagwarantować, że 7 kafelków + 6 odstępów zmieści się w 960px.
+       (7 * 123px) + (6 * 16px) = 861px + 96px = 957px.
+       EN: Using 123px to guarantee that 7 tiles + 6 gaps fit within 960px.
+       (7 * 123px) + (6 * 16px) = 861px + 96px = 957px.
     */
-    --hourly-tile-width: calc((var(--outer-container-width) - (6 * var(--tile-gap))) / 7);
+    --hourly-tile-width: 123px;
 }
 
 /* --- PL: Definicja motywu jasnego --- */
@@ -99,26 +56,28 @@ body {
     border: 1px solid var(--glass-border-color);
     border-radius: var(--border-radius);
     box-shadow: var(--card-shadow);
+    /* ZMIANA: Ustawienie paddingu na 1.5rem (24px) */
     padding: 1.5rem;
     margin-bottom: 1.5rem;
     transition: background-color var(--transition-speed), border-color var(--transition-speed);
-}
-
-/* ZMIANA: Wszystkie główne karty mają teraz --outer-container-width */
-.current-weather-card,
-#daily-forecast-wrapper,
-#minutely-forecast-wrapper,
-#hourly-forecast-wrapper, /* Dodano dla pewności */
-#map-section {
-    max-width: var(--outer-container-width); /* Było --inner-container-width */
+    /* ZMIANA: Wszystkie karty mają teraz --outer-container-width */
+    max-width: var(--outer-container-width);
     margin-left: auto;
     margin-right: auto;
+    box-sizing: border-box; /* Ważne dla spójności paddingu */
 }
+
+/* ZMIANA: Usunięcie nadpisywania max-width dla poszczególnych kart */
+/* .current-weather-card, ... #map-section { ... } - ta reguła jest teraz w .glass-card */
 
 
 .header-bar {
     display: flex; justify-content: space-between; align-items: center;
     padding: 0 1rem; margin-bottom: 1.5rem;
+    /* ZMIANA: Nagłówek też ma 960px */
+    max-width: var(--outer-container-width);
+    margin-left: auto;
+    margin-right: auto;
 }
 .header-bar h1 { font-size: 1.8rem; margin: 0; }
 .theme-toggle {
@@ -286,8 +245,7 @@ body.light-mode .moon-icon { display: none; }
 
 .slider-container {
     position: relative;
-    /* ZMIANA: Kontener slidera ma teraz szerokość zewnętrzną (960px) */
-    max-width: var(--outer-container-width);
+    /* ZMIANA: Kontener slidera jest teraz względny, bez sztywnej szerokości */
     margin: 0 auto;
 }
 
@@ -295,24 +253,22 @@ body.light-mode .moon-icon { display: none; }
     background: var(--inner-glass-background); border: 1px solid var(--glass-border-color);
     color: var(--text-primary); border-radius: 50%; width: 44px; height: 44px;
     cursor: pointer; font-size: 1.5rem; z-index: 10;
-    position: absolute; top: 50%; transform: translateY(-70%); /* ZMIANA: Dopasowanie do środka kafelków */
+    position: absolute; top: 50%; transform: translateY(-70%); 
     opacity: 0.7; transition: opacity var(--transition-speed), background-color var(--transition-speed);
 }
 .slider-nav:hover { opacity: 1; background-color: var(--glass-background); }
-/* ZMIANA: Przywrócenie przycisków na zewnątrz */
-.slider-nav.prev { left: -22px; }
-.slider-nav.next { right: -22px; }
+/* ZMIANA: Przyciski na zewnątrz treści (5px od krawędzi karty 960px) */
+.slider-nav.prev { left: 5px; }
+.slider-nav.next { right: 5px; }
 
 .slider-scroll-wrapper {
-    /* ZMIANA: Szerokość slidera dopasowana do --outer-container-width */
-    max-width: var(--outer-container-width);
-    margin: 0 auto;
+    /* ZMIANA: Szerokość scrolla to --inner-container-width (912px) */
+    max-width: var(--inner-container-width);
+    margin: 0 auto; /* Centruje scroll wewnątrz karty 960px */
     display: flex;
     gap: var(--tile-gap);
-    /* ZMIANA: Włączenie natywnego przewijania na desktopie */
     overflow-x: auto;
     scroll-behavior: smooth;
-    /* Ukrycie paska przewijania */
     scrollbar-width: none; /* Firefox */
 }
 .slider-scroll-wrapper::-webkit-scrollbar {
@@ -330,9 +286,8 @@ body.light-mode .moon-icon { display: none; }
 
 .hourly-forecast-item {
     scroll-snap-align: start;
-    /* ZMIANA: Elastyczna szerokość kafelka (z formuły na 7) */
     flex: 0 0 var(--hourly-tile-width);
-    min-width: 90px; /* Zapewnia minimalną czytelność */
+    min-width: 90px; 
     display: flex;
     flex-direction: column; align-items: center; justify-content: center;
     /* ZMIANA: Większy odstęp i padding dla "podłużnego" wyglądu */
@@ -346,21 +301,23 @@ body.light-mode .moon-icon { display: none; }
 .hourly-forecast-item:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); }
 .hourly-forecast-item .time { font-size: 0.9rem; margin: 0; }
 /* ZMIANA: Powiększenie ikony dla "podłużnego" wyglądu */
-.hourly-forecast-item .icon { width: 50px; height: 50px; margin: 0.25rem 0; }
+.hourly-forecast-item .icon { width: 56px; height: 56px; margin: 0.25rem 0; }
 .hourly-forecast-item .temp { font-size: 1.1rem; font-weight: 500; margin: 0; }
 
-/* ZMIANA: Prognoza dzienna - poprawna siatka 7-kolumnowa */
 .daily-forecast-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: var(--tile-gap);
+    /* ZMIANA: Siatka dzienna też ma mieć 912px szerokości */
+    max-width: var(--inner-container-width);
+    margin: 0 auto;
 }
 .daily-forecast-item {
     display: flex; flex-direction: column; align-items: center;
     justify-content: center; 
-    /* ZMIANA: Większy odstęp i padding dla "podłużnego" wyglądu */
+    /* ZMIANA: Większy odstęp i padding */
     gap: 0.5rem; 
-    padding: 1.25rem 0.5rem; 
+    padding: 1rem 0.5rem; 
     text-align: center;
     cursor: pointer; background: var(--inner-glass-background);
     border-radius: 12px;
@@ -368,11 +325,18 @@ body.light-mode .moon-icon { display: none; }
 }
 .daily-forecast-item:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); }
 .daily-forecast-item .day { font-size: 0.9rem; font-weight: 500; margin: 0; text-transform: capitalize; }
-/* ZMIANA: Powiększenie ikony dla "podłużnego" wyglądu */
+/* ZMIANA: Powiększenie ikony */
 .daily-forecast-item .icon { width: 50px; height: 50px; margin: 0.25rem 0; }
 .daily-forecast-item .temp { font-size: 1.1rem; font-weight: 500; margin: 0; }
 
-#minutely-chart-container { min-height: 150px; height: 150px; position: relative; }
+#minutely-chart-container { 
+    min-height: 150px; 
+    height: 150px; 
+    position: relative; 
+    /* ZMIANA: Wykres też ma mieć 912px szerokości */
+    max-width: var(--inner-container-width);
+    margin: 0 auto;
+}
 .no-data {
     text-align: center;
     color: var(--text-secondary);
@@ -429,6 +393,7 @@ body.light-mode .moon-icon { display: none; }
     .search-section { flex-direction: column; }
     .search-section input, .search-section button { width: 100%; box-sizing: border-box; }
     
+    .header-bar { padding: 0 0.5rem; } /* Mniejszy padding na mobile */
     .header-bar h1 { font-size: 1.5rem; }
     .current-weather__main { flex-direction: column; gap: 1rem; text-align: center; }
     .current-weather__details { align-items: center; }
@@ -439,12 +404,12 @@ body.light-mode .moon-icon { display: none; }
     .slider-nav { display: none; }
     .slider-scroll-wrapper { 
         overflow-x: auto; 
-        /* Zapewnienie, że kafelki się nie ściskają */
         padding-bottom: 0.5rem; 
+        /* ZMIANA: Na mobilkach slider zajmuje całą szerokość */
+        max-width: 100%;
     }
     
     .hourly-forecast-item {
-        /* ZMIANA: Użycie min-width zamiast sztywnego flex-basis */
         flex-basis: auto;
         min-width: 90px;
     }
@@ -453,10 +418,15 @@ body.light-mode .moon-icon { display: none; }
     .daily-forecast-grid { 
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
         gap: 0.5rem;
+        max-width: 100%; /* ZMIANA: Pełna szerokość na mobile */
     }
     .daily-forecast-item {
         padding: 0.5rem;
         gap: 0;
+    }
+    
+    #minutely-chart-container {
+        max-width: 100%; /* ZMIANA: Pełna szerokość na mobile */
     }
 
     .details-tiles-container {
@@ -486,9 +456,11 @@ body.light-mode .moon-icon { display: none; }
     @media (min-width: 769px) {
         .forecast-switcher-mobile { display: none; }
         .forecast-section { display: block !important; }
-        /* Przywracamy przyciski slidera na desktopie, jeśli chcemy */
-        .slider-nav { display: flex; align-items: center; justify-content: center; } /* ZMIANA: Przywrócenie przycisków na desktopie */
-        .slider-scroll-wrapper { overflow-x: hidden; } /* ZMIANA: Wyłączenie scrolla na desktopie */
+        /* Przywracamy przyciski slidera na desktopie */
+        .slider-nav { display: flex; align-items: center; justify-content: center; } 
+        /* Wyłączamy scroll na desktopie, bo mamy przyciski */
+        .slider-scroll-wrapper { overflow-x: hidden; } 
     }
 }
+
 
