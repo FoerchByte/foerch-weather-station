@@ -551,3 +551,54 @@ body.light-mode .moon-icon { display: none; }
     .slider-scroll-wrapper { overflow-x: hidden; } 
 }
 
+/* ZMIANA: Przywrócenie pionowej listy dla prognozy godzinowej (jak w v1.0) */
+@media (max-width: 768px) and (orientation: portrait) {
+    
+    /* 1. Wyłącz przewijanie poziome dla kontenera */
+    #hourly-forecast-content.slider-scroll-wrapper {
+        display: block;
+        overflow-x: hidden;
+    }
+
+    /* 2. Grupa dzienna (Dzisiaj, Jutro) - teraz to blok */
+    .hourly-day-group {
+         margin-bottom: 1rem;
+    }
+
+    /* 3. Kontener kafelków staje się pionową listą */
+    .hourly-day-group .items-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem; /* Taki sam odstęp jak w prognozie dziennej */
+    }
+    
+    /* 4. Sam kafelek staje się poziomym paskiem */
+    .hourly-forecast-item {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        /* Używamy tych samych wartości co w .daily-forecast-item dla spójności */
+        padding: 1.5rem 1.5rem; 
+        flex: 1 1 auto; /* Reset flex-basis */
+        min-width: 100%; /* Pełna szerokość */
+        gap: 1rem;
+    }
+    
+    /* 5. Ułóż elementy wewnątrz paska (jak w .daily-forecast-item) */
+    .hourly-forecast-item .time {
+        font-size: 1.2rem;
+        font-weight: 500;
+    }
+    .hourly-forecast-item .icon {
+         width: 60px; 
+         height: 60px;
+         margin: 0;
+    }
+    .hourly-forecast-item .temp {
+        font-size: 1.3rem;
+        font-weight: 500;
+        min-width: 70px; 
+        text-align: right;
+    }
+}
+
