@@ -1,430 +1,504 @@
-/**
- * --- PL ---
- * Główny plik aplikacji v2.0 (Orkiestrator).
- * Łączy wszystkie moduły i zarządza stanem oraz logiką.
- * Wersja zaktualizowana o logikę mapy Leaflet i pełne przetwarzanie danych.
- * --- EN ---
- * Main application file v2.0 (Orchestrator).
- * Connects all modules and manages state and logic.
- * Updated version with Leaflet map logic and full data processing.
- */
+/* --- PL ---
+    Style dla Stacji Pogody v2.0, odtworzone na podstawie wzorca z Base44.
+    Zawiera motyw ciemny, efekt glassmorphism oraz responsywny layout.
+    ZMIANA: Poprawki dla slidera godzinowego i logiki mobilnej.
+    --- EN ---
+    Styles for Weather Station v2.0, reconstructed from the Base44 pattern.
+    Includes a dark theme, glassmorphism effect, and a responsive layout.
+    CHANGE: Fixes for hourly slider and mobile logic.
+*/
 
-// --- Import modułów / Module Imports ---
-import { translations } from './translations.js';
-import * as api from './api.js';
-import * as ui from './ui.js';
-
-// --- Stan Aplikacji / Application State ---
-let state = {
-    currentWeather: null,
-    currentLocation: null,
-    favorites: [],
-    currentLang: 'pl',
-    currentHourlyRange: 24,
+:root {
+    --font-family: 'Inter', sans-serif;
     
-    // ZMIANA: Przywrócenie stanu mapy
-    map: null,
-    marker: null,
-    precipitationLayer: null,
-    lightTileLayer: null,
-    darkTileLayer: null,
-};
+    /* --- ZMIANA: Zdefiniowanie obu motywów za pomocą zmiennych --- */
+    --light-bg: linear-gradient(135deg, #f0f9ff, #e0f2fe, #bae6fd);
+    --light-glass-bg: rgba(255, 255, 255, 0.6);
+    --light-glass-border: rgba(0, 0, 0, 0.1);
+    --light-inner-glass-bg: rgba(240, 249, 255, 0.7);
+    --light-text-primary: #0c4a6e;
+    --light-text-secondary: #38a169;
+    --light-shadow: 0 8px 32px 0 rgba(100, 116, 139, 0.37);
 
+    --dark-bg: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+    --dark-glass-bg: rgba(30, 41, 59, 0.6);
+    --dark-glass-border: rgba(255, 255, 255, 0.1);
+    --dark-inner-glass-bg: rgba(15, 23, 42, 0.5);
+    --dark-text-primary: #f8fafc;
+    --dark-text-secondary: #94a3b8;
+    --dark-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 
-// --- Logika Motywu / Theme Logic ---
-function setTheme(theme) {
-    document.body.classList.toggle('dark-mode', theme === 'dark');
-    document.body.classList.toggle('light-mode', theme === 'light');
-    localStorage.setItem('theme', theme);
-    // ZMIANA: Aktualizuj kafelki mapy po zmianie motywu
-    if (state.map) updateMapTileLayer();
+    /* --- Domyślne wartości (dla motywu ciemnego) --- */
+    --background-gradient: var(--dark-bg);
+    --glass-background: var(--dark-glass-bg);
+    --glass-border-color: var(--dark-glass-border);
+    --inner-glass-background: var(--dark-inner-glass-bg);
+    --text-primary: var(--dark-text-primary);
+    --text-secondary: var(--dark-text-secondary);
+    --card-shadow: var(--dark-shadow);
+    
+    --accent-color: #38bdf8;
+    --accent-color-rgb: 56, 189, 248; /* ZMIANA: Dodano RGB dla overview */
+    --accent-color-hover: #0ea5e9;
+    --border-radius: 16px;
+    --transition-speed: 0.3s;
+    --color-good: #4ade80;
+    --color-moderate: #facc15;
+    --color-bad: #f87171;
+    --color-info: #60a5fa;
+    --alert-background: rgba(250, 204, 21, 0.1);
+    --alert-border-color: rgba(250, 204, 21, 0.5);
+    --alert-text-color: #facc15;
+
+    /* ZMIANA: Główny kontener (spójna szerokość) */
+    --outer-container-width: 960px;
+    
+    /* ZMIANA: Złoty środek - szerokość kontenera slidera godzinowego */
+    /* (960px - 2*24px padding) - (2*44px przycisk) - (2*5px gap) = 912 - 88 - 10 = 814px */
+    --content-limiter-width: 814px;
+    
+    --tile-gap: 12px; /* ZMIANA: Nieco mniejszy odstęp */
+    
+    /* --- ZMIANA: Statyczna szerokość kafelka dla 7 kafelków --- */
+    /* PL: Używamy 106px. (7 * 106px) + (6 * 12px) = 742px + 72px = 814px
+       To DOKŁADNIE wypełnia --content-limiter-width
+       EN: Using 106px. (7 * 106px) + (6 * 12px) = 742px + 72px = 814px
+       This EXACTLY fills the --content-limiter-width
+    */
+    --hourly-tile-width: 105.5px;
 }
 
-function toggleTheme() {
-    const isDarkMode = document.body.classList.contains('dark-mode');
-    setTheme(isDarkMode ? 'light' : 'dark');
+/* --- PL: Definicja motywu jasnego --- */
+/* --- EN: Light theme definition --- */
+body.light-mode {
+    --background-gradient: var(--light-bg);
+    --glass-background: var(--light-glass-bg);
+    --glass-border-color: var(--light-glass-border);
+    --inner-glass-background: var(--light-inner-glass-bg);
+    --text-primary: var(--light-text-primary);
+    --text-secondary: var(--light-text-secondary);
+    --card-shadow: var(--light-shadow);
+}
+
+body {
+    font-family: var(--font-family);
+    background: var(--background-gradient);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 1rem;
+    min-height: 100vh;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+.app-container {
+    max-width: var(--outer-container-width);
+    margin: 0 auto;
+}
+
+.glass-card {
+    background: var(--glass-background);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: background-color var(--transition-speed), border-color var(--transition-speed);
+    box-sizing: border-box; 
+    width: 100%; 
 }
 
 
-// --- Inicjalizacja Aplikacji / Application Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-    // ZMIANA: Ustawienie motywu na 'dark' jako domyślny, jeśli nic nie ma w localStorage
-    setTheme(localStorage.getItem('theme') || 'dark');
-    ui.initUI();
+.header-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 1rem; margin-bottom: 1.5rem;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    box-sizing: border-box; 
+}
+.header-bar h1 { font-size: 1.8rem; margin: 0; }
+.theme-toggle {
+    background: none; border: none; color: var(--text-primary);
+    font-size: 1.5rem; cursor: pointer;
+}
+.moon-icon { display: none; }
+body.dark-mode .sun-icon { display: none; }
+body.dark-mode .moon-icon { display: block; }
+body.light-mode .sun-icon { display: block; }
+body.light-mode .moon-icon { display: none; }
+
+.favorites-section {
+    display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+    min-height: 48px; 
+}
+.favorite-location-btn {
+    background-color: var(--inner-glass-background);
+    color: var(--text-secondary);
+    border: 1px solid var(--glass-border-color);
+    border-radius: 16px;
+    padding: 6px 14px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+.favorite-location-btn:hover {
+    background-color: var(--glass-border-color);
+    color: var(--text-primary);
+}
+.favorite-location-btn.active {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+}
+.favorites-empty-state {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    width: 100%;
+    text-align: center;
+}
+
+.search-section {
+    display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+}
+.search-section input {
+    flex-grow: 1; 
+    background: var(--inner-glass-background); 
+    border: 1px solid var(--glass-border-color);
+    color: var(--text-primary); padding: 0.75rem 1rem; border-radius: 10px;
+    font-size: 1rem; transition: box-shadow var(--transition-speed);
+}
+.search-section input:focus { outline: none; box-shadow: 0 0 0 2px var(--accent-color); }
+.search-section button {
+    background-color: var(--accent-color); color: white; border: none;
+    padding: 0.75rem 1.5rem; border-radius: 10px; cursor: pointer;
+    font-weight: 500; transition: background-color var(--transition-speed);
+    min-height: 50px; 
+    box-sizing: border-box;
+}
+.search-section button:hover:not(:disabled) { background-color: var(--accent-color-hover); }
+.search-section button:disabled { background-color: var(--text-secondary); cursor: not-allowed; }
+
+.loader-in-button {
+    width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, 0.3);
+    border-bottom-color: #fff; border-radius: 50%; display: inline-block;
+    box-sizing: border-box; animation: rotation 1s linear infinite;
+    margin: 0 auto;
+}
+@keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+
+.current-weather-card .current-weather__header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--glass-border-color);
+    padding-bottom: 1rem; margin-bottom: 1rem;
+}
+.current-weather-card h3 { font-size: 2rem; margin: 0; }
+.favorite-btn {
+    background: none; border: none; padding: 5px; cursor: pointer;
+    color: var(--text-secondary); transition: color 0.2s, transform 0.2s;
+}
+.favorite-btn .star-icon { transition: fill 0.2s; }
+.favorite-btn:hover { transform: scale(1.1); color: var(--color-moderate); }
+.favorite-btn.is-favorite { color: var(--color-moderate); }
+.favorite-btn.is-favorite .star-icon { fill: var(--color-moderate); }
+.favorite-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    color: var(--text-secondary);
+}
+.favorite-btn:disabled .star-icon { fill: none; }
+
+
+.current-weather__main {
+    display: flex; align-items: center; justify-content: center;
+    gap: 2rem; margin: 1.5rem 0; text-align: left;
+    flex-wrap: wrap; 
+}
+.current-weather__icon { width: 120px; height: 120px; }
+.current-weather__temp { font-size: 4rem; font-weight: 700; line-height: 1; }
+.current-weather__details { display: flex; flex-direction: column; gap: 0.25rem; }
+#weather-description { text-transform: capitalize; }
+
+.weather-overview {
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 12px;
+    background-color: rgba(var(--accent-color-rgb, 56, 189, 248), 0.1);
+    border: 1px solid rgba(var(--accent-color-rgb, 56, 189, 248), 0.3);
+    color: var(--text-primary);
+    text-align: left;
+    /* ZMIANA: Ograniczenie szerokości dla spójności */
+    max-width: var(--content-limiter-width);
+    margin-left: auto;
+    margin-right: auto;
+}
+.weather-overview p { margin: 0; line-height: 1.6; }
+
+.weather-alert {
+    display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem;
+    margin: 1rem 0; border-radius: 12px; background-color: var(--alert-background);
+    border: 1px solid var(--alert-border-color); color: var(--alert-text-color);
+    /* ZMIANA: Ograniczenie szerokości dla spójności */
+    max-width: var(--content-limiter-width);
+    margin-left: auto;
+    margin-right: auto;
+}
+.alert-header { display: flex; align-items: center; gap: 0.75rem; font-size: 1.1rem; font-weight: bold; }
+.alert-header svg { width: 24px; height: 24px; }
+.alert-details {
+    padding-left: calc(24px + 0.75rem); font-size: 0.9rem;
+    color: var(--text-secondary); line-height: 1.6;
+}
+.alert-details p { margin: 0; }
+
+.details-tiles-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--tile-gap); /* ZMIANA: Spójny odstęp */
+    padding-top: 1rem;
+    border-top: 1px solid var(--glass-border-color);
+    margin-top: 1rem;
+    /* ZMIANA: Ograniczenie szerokości dla spójności */
+    max-width: var(--content-limiter-width);
+    margin-left: auto;
+    margin-right: auto;
+}
+.detail-tile { padding: 1rem; margin-bottom: 0; background: var(--inner-glass-background); }
+.tile-header {
+    margin: 0 0 1rem 0; font-size: 1rem; font-weight: 500;
+    color: var(--text-secondary); border-bottom: 1px solid var(--glass-border-color); padding-bottom: 0.75rem;
+}
+.tile-content { display: flex; flex-direction: column; gap: 1rem; }
+.detail-row { display: flex; justify-content: space-between; align-items: center; }
+.detail-row .label-container { display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; }
+.detail-row .label-container svg { width: 20px; height: 20px; color: var(--text-secondary); }
+.detail-row .value { font-size: 1.1rem; font-weight: 500; transition: color var(--transition-speed); }
+
+.value.aqi-1, .value.aqi-2, .value.uv-low, .value.road-dry { color: var(--color-good); }
+.value.aqi-3, .value.uv-moderate { color: var(--color-moderate); }
+.value.aqi-4, .value.aqi-5, .value.uv-high, .value.uv-very-high, .value.uv-extreme, .value.road-icy { color: var(--color-bad); }
+.value.road-wet { color: var(--color-info); }
+
+.forecast-section { padding: 1.5rem; }
+.forecast-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+.forecast-header h3 { margin: 0; font-size: 1.5rem; }
+.hourly-range-switcher { display: flex; background-color: var(--inner-glass-background); border-radius: 10px; padding: 4px; }
+.hourly-range-switcher button { flex: 1; background: none; border: none; color: var(--text-secondary); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 500; transition: background-color 0.2s, color 0.2s; white-space: nowrap; }
+.hourly-range-switcher button.active { background: var(--accent-color); color: white; }
+
+.slider-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 5px; 
+}
+
+.slider-nav {
+    background: var(--inner-glass-background); border: 1px solid var(--glass-border-color);
+    color: var(--text-primary); border-radius: 50%; width: 44px; height: 44px;
+    cursor: pointer; font-size: 1.5rem; z-index: 10;
+    position: static; 
+    transform: none;
+    opacity: 0.7; transition: opacity var(--transition-speed), background-color var(--transition-speed);
+    flex-shrink: 0; 
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+}
+.slider-nav:hover { opacity: 1; background-color: var(--glass-background); }
+
+.slider-scroll-wrapper {
+    flex-grow: 1;
+    max-width: 100%; 
+    margin: 0; 
+    display: flex;
+    gap: var(--tile-gap);
+    overflow-x: hidden; 
+    scroll-behavior: smooth;
+    scrollbar-width: none; 
+}
+.slider-scroll-wrapper::-webkit-scrollbar {
+    display: none; 
+}
+
+
+.hourly-day-group { display: flex; flex-direction: column; }
+.hourly-day-group-header {
+    margin: 0 0 0.5rem 0; font-size: 0.9rem; font-weight: 500;
+    color: var(--text-secondary); text-transform: capitalize; padding-left: 0.5rem;
+    white-space: nowrap;
+}
+.hourly-day-group .items-wrapper { display: flex; gap: var(--tile-gap); }
+
+.hourly-forecast-item {
+    scroll-snap-align: start;
+    flex: 0 0 var(--hourly-tile-width);
+    min-width: 90px; 
+    display: flex;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.75rem;
+    padding: 1.25rem 0.5rem;
+    text-align: center; cursor: pointer;
+    background: var(--inner-glass-background);
+    border-radius: 12px;
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+.hourly-forecast-item:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); }
+.hourly-forecast-item .time { font-size: 0.9rem; margin: 0; }
+.hourly-forecast-item .icon { width: 50px; height: 50px; margin: 0.25rem 0; }
+.hourly-forecast-item .temp { font-size: 1.1rem; font-weight: 500; margin: 0; }
+
+.daily-forecast-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--tile-gap);
+    margin: 0 auto;
+    /* ZMIANA: Ograniczenie szerokości dla spójności */
+    max-width: var(--content-limiter-width);
+}
+.daily-forecast-item {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; 
+    /* ZMIANA: Ujednolicony odstęp dla tej samej wysokości co kafelki godzinowe */
+    gap: 0.75rem; 
+    padding: 1.25rem 0.5rem; 
+    text-align: center;
+    cursor: pointer; background: var(--inner-glass-background);
+    border-radius: 12px;
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+.daily-forecast-item:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); }
+.daily-forecast-item .day { font-size: 0.9rem; font-weight: 500; margin: 0; text-transform: capitalize; }
+.daily-forecast-item .icon { width: 50px; height: 50px; margin: 0.25rem 0; }
+.daily-forecast-item .temp { font-size: 1.1rem; font-weight: 500; margin: 0; }
+
+#minutely-chart-container { 
+    min-height: 150px; 
+    height: 150px; 
+    position: relative; 
+    margin: 0 auto;
+    /* ZMIANA: Ograniczenie szerokości dla spójności */
+    max-width: var(--content-limiter-width);
+}
+.no-data {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 2rem 0;
+}
+
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(15, 23, 42, 0.8); z-index: 1000;
+    display: flex; justify-content: center; align-items: center;
+    opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+}
+.modal-overlay:not([hidden]) { opacity: 1; visibility: visible; }
+.modal-content {
+    width: 90%; max-width: 500px; transform: scale(0.95);
+    transition: transform 0.3s ease-out;
+}
+.modal-overlay:not([hidden]) .modal-content { transform: scale(1); }
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 1rem; border-bottom: 1px solid var(--glass-border-color);
+    margin-bottom: 1.5rem;
+}
+.modal-title { margin: 0; font-size: 1.5rem; }
+.modal-close-btn {
+    background: none; border: none; cursor: pointer; color: var(--text-secondary);
+    font-size: 1.5rem; line-height: 1; padding: 0.5rem; margin: -0.5rem;
+    transition: color 0.2s;
+}
+.modal-close-btn:hover { color: var(--text-primary); }
+.modal-body { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+.modal-body .detail-row {
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--glass-border-color);
+}
+.modal-body .detail-row:last-child { border-bottom: none; }
+.modal-body .label-container { font-size: 1rem; }
+.modal-body .value { font-size: 1.1rem; }
+.modal-detail-value--temp-grid {
+    display: grid; grid-template-columns: auto 1fr;
+    gap: 0.25rem 1rem; align-items: center;
+    font-size: 1rem;
+}
+.modal-detail-value--temp-grid span:nth-child(odd) { color: var(--text-secondary); }
+
+.forecast-switcher-mobile { display: none; }
+
+@media (max-width: 768px) {
+    body { padding: 0.5rem; }
+    .glass-card { padding: 1rem; }
+    .search-section { flex-direction: column; }
+    .search-section input, .search-section button { width: 100%; box-sizing: border-box; }
     
-    // ZMIANA: Inicjalizacja mapy
-    initMap(); 
-    
-    loadFavorites();
-    bindEvents();
-    
-    const lastCity = localStorage.getItem('lastCity');
-    if (lastCity) {
-        document.getElementById('city-input').value = lastCity;
-        handleSearch(lastCity);
-    } else if (state.favorites.length > 0) {
-        handleSearch(state.favorites[0].name);
-    } else {
-        ui.showInitialState();
+    .header-bar { padding: 0 0.5rem; } 
+    .header-bar h1 { font-size: 1.5rem; }
+    .current-weather__main { flex-direction: column; gap: 1rem; text-align: center; }
+    .current-weather__details { align-items: center; }
+    .current-weather__temp { font-size: 3rem; }
+    .current-weather__icon { width: 80px; height: 80px; }
+
+    .slider-nav { display: none; }
+    .slider-scroll-wrapper { 
+        overflow-x: auto; 
+        padding-bottom: 0.5rem; 
+        max-width: 100%; 
     }
-});
-
-// --- Powiązanie Eventów ---
-function bindEvents() {
-    const domElements = {
-        searchBtn: document.getElementById('search-weather-btn'),
-        cityInput: document.getElementById('city-input'),
-        geoBtn: document.getElementById('geolocation-btn'),
-        themeToggle: document.getElementById('theme-toggle'),
-        favoritesContainer: document.getElementById('favorites-container'),
-        addFavoriteBtn: document.getElementById('add-favorite-btn'),
-        hourlyRangeSwitcher: document.querySelector('.hourly-range-switcher'),
-        hourlySliderPrev: document.querySelector('#hourly-forecast-wrapper .slider-nav.prev'),
-        hourlySliderNext: document.querySelector('#hourly-forecast-wrapper .slider-nav.next'),
-        hourlyScrollWrapper: document.getElementById('hourly-forecast-content'),
-        dailyScrollWrapper: document.getElementById('daily-forecast-content'),
-        forecastSwitcherMobile: document.querySelector('.forecast-switcher-mobile'),
-        modalOverlay: document.getElementById('details-modal'),
-        modalCloseBtn: document.getElementById('modal-close-btn'),
-    };
-
-    const addSafeListener = (element, event, handler) => {
-        if (element) element.addEventListener(event, handler);
-    };
-
-    addSafeListener(domElements.searchBtn, 'click', () => handleSearch(domElements.cityInput.value.trim()));
-    addSafeListener(domElements.cityInput, 'keyup', e => { if (e.key === 'Enter') handleSearch(domElements.cityInput.value.trim()); });
-    addSafeListener(domElements.geoBtn, 'click', handleGeolocation);
-    addSafeListener(domElements.themeToggle, 'click', toggleTheme);
-    addSafeListener(domElements.favoritesContainer, 'click', handleFavoriteClick);
-    addSafeListener(domElements.addFavoriteBtn, 'click', toggleFavorite);
-    addSafeListener(domElements.hourlyRangeSwitcher, 'click', handleHourlyRangeSwitch);
     
-    /* ZMIANA: Użycie nowej, precyzyjnej logiki przewijania */
-    addSafeListener(domElements.hourlySliderPrev, 'click', () => handleSliderScroll(domElements.hourlyScrollWrapper, -1, 7));
-    addSafeListener(domElements.hourlySliderNext, 'click', () => handleSliderScroll(domElements.hourlyScrollWrapper, 1, 7));
-    addSafeListener(domElements.dailySliderPrev, 'click', () => handleSliderScroll(domElements.dailyScrollWrapper, -1));
-    addSafeListener(domElements.dailySliderNext, 'click', () => handleSliderScroll(domElements.dailyScrollWrapper, 1));
-    addSafeListener(domElements.forecastSwitcherMobile, 'click', handleMobileForecastSwitch);
+    .hourly-forecast-item {
+        flex-basis: auto;
+        min-width: 90px;
+    }
+
+    .daily-forecast-grid { 
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
+        gap: 0.5rem;
+        max-width: 100%; 
+    }
+    .daily-forecast-item {
+        padding: 0.5rem;
+        gap: 0;
+    }
     
-    // ZMIANA: Dodano nasłuch na kliknięcia w kontenerach prognoz (delegacja zdarzeń)
-    addSafeListener(domElements.hourlyScrollWrapper, 'click', (e) => handleForecastItemClick(e, 'hourly'));
-    addSafeListener(domElements.dailyScrollWrapper, 'click', (e) => handleForecastItemClick(e, 'daily'));
+    #minutely-chart-container {
+        max-width: 100%; 
+    }
+
+    .details-tiles-container {
+        grid-template-columns: 1fr;
+    }
+
+    .forecast-switcher-mobile {
+        display: flex; justify-content: space-around; background-color: var(--glass-background);
+        padding: 0.5rem; border-radius: 12px; margin-bottom: 1rem;
+        gap: 0.25rem;
+    }
+     .forecast-switcher-mobile button {
+        flex: 1; background: none; border: none; color: var(--text-secondary);
+        padding: 0.5rem; border-radius: 8px; cursor: pointer;
+        font-size: 0.8rem;
+    }
+     .forecast-switcher-mobile button.active {
+        background: var(--accent-color); color: white; font-weight: bold;
+    }
+
+    .forecast-section { display: none; }
+    .forecast-section.active { display: block; }
     
-    addSafeListener(domElements.modalCloseBtn, 'click', ui.hideDetailsModal);
-    addSafeListener(domElements.modalOverlay, 'click', (e) => {
-        if (e.target === domElements.modalOverlay) ui.hideDetailsModal();
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !domElements.modalOverlay.hidden) {
-            ui.hideDetailsModal();
-        }
-    });
-}
-
-
-// --- Główna Logika ---
-async function handleSearch(query) {
-    if (!query) return;
-
-    const buttonToLoad = (typeof query === 'object' && query.latitude) 
-        ? document.getElementById('geolocation-btn') 
-        : document.getElementById('search-weather-btn');
-        
-    ui.toggleButtonLoading(buttonToLoad, true);
-    ui.showLoadingState();
-
-    try {
-        const data = await api.getWeatherData(query);
-        state.currentWeather = processWeatherData(data);
-        state.currentLocation = data.location;
-        if (typeof query === 'string') localStorage.setItem('lastCity', query);
-        
-        updateFullUI(query); // ZMIANA: Przekazanie query do updateFullUI
-        
-    } catch (error) {
-        ui.showError(error.message);
-    } finally {
-        ui.toggleButtonLoading(buttonToLoad, false);
+    @media (min-width: 769px) {
+        .forecast-switcher-mobile { display: none; }
+        .forecast-section { display: block !important; }
+        .slider-nav { display: flex; } 
+        .slider-scroll-wrapper { overflow-x: hidden; } 
     }
 }
 
-function handleGeolocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => handleSearch({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-            () => ui.showError(translations[state.currentLang].errors.location)
-        );
-    }
-}
 
-// ZMIANA: Przywrócenie pełnej logiki przetwarzania danych z v1.0
-function processWeatherData(data) {
-    return {
-        ...data,
-        generatedOverview: data.daily[0].weather[0].description,
-        roadCondition: (() => {
-            const mainWeather = data.current.weather[0].main;
-            if (data.current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(mainWeather)) {
-                return { key: 'dry', class: 'roadDry' };
-            }
-            if (data.current.temp <= 2) {
-                return { key: 'icy', class: 'roadIcy' };
-            }
-            return { key: 'wet', class: 'roadWet' };
-        })(),
-        uvCategory: (() => {
-            const uvIndex = Math.round(data.current.uvi);
-            if (uvIndex >= 11) return 'extreme';
-            if (uvIndex >= 8) return 'very-high';
-            if (uvIndex >= 6) return 'high';
-            if (uvIndex >= 3) return 'moderate';
-            return 'low';
-        })(),
-        formattedTimes: {
-            sunrise: new Date(data.current.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            sunset: new Date(data.current.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            moonrise: new Date(data.daily[0].moonrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            moonset: new Date(data.daily[0].moonset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        }
-    };
-}
-
-// ZMIANA: Dodano przekazanie 'query' do funkcji
-function updateFullUI(query) {
-    const t = translations[state.currentLang];
-    
-    ui.showContent();
-    
-    ui.renderCurrentWeather(state.currentWeather, t);
-    ui.renderWeatherAlerts(state.currentWeather, t);
-    ui.renderMinutelyForecast(state.currentWeather.minutely, t);
-    ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
-    ui.renderDailyForecast(state.currentWeather.daily, t);
-    
-    loadFavorites(); 
-    updateFavoriteButtonState();
-
-    // ZMIANA: Aktualizacja mapy po załadowaniu danych
-    const isGeoSearch = typeof query === 'object' && query.latitude;
-    const zoomLevel = isGeoSearch ? 17 : 13;
-    
-    setTimeout(() => {
-        if (state.map) {
-            state.map.invalidateSize();
-            updateMap(state.currentLocation.lat, state.currentLocation.lon, state.currentLocation.name, zoomLevel);
-        }
-    }, 0); // Opóźnienie, aby DOM zdążył się przerysować
-}
-
-
-// --- Handlery Zdarzeń UI ---
-function handleHourlyRangeSwitch(event) {
-    const btn = event.target.closest('button');
-    if (!btn || btn.classList.contains('active')) return;
-    
-    state.currentHourlyRange = parseInt(btn.dataset.range, 10);
-    
-    const switcher = document.querySelector('.hourly-range-switcher');
-    if (switcher) {
-        switcher.querySelector('.active')?.classList.remove('active');
-    }
-    btn.classList.add('active');
-    
-    ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, translations[state.currentLang]);
-}
-
-/* ZMIANA: Przywrócenie inteligentnej logiki przewijania z v1.0 */
-/**
- * --- PL --- Przewija kontener slidera o określoną liczbę kafelków.
- * --- EN --- Scrolls the slider container by a specific number of items.
- * @param {HTMLElement} scrollWrapper - Kontener do przewijania
- * @param {number} direction - Kierunek (-1 dla lewo, 1 dla prawo)
- * @param {number} [itemsToScroll=7] - Liczba kafelków do przewinięcia
- */
-function handleSliderScroll(scrollWrapper, direction, itemsToScroll = 7) {
-    if (!scrollWrapper) return;
-
-    const firstItem = scrollWrapper.querySelector('.hourly-forecast-item, .daily-forecast-item');
-    if (!firstItem) return;
-
-    // Pobieramy rzeczywiste wartości z CSS
-    const computedStyle = getComputedStyle(scrollWrapper);
-    const gap = parseFloat(computedStyle.gap) || 12; // 12px to fallback
-    const itemWidth = firstItem.offsetWidth;
-
-    // Obliczamy dokładną odległość przewinięcia
-    const scrollAmount = (itemWidth + gap) * itemsToScroll * direction;
-    
-    scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-}
-
-function handleMobileForecastSwitch(event) {
-    const btn = event.target.closest('button');
-    if (!btn || btn.classList.contains('active')) return;
-
-    const forecastType = btn.dataset.forecast; // np. "hourly-forecast-wrapper" lub "map-section"
-    
-    document.querySelector('.forecast-switcher-mobile .active')?.classList.remove('active');
-    btn.classList.add('active');
-
-    document.querySelectorAll('.forecast-section').forEach(section => {
-        section.classList.remove('active');
-    });
-    
-    const newActiveSection = document.getElementById(forecastType);
-    if (newActiveSection) {
-        newActiveSection.classList.add('active');
-    }
-
-    // ZMIANA: Przelicz rozmiar mapy, jeśli została aktywowana
-    if (forecastType === 'map-section' && state.map) {
-        setTimeout(() => state.map.invalidateSize(), 10);
-    }
-}
-
-function handleForecastItemClick(event, type) {
-    // ZMIANA: Poprawione selektory dla v2.0
-    const itemEl = event.target.closest('.hourly-forecast-item, .daily-forecast-item');
-    if (!itemEl) return;
-
-    const timestamp = parseInt(itemEl.dataset.timestamp, 10);
-    const dataSet = (type === 'hourly') ? state.currentWeather.hourly : state.currentWeather.daily;
-    const data = dataSet.find(item => item.dt === timestamp);
-    
-    if (data) {
-        ui.showDetailsModal(data, type, translations[state.currentLang]);
-    }
-}
-
-// --- Logika Ulubionych ---
-function loadFavorites() {
-    state.favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
-    ui.renderFavorites(state.favorites, state.currentLocation);
-}
-
-function saveFavorites() {
-    localStorage.setItem('weatherFavorites', JSON.stringify(state.favorites));
-}
-
-function toggleFavorite() {
-    if (!state.currentLocation) return;
-    const locationId = `${state.currentLocation.lat},${state.currentLocation.lon}`;
-    const index = state.favorites.findIndex(fav => `${fav.lat},${fav.lon}` === locationId);
-    
-    if (index > -1) {
-        state.favorites.splice(index, 1);
-    } else {
-        if (state.favorites.length >= 5) {
-            console.warn("Maksymalna liczba ulubionych osiągnięta.");
-            return;
-        }
-        state.favorites.push(state.currentLocation);
-    }
-    
-    saveFavorites();
-    loadFavorites(); 
-    updateFavoriteButtonState();
-}
-
-function handleFavoriteClick(event) {
-    const btn = event.target.closest('.favorite-location-btn');
-    if (!btn) return;
-    const cityName = btn.dataset.city;
-    if (cityName) {
-        document.getElementById('city-input').value = cityName;
-        handleSearch(cityName);
-    }
-}
-
-function updateFavoriteButtonState() {
-    if (!state.currentLocation) return;
-    const locationId = `${state.currentLocation.lat},${state.currentLocation.lon}`;
-    const isFav = state.favorites.some(fav => `${fav.lat},${fav.lon}` === locationId);
-    ui.updateFavoriteButtonState(isFav, state.favorites.length); // ZMIANA: Przekazanie liczby ulubionych
-}
-
-// --- ZMIANA: Przywrócenie logiki mapy z v1.0 ---
-
-/**
- * --- PL --- Inicjalizuje mapę Leaflet, warstwy kafelków i warstwę opadów.
- * --- EN --- Initializes the Leaflet map, tile layers, and precipitation layer.
- */
-function initMap() {
-    if (state.map) return; // Zapobiegaj podwójnej inicjalizacji
-    
-    try {
-        state.map = L.map('map', {
-            zoomControl: false // Wyłącz domyślne kontrolki zoomu, jeśli chcesz dodać własne
-        }).setView([51.75, 19.45], 10);
-        
-        // Pane, aby warstwa opadów była nad mapą bazową
-        state.map.createPane('precipitationPane');
-        state.map.getPane('precipitationPane').style.zIndex = 650;
-        
-        // Warstwy kafelków dla motywu jasnego i ciemnego
-        state.lightTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-            attribution: '&copy; OpenStreetMap' 
-        });
-        state.darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { 
-            attribution: '&copy; OpenStreetMap &copy; CARTO' 
-        });
-        
-        updateMapTileLayer(); // Ustawia warstwę kafelków zgodną z motywem
-        
-        // Warstwa opadów (korzysta z proxy)
-        const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`;
-        state.precipitationLayer = L.tileLayer(proxyUrl, {
-            attribution: '&copy; OpenWeatherMap',
-            pane: 'precipitationPane',
-            opacity: 0.7
-        });
-        state.map.addLayer(state.precipitationLayer);
-
-    } catch (error) {
-        console.error("Błąd podczas inicjalizacji mapy:", error);
-        document.getElementById('map').innerHTML = "Nie udało się załadować mapy.";
-    }
-}
-
-/**
- * --- PL --- Aktualizuje warstwę kafelków mapy (jasna/ciemna) w zależności od motywu.
- * --- EN --- Updates the map tile layer (light/dark) based on the theme.
- */
-function updateMapTileLayer() {
-    if (!state.map) return;
-    const isDarkMode = document.body.classList.contains('dark-mode');
-    const targetLayer = isDarkMode ? state.darkTileLayer : state.lightTileLayer;
-    const otherLayer = isDarkMode ? state.lightTileLayer : state.darkTileLayer;
-
-    if (state.map.hasLayer(otherLayer)) {
-        state.map.removeLayer(otherLayer);
-    }
-    if (!state.map.hasLayer(targetLayer)) {
-        state.map.addLayer(targetLayer);
-        // Upewnij się, że warstwa bazowa jest pod opadami
-        targetLayer.setZIndex(1); 
-    }
-}
-
-/**
- * --- PL --- Aktualizuje widok mapy (pozycja i marker) do nowej lokalizacji.
- * --- EN --- Updates the map view (position and marker) to the new location.
- */
-function updateMap(lat, lon, cityName, zoomLevel = 13) {
-    if (state.map) {
-        state.map.flyTo([lat, lon], zoomLevel);
-        
-        if (state.marker) {
-            state.map.removeLayer(state.marker);
-        }
-        
-        state.marker = L.marker([lat, lon]).addTo(state.map);
-        
-        if (cityName) {
-            state.marker.bindPopup(cityName).openPopup();
-        }
-    }
-}
 
