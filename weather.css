@@ -60,12 +60,12 @@
     --tile-gap: 12px; /* ZMIANA: Nieco mniejszy odstęp */
     
     /* --- ZMIANA: Statyczna szerokość kafelka dla 7 kafelków --- */
-    /* PL: Używamy 106px. (7 * 106px) + (6 * 12px) = 742px + 72px = 814px
-       To DOKŁADNIE wypełnia --content-limiter-width
-       EN: Using 106px. (7 * 106px) + (6 * 12px) = 742px + 72px = 814px
-       This EXACTLY fills the --content-limiter-width
+    /* PL: Używamy 105px. (7 * 105px) + (6 * 12px) = 735px + 72px = 807px
+       To mieści się z 7px zapasem w kontenerze 814px.
+       EN: Using 105px. (7 * 105px) + (6 * 12px) = 735px + 72px = 807px
+       This fits cleanly within the 814px container with 7px of space.
     */
-    --hourly-tile-width: 106px;
+    --hourly-tile-width: 105px;
 }
 
 /* --- PL: Definicja motywu jasnego --- */
@@ -498,4 +498,5 @@ body.light-mode .moon-icon { display: none; }
         .slider-scroll-wrapper { overflow-x: hidden; } 
     }
 }
+
 
