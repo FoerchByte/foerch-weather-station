@@ -430,6 +430,21 @@ body.light-mode .moon-icon { display: none; }
 }
 .modal-detail-value--temp-grid span:nth-child(odd) { color: var(--text-secondary); }
 
+/* POPRAWKA: Układ siatki temperatur w modalu */
+.modal-body .detail-row--temp-grid {
+    flex-direction: column;     /* Zmieniamy układ na pionowy */
+    align-items: flex-start;  /* Wyrównujemy wszystko do lewej */
+    justify-content: flex-start; /* Wyłączamy 'space-between' */
+    gap: 0.75rem;               /* Dajemy odstęp między etykietą a siatką */
+}
+
+.modal-body .detail-row--temp-grid .modal-detail-value--temp-grid {
+    width: 100%;                /* Siatka na 100% szerokości */
+    padding-left: 1rem;         /* Lekkie wcięcie dla czytelności */
+    box-sizing: border-box;     /* Ważne dla paddingu */
+}
+/* Koniec poprawki */
+
 .forecast-switcher-mobile { display: none; }
 
 @media (max-width: 768px) {
