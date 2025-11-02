@@ -632,7 +632,7 @@ body.light-mode .moon-icon { display: none; }
     /* ZMIANA: Ściśnięcie odstępów */
     #hourly-forecast-content.slider-scroll-wrapper,
     .hourly-day-group .items-wrapper {
-        gap: 9px; /* Było 12px */
+        gap: 7px; /* Było 12px */
     }
     
     .hourly-forecast-item {
