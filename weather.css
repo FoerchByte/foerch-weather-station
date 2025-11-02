@@ -506,8 +506,8 @@ body.light-mode .moon-icon { display: none; }
         font-weight: 500;
     }
     .daily-forecast-item .icon {
-        width: 60px; /* Było 55px */
-        height: 60px;
+        width: 70px; /* ZMIANA: Było 60px */
+        height: 70px;
         margin: 0; 
     }
     .daily-forecast-item .temp {
@@ -554,6 +554,21 @@ body.light-mode .moon-icon { display: none; }
 /* ZMIANA: Przywrócenie pionowej listy dla prognozy godzinowej (jak w v1.0) */
 @media (max-width: 768px) and (orientation: portrait) {
     
+    /* ZMIANA: Przeniesienie przełącznika 24/48 do jednej linii z tytułem */
+    #hourly-forecast-wrapper .forecast-header {
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem; /* Mniejszy margines */
+    }
+    #hourly-forecast-wrapper .forecast-header h3 {
+        font-size: 1.2rem; /* Mniejszy tytuł */
+        white-space: nowrap;
+    }
+    #hourly-forecast-wrapper .hourly-range-switcher button {
+        padding: 0.4rem 0.75rem; /* Mniejszy padding przełącznika */
+        font-size: 0.9rem;
+    }
+
     /* 1. Wyłącz przewijanie poziome dla kontenera */
     #hourly-forecast-content.slider-scroll-wrapper {
         display: block;
@@ -590,8 +605,8 @@ body.light-mode .moon-icon { display: none; }
         font-weight: 500;
     }
     .hourly-forecast-item .icon {
-         width: 60px; 
-         height: 60px;
+         width: 70px; /* ZMIANA: Było 60px */
+         height: 70px;
          margin: 0;
     }
     .hourly-forecast-item .temp {
