@@ -637,7 +637,7 @@ body.light-mode .moon-icon { display: none; }
     
     .hourly-forecast-item {
         /* ZMIANA: Precyzyjne dostrojenie - lekko szerzej niż 84px */
-        flex-basis: 88px; 
+        flex-basis: 87px; 
         min-width: 87px; 
         padding: 1rem 0.25rem; 
     }
