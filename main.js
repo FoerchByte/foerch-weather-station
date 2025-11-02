@@ -1,12 +1,12 @@
 /**
  * --- PL ---
- * Główny plik aplikacji (Orkiestrator).
- * Łączy wszystkie moduły (UI, API, Tłumaczenia) i zarządza stanem aplikacji
- * oraz główną logiką biznesową.
+ * Główny plik aplikacji v2.0 (Orkiestrator).
+ * Łączy wszystkie moduły i zarządza stanem oraz logiką.
+ * Wersja zaktualizowana o logikę mapy Leaflet i pełne przetwarzanie danych.
  * --- EN ---
- * Main application file (Orchestrator).
- * Connects all modules (UI, API, Translations) and manages the application state
- * and main business logic.
+ * Main application file v2.0 (Orchestrator).
+ * Connects all modules and manages state and logic.
+ * Updated version with Leaflet map logic and full data processing.
  */
 
 // --- Import modułów / Module Imports ---
@@ -21,6 +21,8 @@ let state = {
     favorites: [],
     currentLang: 'pl',
     currentHourlyRange: 24,
+    
+    // ZMIANA: Przywrócenie stanu mapy
     map: null,
     marker: null,
     precipitationLayer: null,
@@ -30,10 +32,11 @@ let state = {
 
 
 // --- Logika Motywu / Theme Logic ---
-
 function setTheme(theme) {
     document.body.classList.toggle('dark-mode', theme === 'dark');
+    document.body.classList.toggle('light-mode', theme === 'light');
     localStorage.setItem('theme', theme);
+    // ZMIANA: Aktualizuj kafelki mapy po zmianie motywu
     if (state.map) updateMapTileLayer();
 }
 
@@ -44,13 +47,14 @@ function toggleTheme() {
 
 
 // --- Inicjalizacja Aplikacji / Application Initialization ---
-
-setTheme(localStorage.getItem('theme') || 'light');
-
 document.addEventListener('DOMContentLoaded', () => {
+    // ZMIANA: Ustawienie motywu na 'dark' jako domyślny, jeśli nic nie ma w localStorage
+    setTheme(localStorage.getItem('theme') || 'dark');
     ui.initUI();
-    initMap();
-    initPrecipitationLayer();
+    
+    // ZMIANA: Inicjalizacja mapy
+    initMap(); 
+    
     loadFavorites();
     bindEvents();
     
@@ -65,78 +69,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- Powiązanie Eventów / Event Binding ---
-
+// --- Powiązanie Eventów ---
 function bindEvents() {
-    const dom = {
+    const domElements = {
         searchBtn: document.getElementById('search-weather-btn'),
         cityInput: document.getElementById('city-input'),
         geoBtn: document.getElementById('geolocation-btn'),
         themeToggle: document.getElementById('theme-toggle'),
-        forecastSwitcher: document.getElementById('forecast-switcher'),
-        hourlyRangeSwitcher: document.getElementById('hourly-range-switcher'),
-        hourlyContainer: document.getElementById('hourly-forecast-container'),
-        dailyContainer: document.getElementById('daily-forecast-container'),
-        modalContainer: document.getElementById('details-modal'),
         favoritesContainer: document.getElementById('favorites-container'),
-        hourly: {
-            sliderPrevBtn: document.getElementById('hourly-slider-prev'),
-            sliderNextBtn: document.getElementById('hourly-slider-next'),
-            scrollWrapper: document.querySelector('.hourly-forecast__scroll-wrapper'),
-        },
-        daily: {
-            sliderPrevBtn: document.getElementById('daily-slider-prev'),
-            sliderNextBtn: document.getElementById('daily-slider-next'),
-            scrollWrapper: document.querySelector('.daily-forecast__scroll-wrapper'),
-        }
+        addFavoriteBtn: document.getElementById('add-favorite-btn'),
+        hourlyRangeSwitcher: document.querySelector('.hourly-range-switcher'),
+        hourlySliderPrev: document.querySelector('#hourly-forecast-wrapper .slider-nav.prev'),
+        hourlySliderNext: document.querySelector('#hourly-forecast-wrapper .slider-nav.next'),
+        hourlyScrollWrapper: document.getElementById('hourly-forecast-content'),
+        dailyScrollWrapper: document.getElementById('daily-forecast-content'),
+        forecastSwitcherMobile: document.querySelector('.forecast-switcher-mobile'),
+        modalOverlay: document.getElementById('details-modal'),
+        modalCloseBtn: document.getElementById('modal-close-btn'),
     };
 
-    dom.searchBtn.addEventListener('click', () => handleSearch(dom.cityInput.value.trim()));
-    dom.cityInput.addEventListener('keyup', e => { if (e.key === 'Enter') handleSearch(dom.cityInput.value.trim()); });
-    dom.geoBtn.addEventListener('click', handleGeolocation);
-    dom.themeToggle.addEventListener('click', toggleTheme);
+    const addSafeListener = (element, event, handler) => {
+        if (element) element.addEventListener(event, handler);
+    };
+
+    addSafeListener(domElements.searchBtn, 'click', () => handleSearch(domElements.cityInput.value.trim()));
+    addSafeListener(domElements.cityInput, 'keyup', e => { if (e.key === 'Enter') handleSearch(domElements.cityInput.value.trim()); });
+    addSafeListener(domElements.geoBtn, 'click', handleGeolocation);
+    addSafeListener(domElements.themeToggle, 'click', toggleTheme);
+    addSafeListener(domElements.favoritesContainer, 'click', handleFavoriteClick);
+    addSafeListener(domElements.addFavoriteBtn, 'click', toggleFavorite);
+    addSafeListener(domElements.hourlyRangeSwitcher, 'click', handleHourlyRangeSwitch);
     
-    dom.favoritesContainer.addEventListener('click', handleFavoriteClick);
+    /* ZMIANA: Użycie nowej, precyzyjnej logiki przewijania */
+    addSafeListener(domElements.hourlySliderPrev, 'click', () => handleSliderScroll(domElements.hourlyScrollWrapper, -1, 7));
+    addSafeListener(domElements.hourlySliderNext, 'click', () => handleSliderScroll(domElements.hourlyScrollWrapper, 1, 7));
+    addSafeListener(domElements.dailySliderPrev, 'click', () => handleSliderScroll(domElements.dailyScrollWrapper, -1));
+    addSafeListener(domElements.dailySliderNext, 'click', () => handleSliderScroll(domElements.dailyScrollWrapper, 1));
+    addSafeListener(domElements.forecastSwitcherMobile, 'click', handleMobileForecastSwitch);
     
-    dom.forecastSwitcher.addEventListener('click', handleForecastSwitch);
-    dom.hourlyRangeSwitcher.addEventListener('click', handleHourlyRangeSwitch);
+    // ZMIANA: Dodano nasłuch na kliknięcia w kontenerach prognoz (delegacja zdarzeń)
+    addSafeListener(domElements.hourlyScrollWrapper, 'click', (e) => handleForecastItemClick(e, 'hourly'));
+    addSafeListener(domElements.dailyScrollWrapper, 'click', (e) => handleForecastItemClick(e, 'daily'));
     
-    dom.hourly.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, -1, 8));
-    dom.hourly.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.hourly.scrollWrapper, 1, 8));
-    dom.hourly.scrollWrapper.addEventListener('scroll', ui.updateSliderButtons, { passive: true });
-    
-    // Uruchomienie slidera 4+4 dla prognozy dziennej
-    dom.daily.sliderPrevBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, -1, 4));
-    dom.daily.sliderNextBtn.addEventListener('click', () => handleSliderScroll(dom.daily.scrollWrapper, 1, 4));
-    dom.daily.scrollWrapper.addEventListener('scroll', ui.updateDailySliderButtons, { passive: true });
-    
-    dom.hourlyContainer.addEventListener('click', handleHourlyItemClick);
-    dom.dailyContainer.addEventListener('click', handleDailyItemClick);
-    
-    dom.modalContainer.addEventListener('click', (e) => {
-        if (e.target.closest('[data-close-modal]')) {
-            ui.hideDetailsModal();
-        }
+    addSafeListener(domElements.modalCloseBtn, 'click', ui.hideDetailsModal);
+    addSafeListener(domElements.modalOverlay, 'click', (e) => {
+        if (e.target === domElements.modalOverlay) ui.hideDetailsModal();
     });
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && dom.modalContainer.classList.contains('is-visible')) {
+        if (e.key === 'Escape' && !domElements.modalOverlay.hidden) {
             ui.hideDetailsModal();
-        }
-    });
-
-    window.addEventListener('resize', () => {
-        if (state.currentWeather) {
-            const t = translations[state.currentLang];
-            ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
-            ui.updateSliderButtons();
-            ui.updateDailySliderButtons();
         }
     });
 }
 
-// --- Główna Logika / Main Logic ---
 
+// --- Główna Logika ---
 async function handleSearch(query) {
     if (!query) return;
 
@@ -151,12 +139,9 @@ async function handleSearch(query) {
         const data = await api.getWeatherData(query);
         state.currentWeather = processWeatherData(data);
         state.currentLocation = data.location;
-
-        if (typeof query === 'string') {
-            localStorage.setItem('lastCity', query.trim());
-        }
+        if (typeof query === 'string') localStorage.setItem('lastCity', query);
         
-        updateFullUI(query);
+        updateFullUI(query); // ZMIANA: Przekazanie query do updateFullUI
         
     } catch (error) {
         ui.showError(error.message);
@@ -169,14 +154,12 @@ function handleGeolocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (pos) => handleSearch({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-            () => {
-                const t = translations[state.currentLang];
-                ui.showError(t.errors.location);
-            }
+            () => ui.showError(translations[state.currentLang].errors.location)
         );
     }
 }
 
+// ZMIANA: Przywrócenie pełnej logiki przetwarzania danych z v1.0
 function processWeatherData(data) {
     return {
         ...data,
@@ -208,25 +191,22 @@ function processWeatherData(data) {
     };
 }
 
+// ZMIANA: Dodano przekazanie 'query' do funkcji
 function updateFullUI(query) {
     const t = translations[state.currentLang];
     
+    ui.showContent();
+    
     ui.renderCurrentWeather(state.currentWeather, t);
-    
-    document.getElementById('add-favorite-btn').addEventListener('click', toggleFavorite);
-    
-    ui.renderFavorites(state.favorites, state.currentLocation);
-    updateFavoriteButtonState();
-    
     ui.renderWeatherAlerts(state.currentWeather, t);
-    ui.renderMinutelyForecast(state.currentWeather.minutely);
+    ui.renderMinutelyForecast(state.currentWeather.minutely, t);
     ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
     ui.renderDailyForecast(state.currentWeather.daily, t);
     
-    ui.updateDailySliderButtons();
+    loadFavorites(); 
+    updateFavoriteButtonState();
 
-    ui.showContent();
-    
+    // ZMIANA: Aktualizacja mapy po załadowaniu danych
     const isGeoSearch = typeof query === 'object' && query.latitude;
     const zoomLevel = isGeoSearch ? 17 : 13;
     
@@ -235,74 +215,90 @@ function updateFullUI(query) {
             state.map.invalidateSize();
             updateMap(state.currentLocation.lat, state.currentLocation.lon, state.currentLocation.name, zoomLevel);
         }
-    }, 0);
+    }, 0); // Opóźnienie, aby DOM zdążył się przerysować
 }
 
 
-// --- Handlery Zdarzeń UI / UI Event Handlers ---
-
-function handleForecastSwitch(event) {
-    const btn = event.target.closest('button');
-    if (!btn) return;
-    const forecastType = btn.dataset.forecast;
-    
-    document.getElementById('forecasts-container').className = `show-${forecastType}`;
-    
-    document.getElementById('forecast-switcher').querySelectorAll('button').forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-pressed', 'false');
-    });
-    btn.classList.add('active');
-    btn.setAttribute('aria-pressed', 'true');
-}
-
+// --- Handlery Zdarzeń UI ---
 function handleHourlyRangeSwitch(event) {
     const btn = event.target.closest('button');
     if (!btn || btn.classList.contains('active')) return;
     
     state.currentHourlyRange = parseInt(btn.dataset.range, 10);
     
-    document.getElementById('hourly-range-switcher').querySelector('.active').classList.remove('active');
+    const switcher = document.querySelector('.hourly-range-switcher');
+    if (switcher) {
+        switcher.querySelector('.active')?.classList.remove('active');
+    }
     btn.classList.add('active');
     
-    const t = translations[state.currentLang];
-    ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
+    ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, translations[state.currentLang]);
 }
 
-function handleSliderScroll(scrollWrapper, direction, itemsToScroll) {
-    const item = scrollWrapper.querySelector('.hourly-forecast__item, .daily-forecast__day');
-    if (!item) return;
+/* ZMIANA: Przywrócenie inteligentnej logiki przewijania z v1.0 */
+/**
+ * --- PL --- Przewija kontener slidera o określoną liczbę kafelków.
+ * --- EN --- Scrolls the slider container by a specific number of items.
+ * @param {HTMLElement} scrollWrapper - Kontener do przewijania
+ * @param {number} direction - Kierunek (-1 dla lewo, 1 dla prawo)
+ * @param {number} [itemsToScroll=7] - Liczba kafelków do przewinięcia
+ */
+function handleSliderScroll(scrollWrapper, direction, itemsToScroll = 7) {
+    if (!scrollWrapper) return;
 
-    const gap = 16; // 1rem
-    const scrollAmount = (item.offsetWidth + gap) * itemsToScroll * direction;
+    const firstItem = scrollWrapper.querySelector('.hourly-forecast-item, .daily-forecast-item');
+    if (!firstItem) return;
+
+    // Pobieramy rzeczywiste wartości z CSS
+    const computedStyle = getComputedStyle(scrollWrapper);
+    const gap = parseFloat(computedStyle.gap) || 12; // 12px to fallback
+    const itemWidth = firstItem.offsetWidth;
+
+    // Obliczamy dokładną odległość przewinięcia
+    const scrollAmount = (itemWidth + gap) * itemsToScroll * direction;
     
     scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 }
 
-function handleHourlyItemClick(event) {
-    const itemEl = event.target.closest('.hourly-forecast__item');
-    if (!itemEl) return;
-    const timestamp = parseInt(itemEl.dataset.timestamp, 10);
-    const hourData = state.currentWeather.hourly.find(item => item.dt === timestamp);
-    if (hourData) {
-        const t = translations[state.currentLang];
-        ui.showDetailsModal(hourData, 'hourly', t);
+function handleMobileForecastSwitch(event) {
+    const btn = event.target.closest('button');
+    if (!btn || btn.classList.contains('active')) return;
+
+    const forecastType = btn.dataset.forecast; // np. "hourly-forecast-wrapper" lub "map-section"
+    
+    document.querySelector('.forecast-switcher-mobile .active')?.classList.remove('active');
+    btn.classList.add('active');
+
+    document.querySelectorAll('.forecast-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    const newActiveSection = document.getElementById(forecastType);
+    if (newActiveSection) {
+        newActiveSection.classList.add('active');
+    }
+
+    // ZMIANA: Przelicz rozmiar mapy, jeśli została aktywowana
+    if (forecastType === 'map-section' && state.map) {
+        setTimeout(() => state.map.invalidateSize(), 10);
     }
 }
 
-function handleDailyItemClick(event) {
-    const itemEl = event.target.closest('.daily-forecast__day');
+function handleForecastItemClick(event, type) {
+    // ZMIANA: Poprawione selektory dla v2.0
+    const itemEl = event.target.closest('.hourly-forecast-item, .daily-forecast-item');
     if (!itemEl) return;
+
     const timestamp = parseInt(itemEl.dataset.timestamp, 10);
-    const dayData = state.currentWeather.daily.find(item => item.dt === timestamp);
-    if (dayData) {
-        const t = translations[state.currentLang];
-        ui.showDetailsModal(dayData, 'daily', t);
+    const dataSet = (type === 'hourly') ? state.currentWeather.hourly : state.currentWeather.daily;
+    const data = dataSet.find(item => item.dt === timestamp);
+    
+    if (data) {
+        ui.showDetailsModal(data, type, translations[state.currentLang]);
     }
 }
 
-// --- Logika Ulubionych / Favorites Logic ---
-
+// --- Logika Ulubionych ---
 function loadFavorites() {
     state.favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
     ui.renderFavorites(state.favorites, state.currentLocation);
@@ -321,22 +317,15 @@ function toggleFavorite() {
         state.favorites.splice(index, 1);
     } else {
         if (state.favorites.length >= 5) {
-            console.warn("Maksymalna liczba ulubionych (5) została osiągnięta.");
+            console.warn("Maksymalna liczba ulubionych osiągnięta.");
             return;
         }
         state.favorites.push(state.currentLocation);
     }
     
     saveFavorites();
-    ui.renderFavorites(state.favorites, state.currentLocation);
+    loadFavorites(); 
     updateFavoriteButtonState();
-}
-
-function updateFavoriteButtonState() {
-    if (!state.currentLocation) return;
-    const locationId = `${state.currentLocation.lat},${state.currentLocation.lon}`;
-    const isFav = state.favorites.some(fav => `${fav.lat},${fav.lon}` === locationId);
-    ui.updateFavoriteButtonState(isFav, state.favorites.length);
 }
 
 function handleFavoriteClick(event) {
@@ -349,41 +338,93 @@ function handleFavoriteClick(event) {
     }
 }
 
+function updateFavoriteButtonState() {
+    if (!state.currentLocation) return;
+    const locationId = `${state.currentLocation.lat},${state.currentLocation.lon}`;
+    const isFav = state.favorites.some(fav => `${fav.lat},${fav.lon}` === locationId);
+    ui.updateFavoriteButtonState(isFav, state.favorites.length); // ZMIANA: Przekazanie liczby ulubionych
+}
 
-// --- Logika Mapy / Map Logic ---
+// --- ZMIANA: Przywrócenie logiki mapy z v1.0 ---
 
+/**
+ * --- PL --- Inicjalizuje mapę Leaflet, warstwy kafelków i warstwę opadów.
+ * --- EN --- Initializes the Leaflet map, tile layers, and precipitation layer.
+ */
 function initMap() {
-    state.map = L.map('map').setView([51.75, 19.45], 10);
+    if (state.map) return; // Zapobiegaj podwójnej inicjalizacji
     
-    state.map.createPane('precipitationPane');
-    state.map.getPane('precipitationPane').style.zIndex = 650;
-    
-    state.lightTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
-    state.darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO' });
-    updateMapTileLayer();
+    try {
+        state.map = L.map('map', {
+            zoomControl: false // Wyłącz domyślne kontrolki zoomu, jeśli chcesz dodać własne
+        }).setView([51.75, 19.45], 10);
+        
+        // Pane, aby warstwa opadów była nad mapą bazową
+        state.map.createPane('precipitationPane');
+        state.map.getPane('precipitationPane').style.zIndex = 650;
+        
+        // Warstwy kafelków dla motywu jasnego i ciemnego
+        state.lightTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+            attribution: '&copy; OpenStreetMap' 
+        });
+        state.darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { 
+            attribution: '&copy; OpenStreetMap &copy; CARTO' 
+        });
+        
+        updateMapTileLayer(); // Ustawia warstwę kafelków zgodną z motywem
+        
+        // Warstwa opadów (korzysta z proxy)
+        const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`;
+        state.precipitationLayer = L.tileLayer(proxyUrl, {
+            attribution: '&copy; OpenWeatherMap',
+            pane: 'precipitationPane',
+            opacity: 0.7
+        });
+        state.map.addLayer(state.precipitationLayer);
+
+    } catch (error) {
+        console.error("Błąd podczas inicjalizacji mapy:", error);
+        document.getElementById('map').innerHTML = "Nie udało się załadować mapy.";
+    }
 }
 
-function initPrecipitationLayer() {
-    const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`;
-    state.precipitationLayer = L.tileLayer(proxyUrl, {
-        attribution: '&copy; OpenWeatherMap',
-        pane: 'precipitationPane'
-    });
-    state.map.addLayer(state.precipitationLayer);
-}
-
+/**
+ * --- PL --- Aktualizuje warstwę kafelków mapy (jasna/ciemna) w zależności od motywu.
+ * --- EN --- Updates the map tile layer (light/dark) based on the theme.
+ */
 function updateMapTileLayer() {
+    if (!state.map) return;
     const isDarkMode = document.body.classList.contains('dark-mode');
     const targetLayer = isDarkMode ? state.darkTileLayer : state.lightTileLayer;
     const otherLayer = isDarkMode ? state.lightTileLayer : state.darkTileLayer;
-    if (state.map.hasLayer(otherLayer)) state.map.removeLayer(otherLayer);
-    if (!state.map.hasLayer(targetLayer)) state.map.addLayer(targetLayer);
+
+    if (state.map.hasLayer(otherLayer)) {
+        state.map.removeLayer(otherLayer);
+    }
+    if (!state.map.hasLayer(targetLayer)) {
+        state.map.addLayer(targetLayer);
+        // Upewnij się, że warstwa bazowa jest pod opadami
+        targetLayer.setZIndex(1); 
+    }
 }
 
+/**
+ * --- PL --- Aktualizuje widok mapy (pozycja i marker) do nowej lokalizacji.
+ * --- EN --- Updates the map view (position and marker) to the new location.
+ */
 function updateMap(lat, lon, cityName, zoomLevel = 13) {
     if (state.map) {
         state.map.flyTo([lat, lon], zoomLevel);
-        if (state.marker) state.map.removeLayer(state.marker);
-        state.marker = L.marker([lat, lon]).addTo(state.map).bindPopup(cityName).openPopup();
+        
+        if (state.marker) {
+            state.map.removeLayer(state.marker);
+        }
+        
+        state.marker = L.marker([lat, lon]).addTo(state.map);
+        
+        if (cityName) {
+            state.marker.bindPopup(cityName).openPopup();
+        }
     }
 }
+
