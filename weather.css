@@ -60,12 +60,12 @@
     --tile-gap: 12px; /* ZMIANA: Nieco mniejszy odstęp */
     
     /* --- ZMIANA: Statyczna szerokość kafelka dla 7 kafelków --- */
-    /* PL: Używamy 105px. (7 * 105px) + (6 * 12px) = 735px + 72px = 807px
-       To mieści się z 7px zapasem w kontenerze 814px.
-       EN: Using 105px. (7 * 105px) + (6 * 12px) = 735px + 72px = 807px
-       This fits cleanly within the 814px container with 7px of space.
+    /* PL: Używamy 106px. (7 * 106px) + (6 * 12px) = 742px + 72px = 814px
+       To DOKŁADNIE wypełnia --content-limiter-width. Unikamy wartości dziesiętnych.
+       EN: Using 106px. (7 * 106px) + (6 * 12px) = 742px + 72px = 814px
+       This EXACTLY fills the --content-limiter-width. Avoiding decimal values.
     */
-    --hourly-tile-width: 105px;
+    --hourly-tile-width: 105.5px;
 }
 
 /* --- PL: Definicja motywu jasnego --- */
@@ -363,7 +363,8 @@ body.light-mode .moon-icon { display: none; }
 .daily-forecast-item {
     display: flex; flex-direction: column; align-items: center;
     justify-content: center; 
-    gap: 0.5rem; 
+    /* ZMIANA: Ujednolicony odstęp dla tej samej wysokości co kafelki godzinowe */
+    gap: 0.75rem; 
     padding: 1.25rem 0.5rem; 
     text-align: center;
     cursor: pointer; background: var(--inner-glass-background);
@@ -498,5 +499,7 @@ body.light-mode .moon-icon { display: none; }
         .slider-scroll-wrapper { overflow-x: hidden; } 
     }
 }
+
+
 
 
