@@ -11,15 +11,59 @@
 :root {
     --font-family: 'Inter', sans-serif;
     
+    /* --- ZMIANA: Zdefiniowanie obu motywów za pomocą zmiennych --- */
+    --light-bg: linear-gradient(135deg, #f0f9ff, #e0f2fe, #bae6fd);
+    --light-glass-bg: rgba(255, 255, 255, 0.6);
+    --light-glass-border: rgba(0, 0, 0, 0.1);
+    --light-inner-glass-bg: rgba(240, 249, 255, 0.7);
+    --light-text-primary: #0c4a6e;
+    --light-text-secondary: #38a169;
+    --light-shadow: 0 8px 32px 0 rgba(100, 116, 139, 0.37);
+
+    --dark-bg: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+    --dark-glass-bg: rgba(30, 41, 59, 0.6);
+    --dark-glass-border: rgba(255, 255, 255, 0.1);
+    --dark-inner-glass-bg: rgba(15, 23, 42, 0.5);
+    --dark-text-primary: #f8fafc;
+    --dark-text-secondary: #94a3b8;
+    --dark-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+    /* --- Domyślne wartości (dla motywu ciemnego) --- */
+    --background-gradient: var(--dark-bg);
+    --glass-background: var(--dark-glass-bg);
+    --glass-border-color: var(--dark-glass-border);
+    --inner-glass-background: var(--dark-inner-glass-bg);
+    --text-primary: var(--dark-text-primary);
+    --text-secondary: var(--dark-text-secondary);
+    --card-shadow: var(--dark-shadow);
+    
+    --accent-color: #38bdf8;
+    --accent-color-rgb: 56, 189, 248; /* ZMIANA: Dodano RGB dla overview */
+    --accent-color-hover: #0ea5e9;
+    --border-radius: 16px;
+    --transition-speed: 0.3s;
+    --color-good: #4ade80;
+    --color-moderate: #facc15;
+    --color-bad: #f87171;
+    --color-info: #60a5fa;
+    --alert-background: rgba(250, 204, 21, 0.1);
+    --alert-border-color: rgba(250, 204, 21, 0.5);
+    --alert-text-color: #facc15;
+
+    /* ZMIANA: Główny kontener (spójna szerokość) */
+    --outer-container-width: 960px;
+    
+    /* ZMIANA: Wewnętrzny kontener na treść (aby zrobić miejsce na przyciski) */
+    /* 960px - (2 * 44px przycisk) - (2 * 5px margines) = 862px */
+    --inner-container-width: 862px;
+    
     --tile-gap: 1rem; /* 16px */
     
-    /* --- ZMIANA: Użycie statycznej szerokości kafelka zamiast calc() --- */
-    /* PL: Używamy 123px, aby zagwarantować, że 7 kafelków + 6 odstępów zmieści się w 960px.
-       (7 * 123px) + (6 * 16px) = 861px + 96px = 957px.
-       EN: Using 123px to guarantee that 7 tiles + 6 gaps fit within 960px.
-       (7 * 123px) + (6 * 16px) = 861px + 96px = 957px.
+    /* --- ZMIANA: Statyczna szerokość kafelka dla 7 kafelków w 862px --- */
+    /* PL: Używamy 109px. (7 * 109px) + (6 * 16px) = 763px + 96px = 859px (mieści się w 862px)
+       EN: Using 109px. (7 * 109px) + (6 * 16px) = 763px + 96px = 859px (fits in 862px)
     */
-    --hourly-tile-width: 123px;
+    --hourly-tile-width: 109px;
 }
 
 /* --- PL: Definicja motywu jasnego --- */
@@ -262,7 +306,7 @@ body.light-mode .moon-icon { display: none; }
 .slider-nav.next { right: 5px; }
 
 .slider-scroll-wrapper {
-    /* ZMIANA: Szerokość scrolla to --inner-container-width (912px) */
+    /* ZMIANA: Szerokość scrolla to --inner-container-width (862px) */
     max-width: var(--inner-container-width);
     margin: 0 auto; /* Centruje scroll wewnątrz karty 960px */
     display: flex;
@@ -301,14 +345,14 @@ body.light-mode .moon-icon { display: none; }
 .hourly-forecast-item:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); }
 .hourly-forecast-item .time { font-size: 0.9rem; margin: 0; }
 /* ZMIANA: Powiększenie ikony dla "podłużnego" wyglądu */
-.hourly-forecast-item .icon { width: 56px; height: 56px; margin: 0.25rem 0; }
+.hourly-forecast-item .icon { width: 50px; height: 50px; margin: 0.25rem 0; }
 .hourly-forecast-item .temp { font-size: 1.1rem; font-weight: 500; margin: 0; }
 
 .daily-forecast-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: var(--tile-gap);
-    /* ZMIANA: Siatka dzienna też ma mieć 912px szerokości */
+    /* ZMIANA: Siatka dzienna też ma mieć wewnętrzną szerokość */
     max-width: var(--inner-container-width);
     margin: 0 auto;
 }
@@ -317,7 +361,7 @@ body.light-mode .moon-icon { display: none; }
     justify-content: center; 
     /* ZMIANA: Większy odstęp i padding */
     gap: 0.5rem; 
-    padding: 1rem 0.5rem; 
+    padding: 1.25rem 0.5rem; 
     text-align: center;
     cursor: pointer; background: var(--inner-glass-background);
     border-radius: 12px;
@@ -333,7 +377,7 @@ body.light-mode .moon-icon { display: none; }
     min-height: 150px; 
     height: 150px; 
     position: relative; 
-    /* ZMIANA: Wykres też ma mieć 912px szerokości */
+    /* ZMIANA: Wykres też ma mieć wewnętrzną szerokość */
     max-width: var(--inner-container-width);
     margin: 0 auto;
 }
@@ -462,5 +506,4 @@ body.light-mode .moon-icon { display: none; }
         .slider-scroll-wrapper { overflow-x: hidden; } 
     }
 }
-
 
