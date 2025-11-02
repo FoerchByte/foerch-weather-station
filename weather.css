@@ -50,16 +50,19 @@
     --alert-text-color: #facc15;
 
     --outer-container-width: 960px;
-    --inner-container-width: 860px;
+    
+    /* ZMIANA: Usunięcie --inner-container-width. Wszystko będzie miało 960px */
+    /* --inner-container-width: 860px; */ 
+    
     --tile-gap: 1rem; /* 16px */
     
-    /* --- ZMIANA: Obliczenie dla 7 kafelków --- */
-    /* PL: Szerokość kafelka godzinowego. (860px - 6 * 16px) / 7 = ~109.14px
+    /* --- ZMIANA: Obliczenie dla 7 kafelków w kontenerze 960px --- */
+    /* PL: Szerokość kafelka godzinowego. (960px - 6 * 16px) / 7 = ~123.4px
        Używamy 7 kafelków, aby wypełnić slider.
-       EN: Hourly tile width. (860px - 6 * 16px) / 7 = ~109.14px
+       EN: Hourly tile width. (960px - 6 * 16px) / 7 = ~123.4px
        We use 7 tiles to fill the slider.
     */
-    --hourly-tile-width: calc((var(--inner-container-width) - (6 * var(--tile-gap))) / 7);
+    --hourly-tile-width: calc((var(--outer-container-width) - (6 * var(--tile-gap))) / 7);
 }
 
 /* --- PL: Definicja motywu jasnego --- */
@@ -101,11 +104,13 @@ body {
     transition: background-color var(--transition-speed), border-color var(--transition-speed);
 }
 
+/* ZMIANA: Wszystkie główne karty mają teraz --outer-container-width */
 .current-weather-card,
 #daily-forecast-wrapper,
 #minutely-forecast-wrapper,
-#map-section { /* ZMIANA: Mapa też ma mieć tę szerokość */
-    max-width: var(--inner-container-width);
+#hourly-forecast-wrapper, /* Dodano dla pewności */
+#map-section {
+    max-width: var(--outer-container-width); /* Było --inner-container-width */
     margin-left: auto;
     margin-right: auto;
 }
@@ -281,8 +286,8 @@ body.light-mode .moon-icon { display: none; }
 
 .slider-container {
     position: relative;
-    /* ZMIANA: Kontener slidera ma teraz szerokość wewnętrzną, aby wyrównać karty */
-    max-width: var(--inner-container-width);
+    /* ZMIANA: Kontener slidera ma teraz szerokość zewnętrzną (960px) */
+    max-width: var(--outer-container-width);
     margin: 0 auto;
 }
 
@@ -294,12 +299,13 @@ body.light-mode .moon-icon { display: none; }
     opacity: 0.7; transition: opacity var(--transition-speed), background-color var(--transition-speed);
 }
 .slider-nav:hover { opacity: 1; background-color: var(--glass-background); }
-/* ZMIANA: Wciśnięcie przycisków do środka */
-.slider-nav.prev { left: 5px; }
-.slider-nav.next { right: 5px; }
+/* ZMIANA: Przywrócenie przycisków na zewnątrz */
+.slider-nav.prev { left: -22px; }
+.slider-nav.next { right: -22px; }
 
 .slider-scroll-wrapper {
-    /* ZMIANA: Usunięto max-width, rodzic .slider-container to kontroluje */
+    /* ZMIANA: Szerokość slidera dopasowana do --outer-container-width */
+    max-width: var(--outer-container-width);
     margin: 0 auto;
     display: flex;
     gap: var(--tile-gap);
@@ -330,8 +336,8 @@ body.light-mode .moon-icon { display: none; }
     display: flex;
     flex-direction: column; align-items: center; justify-content: center;
     /* ZMIANA: Większy odstęp i padding dla "podłużnego" wyglądu */
-    gap: 0.5rem;
-    padding: 1rem 0.5rem;
+    gap: 0.75rem;
+    padding: 1.25rem 0.5rem;
     text-align: center; cursor: pointer;
     background: var(--inner-glass-background);
     border-radius: 12px;
@@ -351,14 +357,19 @@ body.light-mode .moon-icon { display: none; }
 }
 .daily-forecast-item {
     display: flex; flex-direction: column; align-items: center;
-    justify-content: center; gap: 0.25rem; padding: 0.75rem 0.5rem; text-align: center;
+    justify-content: center; 
+    /* ZMIANA: Większy odstęp i padding dla "podłużnego" wyglądu */
+    gap: 0.5rem; 
+    padding: 1.25rem 0.5rem; 
+    text-align: center;
     cursor: pointer; background: var(--inner-glass-background);
     border-radius: 12px;
     transition: transform var(--transition-speed), box-shadow var(--transition-speed);
 }
 .daily-forecast-item:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); }
 .daily-forecast-item .day { font-size: 0.9rem; font-weight: 500; margin: 0; text-transform: capitalize; }
-.daily-forecast-item .icon { width: 40px; height: 40px; margin: 0.25rem 0; }
+/* ZMIANA: Powiększenie ikony dla "podłużnego" wyglądu */
+.daily-forecast-item .icon { width: 50px; height: 50px; margin: 0.25rem 0; }
 .daily-forecast-item .temp { font-size: 1.1rem; font-weight: 500; margin: 0; }
 
 #minutely-chart-container { min-height: 150px; height: 150px; position: relative; }
