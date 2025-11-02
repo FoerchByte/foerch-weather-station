@@ -442,7 +442,7 @@ function buildDailyModalBody(data, t) {
     return `
         <div class="detail-row"><span class="label-container">${t.details.description}</span><span class="value">${translatedSummary}</span></div>
         <div class="detail-row"><span class="label-container">${t.forecast.precipChance}</span><span class="value">${Math.round(data.pop * 100)}%</span></div>
-        <div class="detail-row"><span class="label-container">${t.forecast.temp}</span><div class="value modal-detail-value--temp-grid">
+        <div class="detail-row detail-row--temp-grid"><span class="label-container">${t.forecast.temp}</span><div class="value modal-detail-value--temp-grid">
             <span>${t.forecast.morn}:</span><span>${Math.round(data.temp.morn)}°C</span>
             <span>${t.forecast.day}:</span><span>${Math.round(data.temp.day)}°C</span>
             <span>${t.forecast.eve}:</span><span>${Math.round(data.temp.eve)}°C</span>
