@@ -617,3 +617,30 @@ body.light-mode .moon-icon { display: none; }
     }
 }
 
+/* ZMIANA: Poprawka dla trybu landscape na telefonach (jak w v1.0) */
+@media (max-width: 1024px) and (orientation: landscape) {
+    /*
+        * PL: Na telefonach w trybie landscape, viewport jest szerszy niż 768px,
+        * ale węższy niż 960px. Domyślna szerokość kafelków (105.5px) jest za duża.
+        * Ta reguła zmniejsza kafelki, aby zmieściło się 7.
+        *
+        * EN: On mobile phones in landscape, the viewport is wider than 768px
+        * but narrower than 960px. The default tile width (105.5px) is too large.
+        * This rule shrinks the tiles to fit 7.
+    */
+    .hourly-forecast-item {
+        flex-basis: 90px; /* Zmniejszamy z 105.5px */
+        min-width: 80px;  /* Zmniejszamy z 90px */
+        padding: 1rem 0.25rem; /* Mniej paddingu bocznego */
+    }
+
+    .hourly-forecast-item .icon {
+        width: 45px; /* Mniejsza ikona */
+        height: 45px;
+    }
+
+    .hourly-forecast-item .temp {
+        font-size: 1rem; /* Mniejsza czcionka */
+    }
+}
+
