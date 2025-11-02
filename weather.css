@@ -467,25 +467,25 @@ body.light-mode .moon-icon { display: none; }
         /* ZMIANA: Przechodzimy na układ rzędu dla listy mobilnej */
         flex-direction: row;
         justify-content: space-between;
-        padding: 1.25rem 1.5rem; /* ZMIANA: Znacznie większy padding */
-        gap: 1rem; /* ZMIANA: Lepszy odstęp wewnątrz */
-        align-items: center; /* Dodano, aby wyśrodkować w pionie */
+        padding: 1.5rem 1.5rem; /* ZMIANA: Kolejne zwiększenie paddingu */
+        gap: 1rem; 
+        align-items: center; 
     }
     
     /* ZMIANA: Zwiększenie czcionek i ikon w liście mobilnej */
     .daily-forecast-item .day {
-        font-size: 1.1rem; /* Było 0.9rem */
+        font-size: 1.2rem; /* Było 1.1rem */
         font-weight: 500;
     }
     .daily-forecast-item .icon {
-        width: 55px; /* Było 50px */
-        height: 55px;
-        margin: 0; /* Usuwamy marginesy góra/dół */
+        width: 60px; /* Było 55px */
+        height: 60px;
+        margin: 0; 
     }
     .daily-forecast-item .temp {
-        font-size: 1.2rem; /* Było 1.1rem */
+        font-size: 1.3rem; /* Było 1.2rem */
         font-weight: 500;
-        min-width: 70px; /* Dodano, aby wyrównać temperatury do prawej */
+        min-width: 70px; 
         text-align: right;
     }
     
