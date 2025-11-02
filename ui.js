@@ -175,60 +175,10 @@ function renderDetailRow(containerId, icon, label, value, valueClass = '') {
         <span class="value ${valueClass}">${value}</span>`;
 }
 
-function getCelestialPosition(progress) {
-    const angle = Math.PI - (progress / 100) * Math.PI; // Od 180 do 0 stopni
-    const radius = 100; // Promień półokręgu
-    const centerX = 100;
-    const centerY = 100;
-    
-    const x = centerX + radius * Math.cos(angle);
-    const y = centerY - radius * Math.sin(angle); // Odejmujemy, bo oś Y rośnie w dół
-    
-    return { x, y };
-}
-
-function renderSunPathComponent(data, t) {
-    if (isNaN(data.sunPathProgress)) return '';
-    
-    const isDay = data.sunPathProgress >= 0 && data.sunPathProgress <= 100;
-    const { x, y } = getCelestialPosition(data.sunPathProgress);
-    const style = `left: ${x}px; top: ${y}px; opacity: ${isDay ? 1 : 0.3};`;
-
-    return `
-        <div class="sun-path-container">
-            <h4 class="celestial-path__title">${t.details.daylightHours}</h4>
-            <div class="celestial-path ${!isDay ? 'is-night' : ''}">
-                <div class="celestial-path__icon" style="${style}">☀️</div>
-            </div>
-            <div class="celestial-path__times">
-                <span>${data.formattedTimes.sunrise}</span>
-                <span>${data.formattedTimes.sunset}</span>
-            </div>
-        </div>
-    `;
-}
-
-function renderMoonPathComponent(data, t) {
-    if (isNaN(data.moonPathProgress)) return '';
-    
-    const isMoonVisible = data.moonPathProgress >= 0 && data.moonPathProgress <= 100;
-    const { x, y } = getCelestialPosition(data.moonPathProgress);
-    const style = `left: ${x}px; top: ${y}px; opacity: ${isMoonVisible ? 1 : 0.3};`;
-
-    return `
-        <div class="moon-path-container">
-            <h4 class="celestial-path__title">${t.details.moonPhase}</h4>
-            <div class="celestial-path ${!isMoonVisible ? 'is-night' : ''}">
-                 <div class="celestial-path__icon" style="${style}">🌙</div>
-            </div>
-            <div class="celestial-path__times">
-                <span>${data.formattedTimes.moonrise}</span>
-                <span>${data.formattedTimes.moonset}</span>
-            </div>
-        </div>
-    `;
-}
-
+/**
+ * --- PL --- Wypełnia całą główną kartę pogody i wszystkie kafelki detali.
+ * --- EN --- Populates the entire main weather card and all detail tiles.
+ */
 export function renderCurrentWeather(data, t) {
     if(!dom.cityName) initUI(); // Upewnij się, że DOM jest zainicjowany
 
@@ -239,56 +189,39 @@ export function renderCurrentWeather(data, t) {
     
     // ZMIANA: Przywrócenie renderowania podsumowania
     const translatedOverview = translateOverview(data.generatedOverview, t);
-    const overviewHtml = translatedOverview ? `
-        <div class="weather-overview">
-            <svg class="weather-overview__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 2C17.5228 2 22 6.47715 22 12V12C22 17.5228 17.5228 22 12 22V22C6.47715 22 2 17.5228 2 12V12C2 6.47715 6.47715 2 12 2V2Z"></path><path d="M13.8284 9.17157L12 11L10.1716 9.17157"></path><path d="M9.17157 13.8284L11 12L9.17157 10.1716"></path><path d="M13.8284 14.8284L12 13L10.1716 14.8284"></path><path d="M14.8284 10.1716L13 12L14.8284 13.8284"></path></svg>
-            <p class="weather-overview__text">${translatedOverview}</p>
-        </div>
-    ` : '';
-    
-    const detailsHtml = `
-        <div class="current-weather__extra-details">
-             <div class="detail-col detail-col--1">
-                <div class="current-weather__detail-item value-color--neutral-info"><span class="detail-item-header"><span>${t.details.wind}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 6H6C4.89543 6 4 6.89543 4 8C4 9.10457 4.89543 10 6 10H10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 12H7C5.34315 12 4 13.3431 4 15C4 16.6569 5.34315 18 7 18H14" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 14H16C14.8954 14 14 14.8954 14 16C14 17.1046 14.8954 18 16 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.current.wind_speed.toFixed(1)} m/s</span></div>
-                <div class="current-weather__detail-item value-color--neutral-info"><span class="detail-item-header"><span>${t.details.pressure}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 12L15 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.current.pressure} hPa</span></div>
-            </div>
-            <div class="detail-col detail-col--2">
-                <div class="current-weather__detail-item value-color--aqi-${data.air_quality.main.aqi}"><span class="detail-item-header"><span>${t.details.aqi}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 12C21 7.9242 18.2323 4.56213 14.5 3.5C14.5 3.5 12.5 2 10 3.5C6.5 5.5 4.5 9.5 5.5 13C6.5 16.5 12.5 17 14.5 15.5" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 15.5C20.5 15.5 21 17.5 20 18.5C19 19.5 17 19.5 16.5 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${t.values.aqi[data.air_quality.main.aqi - 1]}</span></div>
-                <div class="current-weather__detail-item value-color--uv-${data.uvCategory}"><span class="detail-item-header"><span>${t.details.uvIndex}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 21V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.05025 7.05025L5.63604 5.63604" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.364 18.364L16.9497 16.9497" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.05025 16.9497L5.63604 18.364" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.364 5.63604L16.9497 7.05025" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${t.values.uv[data.uvCategory]}</span></div>
-            </div>
-            <div class="detail-col detail-col--3">
-                <div class="current-weather__detail-item value-color--${data.roadCondition.class}"><span class="detail-item-header"><span>${t.details.roadSurface}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 17.5C6 16.1193 7.11929 15 8.5 15C9.88071 15 11 16.1193 11 17.5V21H6V17.5Z" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 17.5C13 16.1193 14.1193 15 15.5 15C16.8807 15 18 16.1193 18 17.5V21H13V17.5Z" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15V8.44444C4 7.22849 4 6.62051 4.29828 6.16201C4.59656 5.70351 5.09916 5.37833 5.60436 5.05315L6.5 4.5L17.5 4.5L18.3956 5.05315C18.9008 5.37833 19.4034 5.70351 19.7017 6.16201C20 6.62051 20 7.22849 20 8.44444V15H4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${t.values.road[data.roadCondition.key]}</span></div>
-            </div>
-            <div class="detail-col detail-col--4">
-                <div class="current-weather__detail-item value-color--sun"><span class="detail-item-header"><span>${t.details.sunrise}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 17H21" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.63604 5.63604L6.34315 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 10H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.364 5.63604L17.6569 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.sunrise}</span></div>
-                <div class="current-weather__detail-item value-color--sun"><span class="detail-item-header"><span>${t.details.sunset}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 17H21" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.63604 5.63604L6.34315 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 10H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.364 5.63604L17.6569 6.34315" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.sunset}</span></div>
-            </div>
-            <div class="detail-col detail-col--5">
-                <div class="current-weather__detail-item value-color--moon"><span class="detail-item-header"><span>${t.details.moonrise}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 17H22" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C15.3137 14 18 11.3137 18 8C18 4.68629 15.3137 2 12 2C8.68629 2 6 4.68629 6 8C6 11.3137 8.68629 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C13.6569 14 15 11.3137 15 8C15 4.68629 13.6569 2 12 2" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.moonrise}</span></div>
-                <div class="current-weather__detail-item value-color--moon"><span class="detail-item-header"><span>${t.details.moonset}</span><svg width="24" height="24" viewBox="0 0 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 17H22" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C15.3137 14 18 11.3137 18 8C18 4.68629 15.3137 2 12 2C8.68629 2 6 4.68629 6 8C6 11.3137 8.68629 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14C13.6569 14 15 11.3137 15 8C15 4.68629 13.6569 2 12 2" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="detail-item-value">${data.formattedTimes.moonset}</span></div>
-            </div>
-            <div class="sun-moon-paths-container">
-                ${renderSunPathComponent(data, t)}
-                ${renderMoonPathComponent(data, t)}
-            </div>
-        </div>`;
-    
-    dom.weatherResultContainer.innerHTML = `
-        ${headerHtml}
-        <div class="current-weather__main">
-            <div class="current-weather__icon">${getWeatherIconHtml(data.current.weather[0].icon, data.current.weather[0].description)}</div>
-            <div class="current-weather__details">
-                <span class="current-weather__temp">${Math.round(data.current.temp)}°C</span>
-                <span>${data.current.weather[0].description}</span>
-            </div>
-        </div>
-        ${overviewHtml}
-        <div id="weather-alerts-container"></div>
-        ${detailsHtml}
-    `;
-    
-    dom.weatherAlertsContainer = document.getElementById('weather-alerts-container');
-    dom.addFavoriteBtn = document.getElementById('add-favorite-btn');
+    if (translatedOverview && dom.weatherOverview) {
+        dom.weatherOverview.innerHTML = `<p>${translatedOverview}</p>`;
+        dom.weatherOverview.style.display = 'block';
+    } else if (dom.weatherOverview) {
+        dom.weatherOverview.style.display = 'none';
+    }
+
+    // Ikony dla kafelków detali
+    const icons = {
+        feelsLike: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h-2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M4 12h2.5"/><path d="M17.5 12H20"/></svg>`,
+        humidity: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
+        wind: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1-5 0"/><path d="M19.6 21H4.4a2 2 0 0 1-1.76-2.9L8.8 3.5a2 2 0 0 1 3.4 0l6.16 14.6a2 2 0 0 1-1.76 2.9z"/></svg>`,
+        pressure: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14-4-4h8l-4 4Z"/><path d="m12 20-4-4h8l-4 4Z"/><path d="M12 2v2"/><path d="M12 8v2"/><path d="m21 12-2 0"/><path d="m5 12-2 0"/><path d="m18.36 18.36-.7.7"/><path d="m6.34 6.34-.7-.7"/></svg>`,
+        aqi: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12v-2a4 4 0 0 0-4-4H4"/><path d="M12 16H8a4 4 0 0 1-4-4v-2"/><path d="M20 12h-2a4 4 0 0 0-4-4v-2"/><path d="M20 12v4a4 4 0 0 1-4 4h-2"/></svg>`,
+        uv: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12.5a4.5 4.5 0 1 1 4.5-4.5 4.5 4.5 0 0 1-4.5 4.5z"/><path d="M12 3V1"/><path d="M12 23v-2"/><path d="M20.66 18.34l-1.41-1.41"/><path d="M4.75 6.16 3.34 4.75"/><path d="M20.66 5.66l-1.41 1.41"/><path d="M4.75 17.84l-1.41 1.41"/><path d="M23 12h-2"/><path d="M3 12H1"/></svg>`,
+        sunrise: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/></svg>`,
+        sunset: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 18-4 4-4-4"/></svg>`,
+        road: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20v2H6.5a2.5 2.5 0 0 1 0-5H20V9H6.5a2.5 2.5 0 0 1 0-5H20V6H6.5a2.5 2.5 0 0 1-2.5 2.5V19.5z"/></svg>`,
+        moonrise: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 1 0 10 10 9 9 0 1 1-10-10z"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/></svg>`,
+        moonset: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 1 0 10 10 9 9 0 1 1-10-10z"/><path d="M22 22H2"/><path d="m16 18-4 4-4-4"/></svg>`,
+    };
+
+    renderDetailRow('detail-feels-like', icons.feelsLike, t.details.feelsLike, `${Math.round(data.current.feels_like)}°C`);
+    renderDetailRow('detail-wind', icons.wind, t.details.wind, `${convertMsToKmh(data.current.wind_speed)} km/h`);
+    renderDetailRow('detail-pressure', icons.pressure, t.details.pressure, `${data.current.pressure} hPa`);
+    renderDetailRow('detail-humidity', icons.humidity, t.details.humidity, `${data.current.humidity}%`);
+    renderDetailRow('detail-aqi', icons.aqi, t.details.aqi, t.values.aqi[data.air_quality.main.aqi - 1], `aqi-${data.air_quality.main.aqi}`);
+    renderDetailRow('detail-uv', icons.uv, t.details.uvIndex, t.values.uv[data.uvCategory], `uv-${data.uvCategory}`);
+    renderDetailRow('detail-road', icons.road, t.details.roadSurface, t.values.road[data.roadCondition.key], `road-${data.roadCondition.key}`);
+    renderDetailRow('detail-sunrise', icons.sunrise, t.details.sunrise, data.formattedTimes.sunrise);
+    renderDetailRow('detail-sunset', icons.sunset, t.details.sunset, data.formattedTimes.sunset);
+    renderDetailRow('detail-moonrise', icons.moonrise, t.details.moonrise, data.formattedTimes.moonrise);
+    renderDetailRow('detail-moonset', icons.moonset, t.details.moonset, data.formattedTimes.moonset);
 }
 
 /**
