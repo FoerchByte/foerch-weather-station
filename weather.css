@@ -53,17 +53,19 @@
     /* ZMIANA: Główny kontener (spójna szerokość) */
     --outer-container-width: 960px;
     
-    /* ZMIANA: Usunięcie --inner-container-width. Będziemy używać Flexbox */
+    /* ZMIANA: Złoty środek - szerokość kontenera slidera godzinowego */
+    /* (960px - 2*24px padding) - (2*44px przycisk) - (2*5px gap) = 912 - 88 - 10 = 814px */
+    --content-limiter-width: 814px;
     
     --tile-gap: 12px; /* ZMIANA: Nieco mniejszy odstęp */
     
     /* --- ZMIANA: Statyczna szerokość kafelka dla 7 kafelków --- */
-    /* PL: Używamy 103px. (7 * 103px) + (6 * 12px) = 721px + 72px = 793px 
-       To zmieści się w kontenerze flex.
-       EN: Using 103px. (7 * 103px) + (6 * 12px) = 721px + 72px = 793px
-       This will fit in the flex container.
+    /* PL: Używamy 106px. (7 * 106px) + (6 * 12px) = 742px + 72px = 814px
+       To DOKŁADNIE wypełnia --content-limiter-width
+       EN: Using 106px. (7 * 106px) + (6 * 12px) = 742px + 72px = 814px
+       This EXACTLY fills the --content-limiter-width
     */
-    --hourly-tile-width: 103px;
+    --hourly-tile-width: 106px;
 }
 
 /* --- PL: Definicja motywu jasnego --- */
@@ -103,27 +105,24 @@ body {
     padding: 1.5rem;
     margin-bottom: 1.5rem;
     transition: background-color var(--transition-speed), border-color var(--transition-speed);
-    /* ZMIANA: Usunięcie max-width. .app-container to kontroluje */
     box-sizing: border-box; 
-    width: 100%; /* ZMIANA: Karty są teraz płynne */
+    width: 100%; 
 }
 
 
 .header-bar {
     display: flex; justify-content: space-between; align-items: center;
     padding: 0 1rem; margin-bottom: 1.5rem;
-    /* ZMIANA: Usunięcie max-width. .app-container to kontroluje */
     margin-left: auto;
     margin-right: auto;
     width: 100%;
-    box-sizing: border-box; /* ZMIANA: Dodanie box-sizing */
+    box-sizing: border-box; 
 }
 .header-bar h1 { font-size: 1.8rem; margin: 0; }
 .theme-toggle {
     background: none; border: none; color: var(--text-primary);
     font-size: 1.5rem; cursor: pointer;
 }
-/* ZMIANA: Poprawne przełączanie ikon motywu */
 .moon-icon { display: none; }
 body.dark-mode .sun-icon { display: none; }
 body.dark-mode .moon-icon { display: block; }
@@ -132,9 +131,8 @@ body.light-mode .moon-icon { display: none; }
 
 .favorites-section {
     display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
-    min-height: 48px; /* Zapewnia stałą wysokość */
+    min-height: 48px; 
 }
-/* ZMIANA: Przyciski ulubionych z v1.0 */
 .favorite-location-btn {
     background-color: var(--inner-glass-background);
     color: var(--text-secondary);
@@ -166,7 +164,7 @@ body.light-mode .moon-icon { display: none; }
 }
 .search-section input {
     flex-grow: 1; 
-    background: var(--inner-glass-background); /* ZMIANA: Lepszy kontrast */
+    background: var(--inner-glass-background); 
     border: 1px solid var(--glass-border-color);
     color: var(--text-primary); padding: 0.75rem 1rem; border-radius: 10px;
     font-size: 1rem; transition: box-shadow var(--transition-speed);
@@ -176,13 +174,12 @@ body.light-mode .moon-icon { display: none; }
     background-color: var(--accent-color); color: white; border: none;
     padding: 0.75rem 1.5rem; border-radius: 10px; cursor: pointer;
     font-weight: 500; transition: background-color var(--transition-speed);
-    min-height: 50px; /* ZMIANA: Wyrównanie wysokości */
+    min-height: 50px; 
     box-sizing: border-box;
 }
 .search-section button:hover:not(:disabled) { background-color: var(--accent-color-hover); }
 .search-section button:disabled { background-color: var(--text-secondary); cursor: not-allowed; }
 
-/* ZMIANA: Loader w przycisku */
 .loader-in-button {
     width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, 0.3);
     border-bottom-color: #fff; border-radius: 50%; display: inline-block;
@@ -218,14 +215,13 @@ body.light-mode .moon-icon { display: none; }
 .current-weather__main {
     display: flex; align-items: center; justify-content: center;
     gap: 2rem; margin: 1.5rem 0; text-align: left;
-    flex-wrap: wrap; /* ZMIANA: Lepsza obsługa małych ekranów */
+    flex-wrap: wrap; 
 }
 .current-weather__icon { width: 120px; height: 120px; }
 .current-weather__temp { font-size: 4rem; font-weight: 700; line-height: 1; }
 .current-weather__details { display: flex; flex-direction: column; gap: 0.25rem; }
 #weather-description { text-transform: capitalize; }
 
-/* ZMIANA: Przywrócenie stylu dla podsumowania (overview) */
 .weather-overview {
     padding: 1rem;
     margin: 1rem 0;
@@ -234,6 +230,10 @@ body.light-mode .moon-icon { display: none; }
     border: 1px solid rgba(var(--accent-color-rgb, 56, 189, 248), 0.3);
     color: var(--text-primary);
     text-align: left;
+    /* ZMIANA: Ograniczenie szerokości dla spójności */
+    max-width: var(--content-limiter-width);
+    margin-left: auto;
+    margin-right: auto;
 }
 .weather-overview p { margin: 0; line-height: 1.6; }
 
@@ -241,6 +241,10 @@ body.light-mode .moon-icon { display: none; }
     display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem;
     margin: 1rem 0; border-radius: 12px; background-color: var(--alert-background);
     border: 1px solid var(--alert-border-color); color: var(--alert-text-color);
+    /* ZMIANA: Ograniczenie szerokości dla spójności */
+    max-width: var(--content-limiter-width);
+    margin-left: auto;
+    margin-right: auto;
 }
 .alert-header { display: flex; align-items: center; gap: 0.75rem; font-size: 1.1rem; font-weight: bold; }
 .alert-header svg { width: 24px; height: 24px; }
@@ -252,12 +256,15 @@ body.light-mode .moon-icon { display: none; }
 
 .details-tiles-container {
     display: grid;
-    /* ZMIANA: Formuła na 2 kolumny, które wypełniają kontener */
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1rem;
+    gap: var(--tile-gap); /* ZMIANA: Spójny odstęp */
     padding-top: 1rem;
     border-top: 1px solid var(--glass-border-color);
     margin-top: 1rem;
+    /* ZMIANA: Ograniczenie szerokości dla spójności */
+    max-width: var(--content-limiter-width);
+    margin-left: auto;
+    margin-right: auto;
 }
 .detail-tile { padding: 1rem; margin-bottom: 0; background: var(--inner-glass-background); }
 .tile-header {
@@ -282,46 +289,40 @@ body.light-mode .moon-icon { display: none; }
 .hourly-range-switcher button { flex: 1; background: none; border: none; color: var(--text-secondary); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 500; transition: background-color 0.2s, color 0.2s; white-space: nowrap; }
 .hourly-range-switcher button.active { background: var(--accent-color); color: white; }
 
-/* ZMIANA: Użycie Flexbox do layoutu slidera */
 .slider-container {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 5px; /* Mały odstęp między przyciskami a sliderem */
+    gap: 5px; 
 }
 
 .slider-nav {
     background: var(--inner-glass-background); border: 1px solid var(--glass-border-color);
     color: var(--text-primary); border-radius: 50%; width: 44px; height: 44px;
     cursor: pointer; font-size: 1.5rem; z-index: 10;
-    /* ZMIANA: Usunięcie absolute */
     position: static; 
     transform: none;
     opacity: 0.7; transition: opacity var(--transition-speed), background-color var(--transition-speed);
-    flex-shrink: 0; /* ZMIANA: Przyciski się nie kurczą */
-    display: flex; /* ZMIANA: Do centrowania strzałki */
+    flex-shrink: 0; 
+    display: flex; 
     align-items: center;
     justify-content: center;
 }
 .slider-nav:hover { opacity: 1; background-color: var(--glass-background); }
-/* ZMIANA: Usunięcie left/right */
-/* .slider-nav.prev { left: 5px; } */
-/* .slider-nav.next { right: 5px; } */
 
 .slider-scroll-wrapper {
-    /* ZMIANA: Slider wypełnia dostępną przestrzeń */
     flex-grow: 1;
     max-width: 100%; 
     margin: 0; 
     display: flex;
     gap: var(--tile-gap);
-    overflow-x: hidden; /* ZMIANA: Ukryte na desktopie, JS będzie scrollował */
+    overflow-x: hidden; 
     scroll-behavior: smooth;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none; 
 }
 .slider-scroll-wrapper::-webkit-scrollbar {
-    display: none; /* Safari and Chrome */
+    display: none; 
 }
 
 
@@ -355,8 +356,9 @@ body.light-mode .moon-icon { display: none; }
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: var(--tile-gap);
-    /* ZMIANA: Usunięcie max-width, polegamy na .glass-card */
     margin: 0 auto;
+    /* ZMIANA: Ograniczenie szerokości dla spójności */
+    max-width: var(--content-limiter-width);
 }
 .daily-forecast-item {
     display: flex; flex-direction: column; align-items: center;
@@ -377,8 +379,9 @@ body.light-mode .moon-icon { display: none; }
     min-height: 150px; 
     height: 150px; 
     position: relative; 
-    /* ZMIANA: Usunięcie max-width, polegamy na .glass-card */
     margin: 0 auto;
+    /* ZMIANA: Ograniczenie szerokości dla spójności */
+    max-width: var(--content-limiter-width);
 }
 .no-data {
     text-align: center;
@@ -411,7 +414,6 @@ body.light-mode .moon-icon { display: none; }
 }
 .modal-close-btn:hover { color: var(--text-primary); }
 .modal-body { display: grid; grid-template-columns: 1fr; gap: 1rem; }
-/* ZMIANA: Poprawka dla modala */
 .modal-body .detail-row {
     justify-content: space-between;
     padding: 0.5rem 0;
@@ -429,26 +431,24 @@ body.light-mode .moon-icon { display: none; }
 
 .forecast-switcher-mobile { display: none; }
 
-/* --- ZMIANA: Poprawiona i rozbudowana logika mobilna --- */
 @media (max-width: 768px) {
     body { padding: 0.5rem; }
     .glass-card { padding: 1rem; }
     .search-section { flex-direction: column; }
     .search-section input, .search-section button { width: 100%; box-sizing: border-box; }
     
-    .header-bar { padding: 0 0.5rem; } /* Mniejszy padding na mobile */
+    .header-bar { padding: 0 0.5rem; } 
     .header-bar h1 { font-size: 1.5rem; }
     .current-weather__main { flex-direction: column; gap: 1rem; text-align: center; }
     .current-weather__details { align-items: center; }
     .current-weather__temp { font-size: 3rem; }
     .current-weather__icon { width: 80px; height: 80px; }
 
-    /* ZMIANA: Ukrywamy przyciski slidera i włączamy natywne przewijanie */
     .slider-nav { display: none; }
     .slider-scroll-wrapper { 
         overflow-x: auto; 
         padding-bottom: 0.5rem; 
-        max-width: 100%; /* ZMIANA: Na mobilkach slider zajmuje całą szerokość */
+        max-width: 100%; 
     }
     
     .hourly-forecast-item {
@@ -456,11 +456,10 @@ body.light-mode .moon-icon { display: none; }
         min-width: 90px;
     }
 
-    /* ZMIANA: Poprawka dla siatki dziennej na mobile */
     .daily-forecast-grid { 
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
         gap: 0.5rem;
-        max-width: 100%; /* ZMIANA: Pełna szerokość na mobile */
+        max-width: 100%; 
     }
     .daily-forecast-item {
         padding: 0.5rem;
@@ -468,14 +467,13 @@ body.light-mode .moon-icon { display: none; }
     }
     
     #minutely-chart-container {
-        max-width: 100%; /* ZMIANA: Pełna szerokość na mobile */
+        max-width: 100%; 
     }
 
     .details-tiles-container {
         grid-template-columns: 1fr;
     }
 
-    /* ZMIANA: Przełącznik zakładek mobilnych */
     .forecast-switcher-mobile {
         display: flex; justify-content: space-around; background-color: var(--glass-background);
         padding: 0.5rem; border-radius: 12px; margin-bottom: 1rem;
@@ -490,17 +488,13 @@ body.light-mode .moon-icon { display: none; }
         background: var(--accent-color); color: white; font-weight: bold;
     }
 
-    /* ZMIANA: Logika pokazywania sekcji na mobile */
     .forecast-section { display: none; }
     .forecast-section.active { display: block; }
     
-    /* Na desktopie wszystkie sekcje są widoczne */
     @media (min-width: 769px) {
         .forecast-switcher-mobile { display: none; }
         .forecast-section { display: block !important; }
-        /* ZMIANA: Przywracamy przyciski slidera na desktopie */
         .slider-nav { display: flex; } 
-        /* Wyłączamy scroll na desktopie, bo mamy przyciski */
         .slider-scroll-wrapper { overflow-x: hidden; } 
     }
 }
