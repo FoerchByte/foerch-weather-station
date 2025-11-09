@@ -70,21 +70,31 @@ function translateOverview(apiDescription, t) {
     return apiDescription.charAt(0).toUpperCase() + apiDescription.slice(1);
 }
 
+// POPRAWKA: Funkcja odporna na wielkość liter (Warning vs warning)
 function translateAlertEvent(eventName, t) {
-    // ZMIANA: Pobieranie tłumaczenia z obiektu 't.alertEvents'
-    if (t.alertEvents && t.alertEvents[eventName]) {
-        return t.alertEvents[eventName];
-    }
-    // Fallback: próba dopasowania częściowego
-    if (t.alertEvents) {
-        // Sprawdzamy, czy któraś ze znanych fraz (np. "Thunderstorm warning") występuje w nazwie zdarzenia
-        for (const key in t.alertEvents) {
-             // Szukamy tylko kluczy, które są "bazowymi" ostrzeżeniami (bez kolorów), aby uniknąć fałszywych dopasowań
-             if (!key.includes('Yellow') && !key.includes('Orange') && !key.includes('Red') && eventName.includes(key)) {
-                 return t.alertEvents[key];
-             }
+    if (!eventName || !t.alertEvents) return eventName || '';
+
+    // 1. Próba dokładnego dopasowania (najszybsza)
+    if (t.alertEvents[eventName]) return t.alertEvents[eventName];
+
+    // 2. Próba dopasowania bez względu na wielkość liter (wolniejsza, ale bezpieczniejsza)
+    const lowerEventName = eventName.toLowerCase();
+    for (const key in t.alertEvents) {
+        if (key.toLowerCase() === lowerEventName) {
+            return t.alertEvents[key];
         }
     }
+
+    // 3. Fallback: częściowe dopasowanie dla nieznanych kombinacji kolorów
+    for (const key in t.alertEvents) {
+         // Ignorujemy klucze z konkretnymi kolorami, szukamy tylko bazowych (np. "Thunderstorm warning")
+         if (!key.includes('Yellow') && !key.includes('Orange') && !key.includes('Red')) {
+             if (lowerEventName.includes(key.toLowerCase())) {
+                 return t.alertEvents[key];
+             }
+         }
+    }
+
     return eventName;
 }
 
