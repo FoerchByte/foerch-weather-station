@@ -1,405 +1,433 @@
 /**
  * --- PL ---
- * Główny plik aplikacji v2.0 (Orkiestrator).
- * Łączy wszystkie moduły i zarządza stanem oraz logiką.
- * Wersja zaktualizowana o logikę mapy Leaflet, pełne przetwarzanie danych i i18n.
+ * Moduł UI (Interfejsu Użytkownika) dla wersji 2.0.
+ * Odpowiada za wszelkie manipulacje w drzewie DOM - renderowanie danych,
+ * aktualizowanie widoków, pokazywanie/ukrywanie elementów, zarządzanie klasami CSS.
+ * Operuje na istniejącej strukturze HTML zdefiniowanej w index.html.
+ * Wersja zaktualizowana o pełne renderowanie danych, obsługę modala i i18n.
  * --- EN ---
- * Main application file v2.0 (Orchestrator).
- * Connects all modules and manages state and logic.
- * Updated version with Leaflet map logic, full data processing, and i18n.
+ * UI (User Interface) Module for version 2.0.
+ * Responsible for all DOM manipulations - rendering data, updating views,
+ * showing/hiding elements, managing CSS classes.
+ * Operates on the existing HTML structure defined in index.html.
+ * Updated version with full data rendering, modal handling, and i18n.
  */
 
-// --- Import modułów / Module Imports ---
-import { translations } from './translations.js';
-import * as api from './api.js';
-import * as ui from './ui.js';
+// --- Referencje do elementów DOM / DOM Element References ---
+const dom = {};
+let activeModalTrigger = null; 
+let minutelyChart = null;
 
-// --- Stan Aplikacji / Application State ---
-let state = {
-    currentWeather: null,
-    currentLocation: null,
-    favorites: [],
-    // ZMIANA: Odczyt języka z localStorage (domyślnie 'pl')
-    currentLang: localStorage.getItem('lang') || 'pl',
-    currentHourlyRange: 24,
-    
-    map: null,
-    marker: null,
-    precipitationLayer: null,
-    lightTileLayer: null,
-    darkTileLayer: null,
-};
-
-// --- Logika Motywu / Theme Logic ---
-function setTheme(theme) {
-    document.body.classList.toggle('dark-mode', theme === 'dark');
-    document.body.classList.toggle('light-mode', theme === 'light');
-    localStorage.setItem('theme', theme);
-    if (state.map) updateMapTileLayer();
+/**
+ * --- PL --- Inicjalizuje moduł UI, pobierając referencje do kluczowych elementów.
+ * --- EN --- Initializes the UI module by caching key element references.
+ */
+export function initUI() {
+    dom.weatherResultContainer = document.getElementById('weather-result-container');
+    dom.favoritesContainer = document.getElementById('favorites-container');
+    dom.cityName = document.getElementById('city-name');
+    dom.addFavoriteBtn = document.getElementById('add-favorite-btn');
+    dom.currentTemp = document.getElementById('current-temp');
+    dom.weatherDescription = document.getElementById('weather-description');
+    dom.weatherIcon = document.getElementById('current-weather-icon');
+    dom.weatherOverview = document.getElementById('weather-overview');
+    dom.weatherAlertsContainer = document.getElementById('weather-alerts-container');
+    dom.hourly = {
+        scrollWrapper: document.getElementById('hourly-forecast-content'),
+    };
+    dom.daily = {
+        grid: document.getElementById('daily-forecast-content'),
+    };
+    dom.minutely = {
+        container: document.getElementById('minutely-chart-container'),
+    };
+    dom.modal = {
+        overlay: document.getElementById('details-modal'),
+        title: document.getElementById('modal-title'),
+        body: document.getElementById('modal-body'),
+        closeBtn: document.getElementById('modal-close-btn'),
+    };
 }
 
-function toggleTheme() {
-    const isDarkMode = document.body.classList.contains('dark-mode');
-    setTheme(isDarkMode ? 'light' : 'dark');
+// --- Funkcje Pomocnicze / Helper Functions ---
+
+function convertMsToKmh(ms) { return Math.round(ms * 3.6); }
+
+function getWeatherIconHtml(iconCode, description) {
+    const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
+    const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg', };
+    const iconName = iconMap[iconCode] || 'not-available.svg';
+    return `<img src="${iconBaseUrl}${iconName}" alt="${description}" class="weather-icon-img" style="width: 100%; height: 100%;">`;
 }
 
-// --- NOWOŚĆ: Logika Zmiany Języka / Language Switch Logic ---
-async function switchLanguage(lang) {
-    if (state.currentLang === lang) return;
-    
-    state.currentLang = lang;
-    localStorage.setItem('lang', lang);
-    
-    // Aktualizacja wizualna przełącznika
-    document.querySelectorAll('.lang-switcher button').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.lang === lang);
-    });
+function translateOverview(apiDescription, t) {
+    if (!apiDescription) return '';
+    const translationEntry = t.overview[apiDescription.toLowerCase()];
+    if (translationEntry && translationEntry.genitive) {
+        let sentence = `${t.overview.expect} ${translationEntry.genitive} ${t.overview['throughout the day']}.`;
+        return sentence.charAt(0).toUpperCase() + sentence.slice(1);
+    }
+    return apiDescription.charAt(0).toUpperCase() + apiDescription.slice(1);
+}
 
-    // Natychmiastowa aktualizacja tekstów statycznych
-    ui.updateStaticElements(translations[lang]);
+function translateAlertEvent(eventName, t) {
+    // ZMIANA: Pobieranie tłumaczenia z obiektu 't.alertEvents'
+    if (t.alertEvents && t.alertEvents[eventName]) {
+        return t.alertEvents[eventName];
+    }
+    // Fallback: próba dopasowania częściowego
+    if (t.alertEvents) {
+        // Sprawdzamy, czy któraś ze znanych fraz (np. "Thunderstorm warning") występuje w nazwie zdarzenia
+        for (const key in t.alertEvents) {
+             // Szukamy tylko kluczy, które są "bazowymi" ostrzeżeniami (bez kolorów), aby uniknąć fałszywych dopasowań
+             if (!key.includes('Yellow') && !key.includes('Orange') && !key.includes('Red') && eventName.includes(key)) {
+                 return t.alertEvents[key];
+             }
+        }
+    }
+    return eventName;
+}
 
-    // Jeśli mamy załadowane miasto, odświeżamy dane z API w nowym języku
-    if (state.currentLocation) {
-        // Używamy współrzędnych dla precyzji
-        await handleSearch({ latitude: state.currentLocation.lat, longitude: state.currentLocation.lon });
+function convertWindDirection(deg) {
+    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    return directions[Math.round(deg / 45) % 8];
+}
+
+// --- Zarządzanie Stanem UI / UI State Management ---
+
+export function toggleButtonLoading(button, isLoading) {
+    if (!button) return;
+    const span = button.querySelector('span');
+    if (isLoading) {
+        if(span) span.style.display = 'none';
+        if (!button.querySelector('.loader-in-button')) {
+             button.insertAdjacentHTML('beforeend', '<div class="loader-in-button"></div>');
+        }
+        button.disabled = true;
     } else {
-        // Jeśli nie ma danych, odświeżamy tylko pusty stan ulubionych i listę (jeśli są)
-        ui.showInitialState(translations[lang]);
-        loadFavorites(); 
+        if(span) span.style.display = 'inline';
+        const loader = button.querySelector('.loader-in-button');
+        if (loader) loader.remove();
+        button.disabled = false;
     }
 }
 
-// --- Inicjalizacja Aplikacji / Application Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-    setTheme(localStorage.getItem('theme') || 'dark');
-    ui.initUI();
-    initMap();
-    
-    // ZMIANA: Inicjalizacja języka na starcie
-    const initialLang = state.currentLang;
-    ui.updateStaticElements(translations[initialLang]);
-    
-    // Ustawienie aktywnego przycisku języka
-    const langBtns = document.querySelectorAll('.lang-switcher button');
-    langBtns.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.lang === initialLang);
-    });
-
-    loadFavorites();
-    bindEvents();
-    
-    const lastCity = localStorage.getItem('lastCity');
-    if (lastCity) {
-        document.getElementById('city-input').value = lastCity;
-        handleSearch(lastCity);
-    } else if (state.favorites.length > 0) {
-        handleSearch(state.favorites[0].name);
-    } else {
-        ui.showInitialState(translations[state.currentLang]);
-    }
-});
-
-// --- Powiązanie Eventów ---
-function bindEvents() {
-    const domElements = {
-        searchBtn: document.getElementById('search-weather-btn'),
-        cityInput: document.getElementById('city-input'),
-        geoBtn: document.getElementById('geolocation-btn'),
-        themeToggle: document.getElementById('theme-toggle'),
-        favoritesContainer: document.getElementById('favorites-container'),
-        addFavoriteBtn: document.getElementById('add-favorite-btn'),
-        hourlyRangeSwitcher: document.querySelector('.hourly-range-switcher'),
-        hourlySliderPrev: document.querySelector('#hourly-forecast-wrapper .slider-nav.prev'),
-        hourlySliderNext: document.querySelector('#hourly-forecast-wrapper .slider-nav.next'),
-        hourlyScrollWrapper: document.getElementById('hourly-forecast-content'),
-        dailyScrollWrapper: document.getElementById('daily-forecast-content'),
-        forecastSwitcherMobile: document.querySelector('.forecast-switcher-mobile'),
-        modalOverlay: document.getElementById('details-modal'),
-        modalCloseBtn: document.getElementById('modal-close-btn'),
-        // ZMIANA: Dodajemy referencję do switchera języka
-        langSwitcher: document.querySelector('.lang-switcher'),
-    };
-
-    const addSafeListener = (element, event, handler) => {
-        if (element) element.addEventListener(event, handler);
-    };
-
-    addSafeListener(domElements.searchBtn, 'click', () => handleSearch(domElements.cityInput.value.trim()));
-    addSafeListener(domElements.cityInput, 'keyup', e => { if (e.key === 'Enter') handleSearch(domElements.cityInput.value.trim()); });
-    addSafeListener(domElements.geoBtn, 'click', handleGeolocation);
-    addSafeListener(domElements.themeToggle, 'click', toggleTheme);
-    addSafeListener(domElements.favoritesContainer, 'click', handleFavoriteClick);
-    addSafeListener(domElements.addFavoriteBtn, 'click', toggleFavorite);
-    addSafeListener(domElements.hourlyRangeSwitcher, 'click', handleHourlyRangeSwitch);
-    
-    addSafeListener(domElements.hourlySliderPrev, 'click', () => handleSliderScroll(domElements.hourlyScrollWrapper, -1, 7));
-    addSafeListener(domElements.hourlySliderNext, 'click', () => handleSliderScroll(domElements.hourlyScrollWrapper, 1, 7));
-    // Uwaga: w HTML v2.0 nie ma dailySliderPrev/Next, jeśli ich nie używasz, możesz usunąć te linie
-    // addSafeListener(domElements.dailySliderPrev, 'click', () => handleSliderScroll(domElements.dailyScrollWrapper, -1));
-    // addSafeListener(domElements.dailySliderNext, 'click', () => handleSliderScroll(domElements.dailyScrollWrapper, 1));
-    
-    addSafeListener(domElements.forecastSwitcherMobile, 'click', handleMobileForecastSwitch);
-    addSafeListener(domElements.hourlyScrollWrapper, 'click', (e) => handleForecastItemClick(e, 'hourly'));
-    addSafeListener(domElements.dailyScrollWrapper, 'click', (e) => handleForecastItemClick(e, 'daily'));
-    
-    addSafeListener(domElements.modalCloseBtn, 'click', ui.hideDetailsModal);
-    addSafeListener(domElements.modalOverlay, 'click', (e) => {
-        if (e.target === domElements.modalOverlay) ui.hideDetailsModal();
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !domElements.modalOverlay.hidden) {
-            ui.hideDetailsModal();
+export function updateStaticElements(t) {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t.uiElements[key]) {
+            el.textContent = t.uiElements[key];
         }
     });
 
-    // ZMIANA: Obsługa kliknięcia w przełącznik języka
-    addSafeListener(domElements.langSwitcher, 'click', (e) => {
-        const btn = e.target.closest('button');
-        if (btn && btn.dataset.lang) {
-            switchLanguage(btn.dataset.lang);
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (t.uiElements[key]) {
+            el.placeholder = t.uiElements[key];
         }
     });
+
+    document.documentElement.lang = t.uiElements.appTitle === 'Stacja Pogody' ? 'pl' : 'en';
 }
 
-// --- Główna Logika ---
-async function handleSearch(query) {
-    if (!query) return;
+export function showInitialState(t) {
+    dom.favoritesContainer.innerHTML = `<p class="favorites-empty-state">${t.uiElements.favoritesEmpty}</p>`;
+    hideContent();
+}
 
-    const buttonToLoad = (typeof query === 'object' && query.latitude) 
-        ? document.getElementById('geolocation-btn') 
-        : document.getElementById('search-weather-btn');
-        
-    ui.toggleButtonLoading(buttonToLoad, true);
-    ui.showLoadingState();
+export function showLoadingState() { hideContent(); }
 
-    try {
-        // ZMIANA: Przekazujemy aktualny język do API
-        const data = await api.getWeatherData(query, state.currentLang);
-        state.currentWeather = processWeatherData(data);
-        state.currentLocation = data.location;
-        if (typeof query === 'string') localStorage.setItem('lastCity', query);
-        
-        updateFullUI(query);
-        
-    } catch (error) {
-        ui.showError(error.message);
-    } finally {
-        ui.toggleButtonLoading(buttonToLoad, false);
+export function showError(message) { 
+    alert(message); 
+    hideContent(); 
+}
+
+function hideContent() { if (dom.weatherResultContainer) dom.weatherResultContainer.style.display = 'none'; }
+export function showContent() { if (dom.weatherResultContainer) dom.weatherResultContainer.style.display = 'block'; }
+
+// --- Renderowanie Komponentów / Component Rendering ---
+
+function renderDetailRow(containerId, icon, label, value, valueClass = '') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = `
+        <div class="label-container">${icon}<span class="label">${label}</span></div>
+        <span class="value ${valueClass}">${value}</span>`;
+}
+
+export function renderCurrentWeather(data, t) {
+    if(!dom.cityName) initUI();
+
+    dom.cityName.textContent = data.location.name;
+    dom.currentTemp.textContent = `${Math.round(data.current.temp)}°C`;
+    dom.weatherDescription.textContent = data.current.weather[0].description;
+    dom.weatherIcon.innerHTML = getWeatherIconHtml(data.current.weather[0].icon, data.current.weather[0].description);
+    
+    const translatedOverview = translateOverview(data.generatedOverview, t);
+    if (translatedOverview && dom.weatherOverview) {
+        dom.weatherOverview.innerHTML = `<p>${translatedOverview}</p>`;
+        dom.weatherOverview.style.display = 'block';
+    } else if (dom.weatherOverview) {
+        dom.weatherOverview.style.display = 'none';
     }
+
+    const icons = {
+        feelsLike: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h-2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M4 12h2.5"/><path d="M17.5 12H20"/></svg>`,
+        humidity: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
+        wind: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1-5 0"/><path d="M19.6 21H4.4a2 2 0 0 1-1.76-2.9L8.8 3.5a2 2 0 0 1 3.4 0l6.16 14.6a2 2 0 0 1-1.76 2.9z"/></svg>`,
+        pressure: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14-4-4h8l-4 4Z"/><path d="m12 20-4-4h8l-4 4Z"/><path d="M12 2v2"/><path d="M12 8v2"/><path d="m21 12-2 0"/><path d="m5 12-2 0"/><path d="m18.36 18.36-.7.7"/><path d="m6.34 6.34-.7-.7"/></svg>`,
+        aqi: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12v-2a4 4 0 0 0-4-4H4"/><path d="M12 16H8a4 4 0 0 1-4-4v-2"/><path d="M20 12h-2a4 4 0 0 0-4-4v-2"/><path d="M20 12v4a4 4 0 0 1-4 4h-2"/></svg>`,
+        uv: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12.5a4.5 4.5 0 1 1 4.5-4.5 4.5 4.5 0 0 1-4.5 4.5z"/><path d="M12 3V1"/><path d="M12 23v-2"/><path d="M20.66 18.34l-1.41-1.41"/><path d="M4.75 6.16 3.34 4.75"/><path d="M20.66 5.66l-1.41 1.41"/><path d="M4.75 17.84l-1.41 1.41"/><path d="M23 12h-2"/><path d="M3 12H1"/></svg>`,
+        sunrise: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/></svg>`,
+        sunset: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 18-4 4-4-4"/></svg>`,
+        road: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20v2H6.5a2.5 2.5 0 0 1 0-5H20V9H6.5a2.5 2.5 0 0 1 0-5H20V6H6.5a2.5 2.5 0 0 1-2.5 2.5V19.5z"/></svg>`,
+        moonrise: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 1 0 10 10 9 9 0 1 1-10-10z"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/></svg>`,
+        moonset: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 1 0 10 10 9 9 0 1 1-10-10z"/><path d="M22 22H2"/><path d="m16 18-4 4-4-4"/></svg>`,
+    };
+
+    renderDetailRow('detail-feels-like', icons.feelsLike, t.details.feelsLike, `${Math.round(data.current.feels_like)}°C`);
+    renderDetailRow('detail-wind', icons.wind, t.details.wind, `${convertMsToKmh(data.current.wind_speed)} km/h`);
+    renderDetailRow('detail-pressure', icons.pressure, t.details.pressure, `${data.current.pressure} hPa`);
+    renderDetailRow('detail-humidity', icons.humidity, t.details.humidity, `${data.current.humidity}%`);
+    renderDetailRow('detail-aqi', icons.aqi, t.details.aqi, t.values.aqi[data.air_quality.main.aqi - 1], `aqi-${data.air_quality.main.aqi}`);
+    renderDetailRow('detail-uv', icons.uv, t.details.uvIndex, t.values.uv[data.uvCategory], `uv-${data.uvCategory}`);
+    renderDetailRow('detail-road', icons.road, t.details.roadSurface, t.values.road[data.roadCondition.key], `road-${data.roadCondition.key}`);
+    renderDetailRow('detail-sunrise', icons.sunrise, t.details.sunrise, data.formattedTimes.sunrise);
+    renderDetailRow('detail-sunset', icons.sunset, t.details.sunset, data.formattedTimes.sunset);
+    renderDetailRow('detail-moonrise', icons.moonrise, t.details.moonrise, data.formattedTimes.moonrise);
+    renderDetailRow('detail-moonset', icons.moonset, t.details.moonset, data.formattedTimes.moonset);
 }
 
-function handleGeolocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => handleSearch({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-            () => ui.showError(translations[state.currentLang].errors.location)
-        );
+export function renderWeatherAlerts(data, t) {
+    if (data.alerts && data.alerts.length > 0) {
+        const alert = data.alerts[0];
+        const locale = t.uiElements.appTitle === 'Stacja Pogody' ? 'pl-PL' : 'en-US';
+        const startTime = new Date(alert.start * 1000).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+        const endTime = new Date(alert.end * 1000).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+        const translatedEventName = translateAlertEvent(alert.event, t);
+        
+        dom.weatherAlertsContainer.innerHTML = `
+            <div class="weather-alert">
+                <div class="alert-header">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <strong>${translatedEventName}</strong>
+                </div>
+                <div class="alert-details">
+                    <p>${t.alerts.issuedBy}: ${alert.sender_name}</p>
+                    <p>${t.alerts.effective} ${startTime} ${t.alerts.to} ${endTime}</p>
+                </div>
+            </div>`;
+        dom.weatherAlertsContainer.style.display = 'block';
     } else {
-        ui.showError(translations[state.currentLang].errors.default);
+        dom.weatherAlertsContainer.innerHTML = '';
+        dom.weatherAlertsContainer.style.display = 'none';
     }
 }
 
-function processWeatherData(data) {
-    // ... (bez zmian w logice przetwarzania, dane przychodzą już zlokalizowane z API)
-    return {
-        ...data,
-        generatedOverview: data.daily[0].weather[0].description,
-        roadCondition: (() => {
-            const mainWeather = data.current.weather[0].main;
-            if (data.current.temp > 2 && !['Rain', 'Snow', 'Drizzle'].includes(mainWeather)) {
-                return { key: 'dry', class: 'roadDry' };
+export function renderMinutelyForecast(minutelyData, t) {
+    const container = dom.minutely.container;
+    if (!container) return;
+
+    if (minutelyChart) {
+        minutelyChart.destroy();
+        minutelyChart = null;
+    }
+
+    const hasPrecipitation = minutelyData && minutelyData.some(minute => minute.precipitation > 0);
+    if (!hasPrecipitation) {
+        const noDataText = t.uiElements.headerPrecipitation === 'Opady w najbliższej godzinie' 
+            ? 'Brak opadów w ciągu najbliższej godziny.' 
+            : 'No precipitation within the next hour.';
+        container.innerHTML = `<div class="no-data">${noDataText}</div>`;
+        return;
+    }
+
+    if (!container.querySelector('#minutely-chart')) {
+        container.innerHTML = `<canvas id="minutely-chart"></canvas>`;
+    }
+    const ctx = container.querySelector('#minutely-chart').getContext('2d');
+    
+    const nowLabel = t.forecast.today === 'Dzisiaj' ? 'Teraz' : 'Now';
+    const labels = minutelyData.map((_, index) => (index % 10 === 0 && index > 0) ? `${index}m` : (index === 0 ? nowLabel : ''));
+    const data = minutelyData.map(minute => minute.precipitation);
+
+    minutelyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: t.forecast.precipChance,
+                data: data,
+                backgroundColor: 'rgba(56, 189, 248, 0.6)',
+                borderColor: 'rgba(56, 189, 248, 1)',
+                borderWidth: 1,
+                barPercentage: 1.0,
+                categoryPercentage: 1.0,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { display: false }, 
+                tooltip: { 
+                    enabled: true,
+                    callbacks: {
+                        label: (context) => `${context.parsed.y.toFixed(2)} mm/h`
+                    }
+                } 
+            },
+            scales: {
+                y: { display: false, beginAtZero: true },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: 'rgba(255, 255, 255, 0.7)', autoSkip: false }
+                }
             }
-            if (data.current.temp <= 2) {
-                return { key: 'icy', class: 'roadIcy' };
-            }
-            return { key: 'wet', class: 'roadWet' };
-        })(),
-        uvCategory: (() => {
-            const uvIndex = Math.round(data.current.uvi);
-            if (uvIndex >= 11) return 'extreme';
-            if (uvIndex >= 8) return 'very-high';
-            if (uvIndex >= 6) return 'high';
-            if (uvIndex >= 3) return 'moderate';
-            return 'low';
-        })(),
-        formattedTimes: {
-            // ZMIANA: Dodano 'pl-PL' jako fallback, ale lepiej użyć locale z tłumaczeń jeśli dostępne
-            sunrise: new Date(data.current.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            sunset: new Date(data.current.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            moonrise: new Date(data.daily[0].moonrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            moonset: new Date(data.daily[0].moonset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         }
-    };
+    });
 }
 
-function updateFullUI(query) {
-    // ZMIANA: Pobieramy aktualne tłumaczenia
-    const t = translations[state.currentLang];
+export function renderHourlyForecast(hourlyData, range, t) {
+    const forecastToShow = hourlyData.slice(0, range);
+    const locale = t.uiElements.appTitle === 'Stacja Pogody' ? 'pl-PL' : 'en-US';
     
-    ui.showContent();
+    const groupedByDay = forecastToShow.reduce((acc, item) => {
+        const dayKey = new Date(item.dt * 1000).toLocaleDateString(locale, { weekday: 'long' });
+        if (!acc[dayKey]) acc[dayKey] = [];
+        acc[dayKey].push(item);
+        return acc;
+    }, {});
     
-    // ZMIANA: Przekazujemy 't' do wszystkich funkcji renderujących
-    ui.renderCurrentWeather(state.currentWeather, t);
-    ui.renderWeatherAlerts(state.currentWeather, t);
-    ui.renderMinutelyForecast(state.currentWeather.minutely, t);
-    ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, t);
-    ui.renderDailyForecast(state.currentWeather.daily, t);
-    
-    loadFavorites(); 
-    updateFavoriteButtonState();
+    const todayKey = new Date().toLocaleDateString(locale, { weekday: 'long' });
+    const tomorrowKey = new Date(Date.now() + 864e5).toLocaleDateString(locale, { weekday: 'long' });
 
-    const isGeoSearch = typeof query === 'object' && query.latitude;
-    const zoomLevel = isGeoSearch ? 17 : 13;
-    
-    setTimeout(() => {
-        if (state.map) {
-            state.map.invalidateSize();
-            updateMap(state.currentLocation.lat, state.currentLocation.lon, state.currentLocation.name, zoomLevel);
-        }
-    }, 0);
-}
+    let finalHtml = '';
+    for (const [day, items] of Object.entries(groupedByDay)) {
+        let dayLabel = day;
+        if (day === todayKey) dayLabel = t.forecast.today;
+        if (day === tomorrowKey) dayLabel = t.forecast.tomorrow;
 
-// --- Handlery Zdarzeń UI ---
-function handleHourlyRangeSwitch(event) {
-    const btn = event.target.closest('button');
-    if (!btn || btn.classList.contains('active')) return;
-    
-    state.currentHourlyRange = parseInt(btn.dataset.range, 10);
-    document.querySelector('.hourly-range-switcher .active')?.classList.remove('active');
-    btn.classList.add('active');
-    
-    ui.renderHourlyForecast(state.currentWeather.hourly, state.currentHourlyRange, translations[state.currentLang]);
-}
-
-function handleSliderScroll(scrollWrapper, direction, itemsToScroll = 7) {
-    if (!scrollWrapper) return;
-    const firstItem = scrollWrapper.querySelector('.hourly-forecast-item, .daily-forecast-item');
-    if (!firstItem) return;
-    const computedStyle = getComputedStyle(scrollWrapper);
-    const gap = parseFloat(computedStyle.gap) || 12;
-    const itemWidth = firstItem.offsetWidth;
-    const scrollAmount = (itemWidth + gap) * itemsToScroll * direction;
-    scrollWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-}
-
-function handleMobileForecastSwitch(event) {
-    const btn = event.target.closest('button');
-    if (!btn || btn.classList.contains('active')) return;
-    const forecastType = btn.dataset.forecast;
-    document.querySelector('.forecast-switcher-mobile .active')?.classList.remove('active');
-    btn.classList.add('active');
-    document.querySelectorAll('.forecast-section').forEach(section => section.classList.remove('active'));
-    const newActiveSection = document.getElementById(forecastType);
-    if (newActiveSection) newActiveSection.classList.add('active');
-    if (forecastType === 'map-section' && state.map) {
-        setTimeout(() => state.map.invalidateSize(), 10);
+        const itemsHtml = items.map(item => `
+            <div class="hourly-forecast-item glass-card" data-timestamp="${item.dt}" role="button" tabindex="0">
+                <p class="time">${new Date(item.dt * 1000).getHours()}:00</p>
+                <div class="icon">${getWeatherIconHtml(item.weather[0].icon, item.weather[0].description)}</div>
+                <p class="temp">${Math.round(item.temp)}°C</p>
+            </div>`).join('');
+        
+        finalHtml += `
+            <div class="hourly-day-group">
+                <h5 class="hourly-day-group-header">${dayLabel}</h5>
+                <div class="items-wrapper">${itemsHtml}</div>
+            </div>`;
     }
-}
-
-function handleForecastItemClick(event, type) {
-    const itemEl = event.target.closest('.hourly-forecast-item, .daily-forecast-item');
-    if (!itemEl) return;
-    const timestamp = parseInt(itemEl.dataset.timestamp, 10);
-    const dataSet = (type === 'hourly') ? state.currentWeather.hourly : state.currentWeather.daily;
-    const data = dataSet.find(item => item.dt === timestamp);
-    if (data) {
-        ui.showDetailsModal(data, type, translations[state.currentLang]);
-    }
-}
-
-// --- Logika Ulubionych ---
-function loadFavorites() {
-    state.favorites = JSON.parse(localStorage.getItem('weatherFavorites')) || [];
-    ui.renderFavorites(state.favorites, state.currentLocation, translations[state.currentLang]);
-}
-
-function saveFavorites() {
-    localStorage.setItem('weatherFavorites', JSON.stringify(state.favorites));
-}
-
-function toggleFavorite() {
-    if (!state.currentLocation) return;
-    const locationId = `${state.currentLocation.lat},${state.currentLocation.lon}`;
-    const index = state.favorites.findIndex(fav => `${fav.lat},${fav.lon}` === locationId);
     
-    if (index > -1) {
-        state.favorites.splice(index, 1);
+    if(dom.hourly.scrollWrapper) dom.hourly.scrollWrapper.innerHTML = finalHtml;
+}
+
+export function renderDailyForecast(dailyData, t) {
+    const locale = t.uiElements.appTitle === 'Stacja Pogody' ? 'pl-PL' : 'en-US';
+    const itemsHtml = dailyData.slice(1, 8).map(day => `
+        <div class="daily-forecast-item glass-card" data-timestamp="${day.dt}" role="button" tabindex="0">
+            <p class="day">${new Date(day.dt * 1000).toLocaleDateString(locale, { weekday: 'short' })}</p>
+            <div class="icon">${getWeatherIconHtml(day.weather[0].icon, day.weather[0].description)}</div>
+            <p class="temp">${Math.round(day.temp.max)}° / ${Math.round(day.temp.min)}°</p>
+        </div>
+    `).join('');
+    if(dom.daily.grid) dom.daily.grid.innerHTML = itemsHtml;
+}
+
+export function renderFavorites(favorites, currentLocation, t) {
+    const container = dom.favoritesContainer;
+    if (!container) return;
+
+    if (favorites.length > 0) {
+        container.innerHTML = favorites.map(fav => {
+            const clat = currentLocation ? parseFloat(currentLocation.lat) : NaN;
+            const clon = currentLocation ? parseFloat(currentLocation.lon) : NaN;
+            const flat = parseFloat(fav.lat);
+            const flon = parseFloat(fav.lon);
+            const isActive = !isNaN(clat) && !isNaN(clon) && !isNaN(flat) && !isNaN(flon) &&
+                             flat.toFixed(4) === clat.toFixed(4) &&
+                             flon.toFixed(4) === clon.toFixed(4);
+            return `<button class="favorite-location-btn ${isActive ? 'active' : ''}" data-city="${fav.name}">${fav.name}</button>`;
+        }).join('');
     } else {
-        if (state.favorites.length >= 5) {
-            console.warn("Max favorites reached."); // Można dodać alert w przyszłości
-            return;
-        }
-        state.favorites.push(state.currentLocation);
+        container.innerHTML = `<p class="favorites-empty-state">${t.uiElements.favoritesEmpty}</p>`;
+    }
+}
+
+export function updateFavoriteButtonState(isFavorite, favoritesCount) {
+    if (dom.addFavoriteBtn) {
+        dom.addFavoriteBtn.classList.toggle('is-favorite', isFavorite);
+        dom.addFavoriteBtn.setAttribute('aria-label', isFavorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych');
+        dom.addFavoriteBtn.disabled = !isFavorite && favoritesCount >= 5;
+    }
+}
+
+// --- Logika Okna Modalnego / Modal Logic ---
+
+function buildHourlyModalBody(data, t) {
+    return `
+        <div class="detail-row"><span class="label-container">${t.details.feelsLike}</span><span class="value">${Math.round(data.feels_like)}°C</span></div>
+        <div class="detail-row"><span class="label-container">${t.details.humidity}</span><span class="value">${data.humidity}%</span></div>
+        <div class="detail-row"><span class="label-container">${t.details.pressure}</span><span class="value">${data.pressure} hPa</span></div>
+        <div class="detail-row"><span class="label-container">${t.details.clouds}</span><span class="value">${data.clouds}%</span></div>
+        <div class="detail-row"><span class="label-container">${t.details.wind}</span><span class="value">${convertMsToKmh(data.wind_speed)} km/h, ${convertWindDirection(data.wind_deg)}</span></div>
+        <div class="detail-row"><span class="label-container">${t.details.windGust}</span><span class="value">${convertMsToKmh(data.wind_gust || 0)} km/h</span></div>
+        <div class="detail-row"><span class="label-container">${t.details.uvIndex}</span><span class="value">${Math.round(data.uvi)}</span></div>
+        <div class="detail-row"><span class="label-container">${t.details.visibility}</span><span class="value">${data.visibility / 1000} km</span></div>
+    `;
+}
+
+function buildDailyModalBody(data, t) {
+    const locale = t.uiElements.appTitle === 'Stacja Pogody' ? 'pl-PL' : 'en-US';
+    const sunrise = new Date(data.sunrise * 1000).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+    const sunset = new Date(data.sunset * 1000).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+    const translatedSummary = data.weather[0].description.charAt(0).toUpperCase() + data.weather[0].description.slice(1);
+    
+    return `
+        <div class="detail-row"><span class="label-container">${t.details.description}</span><span class="value">${translatedSummary}</span></div>
+        <div class="detail-row"><span class="label-container">${t.forecast.precipChance}</span><span class="value">${Math.round(data.pop * 100)}%</span></div>
+        <div class="detail-row detail-row--temp-grid"><span class="label-container">${t.forecast.temp}</span><div class="value modal-detail-value--temp-grid">
+            <span>${t.forecast.morn}:</span><span>${Math.round(data.temp.morn)}°C</span>
+            <span>${t.forecast.day}:</span><span>${Math.round(data.temp.day)}°C</span>
+            <span>${t.forecast.eve}:</span><span>${Math.round(data.temp.eve)}°C</span>
+            <span>${t.forecast.night}:</span><span>${Math.round(data.temp.night)}°C</span>
+        </div></div>
+        <div class="detail-row"><span class="label-container">${t.details.wind}</span><span class="value">${convertMsToKmh(data.wind_speed)} km/h, ${convertWindDirection(data.wind_deg)}</span></div>
+        <div class="detail-row"><span class="label-container">${t.details.sunrise} / ${t.details.sunset}</span><span class="value">${sunrise} / ${sunset}</span></div>
+        <div class="detail-row"><span class="label-container">${t.details.uvIndex}</span><span class="value">${Math.round(data.uvi)}</span></div>
+    `;
+}
+
+export function showDetailsModal(data, type, t) {
+    const date = new Date(data.dt * 1000);
+    const locale = t.uiElements.appTitle === 'Stacja Pogody' ? 'pl-PL' : 'en-US';
+    let title = '', bodyHtml = '';
+    
+    if (type === 'hourly') {
+        const prefix = t.uiElements.appTitle === 'Stacja Pogody' ? 'Prognoza na' : 'Forecast for';
+        title = `${prefix} ${date.toLocaleDateString(locale, { weekday: 'long' })}, ${date.getHours()}:00`;
+        bodyHtml = buildHourlyModalBody(data, t);
+    } else if (type === 'daily') {
+        const prefix = t.uiElements.appTitle === 'Stacja Pogody' ? 'Prognoza na' : 'Forecast for';
+        title = `${prefix} ${date.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}`;
+        bodyHtml = buildDailyModalBody(data, t);
     }
     
-    saveFavorites();
-    loadFavorites(); 
-    updateFavoriteButtonState();
+    dom.modal.title.textContent = title;
+    dom.modal.body.innerHTML = bodyHtml;
+    
+    activeModalTrigger = document.activeElement;
+    dom.modal.overlay.hidden = false;
+    setTimeout(() => { dom.modal.closeBtn.focus(); }, 10);
 }
 
-function handleFavoriteClick(event) {
-    const btn = event.target.closest('.favorite-location-btn');
-    if (!btn) return;
-    const cityName = btn.dataset.city;
-    if (cityName) {
-        document.getElementById('city-input').value = cityName;
-        handleSearch(cityName);
-    }
-}
-
-function updateFavoriteButtonState() {
-    if (!state.currentLocation) return;
-    const locationId = `${state.currentLocation.lat},${state.currentLocation.lon}`;
-    const isFav = state.favorites.some(fav => `${fav.lat},${fav.lon}` === locationId);
-    ui.updateFavoriteButtonState(isFav, state.favorites.length);
-}
-
-// --- Logika Mapy ---
-function initMap() {
-    if (state.map) return;
-    try {
-        state.map = L.map('map', { zoomControl: false }).setView([51.75, 19.45], 10);
-        state.map.createPane('precipitationPane');
-        state.map.getPane('precipitationPane').style.zIndex = 650;
-        
-        state.lightTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
-        state.darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO' });
-        
-        updateMapTileLayer();
-        
-        const proxyUrl = `/.netlify/functions/map-tiles/{z}/{x}/{y}`;
-        state.precipitationLayer = L.tileLayer(proxyUrl, {
-            attribution: '&copy; OpenWeatherMap',
-            pane: 'precipitationPane',
-            opacity: 0.7
-        });
-        state.map.addLayer(state.precipitationLayer);
-
-    } catch (error) {
-        console.error("Map init error:", error);
-        document.getElementById('map').innerHTML = "Map could not be loaded.";
-    }
-}
-
-function updateMapTileLayer() {
-    if (!state.map) return;
-    const isDarkMode = document.body.classList.contains('dark-mode');
-    const targetLayer = isDarkMode ? state.darkTileLayer : state.lightTileLayer;
-    const otherLayer = isDarkMode ? state.lightTileLayer : state.darkTileLayer;
-
-    if (state.map.hasLayer(otherLayer)) state.map.removeLayer(otherLayer);
-    if (!state.map.hasLayer(targetLayer)) {
-        state.map.addLayer(targetLayer);
-        targetLayer.setZIndex(1); 
-    }
-}
-
-function updateMap(lat, lon, cityName, zoomLevel = 13) {
-    if (state.map) {
-        state.map.flyTo([lat, lon], zoomLevel);
-        if (state.marker) state.map.removeLayer(state.marker);
-        state.marker = L.marker([lat, lon]).addTo(state.map);
-        if (cityName) state.marker.bindPopup(cityName).openPopup();
+export function hideDetailsModal() {
+    dom.modal.overlay.hidden = true;
+    if (activeModalTrigger) {
+        activeModalTrigger.focus();
+        activeModalTrigger = null;
     }
 }
