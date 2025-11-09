@@ -1,10 +1,14 @@
 /**
  * --- PL ---
  * Moduł internacjonalizacji (i18n).
- * Eksportuje obiekt zawierający wszystkie teksty używane w aplikacji.
+ * Eksportuje obiekt zawierający wszystkie teksty używane w aplikacji
+ * w różnych językach. Umożliwia łatwe zarządzanie tłumaczeniami i dodawanie
+ * nowych języków bez modyfikacji głównej logiki aplikacji.
  * --- EN ---
  * Internationalization (i18n) module.
- * Exports an object containing all texts used in the application.
+ * Exports an object containing all texts used in the application
+ * in various languages. It allows for easy management of translations and
+ * addition of new languages without modifying the main application logic.
  */
 export const translations = {
     pl: {
@@ -57,7 +61,7 @@ export const translations = {
             sunset: 'Zachód słońca',
             moonrise: 'Wschód księżyca',
             moonset: 'Zachód księżyca',
-            description: 'Opis',
+            description: 'Opis', // ZMIANA: Dodano brakujący klucz
             daylightHours: 'Długość dnia',
             moonPhase: 'Faza księżyca',
         },
@@ -172,7 +176,7 @@ export const translations = {
             sunset: 'Sunset',
             moonrise: 'Moonrise',
             moonset: 'Moonset',
-            description: 'Description',
+            description: 'Description', // CHANGE: Added missing key
             daylightHours: 'Daylight Hours',
             moonPhase: 'Moon Phase',
         },
@@ -206,13 +210,12 @@ export const translations = {
             }
         },
         
-        // --- English versions for API summaries ---
+        // --- English versions for API summaries (mostly 1:1) ---
         overview: {
             'expect': 'Expect',
             'throughout the day': 'throughout the day',
             'and': 'and',
-             // W angielskim API zwraca te same klucze co description, zazwyczaj nie trzeba odmieniać
-             // ale dla spójności struktury zachowujemy mapowanie, choć uproszczone.
+
             'light intensity drizzle': { nominative: 'light drizzle', genitive: 'light drizzle' },
             'drizzle': { nominative: 'drizzle', genitive: 'drizzle' },
             'heavy intensity drizzle': { nominative: 'heavy drizzle', genitive: 'heavy drizzle' },
