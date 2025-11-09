@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stacja Pogody v2.0</title>
+    <title data-i18n="appTitle">Stacja Pogody v2.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -19,24 +19,33 @@
     <div class="app-container">
         
         <header class="header-bar">
-            <h1>Stacja Pogody</h1>
-            <button id="theme-toggle" class="theme-toggle" aria-label="Zmień motyw">
-                <!-- Ikony zostaną dodane przez CSS lub pozostawione jako emoji -->
-                <span class="sun-icon">☀️</span>
-                <span class="moon-icon">🌙</span>
-            </button>
+            <h1 data-i18n="appTitle">Stacja Pogody</h1>
+            
+            <!-- ZMIANA: Grupowanie kontrolek (język + motyw) -->
+            <div class="header-controls">
+                 <div class="lang-switcher">
+                    <button data-lang="pl" class="active">PL</button>
+                    <button data-lang="en">EN</button>
+                </div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Zmień motyw">
+                    <!-- Ikony zostaną dodane przez CSS lub pozostawione jako emoji -->
+                    <span class="sun-icon">☀️</span>
+                    <span class="moon-icon">🌙</span>
+                </button>
+            </div>
         </header>
 
         <main class="weather-app-content">
 
             <section id="favorites-container" class="favorites-section glass-card">
-                <!-- Treść renderowana przez JS -->
+                <!-- Treść renderowana przez JS (teraz dynamicznie z tłumaczeń) -->
             </section>
 
             <section class="search-section glass-card">
-                <input type="text" id="city-input" placeholder="Wpisz nazwę miasta...">
-                <button id="search-weather-btn"><span>Szukaj</span></button>
-                <button id="geolocation-btn"><span>Użyj mojej lokalizacji</span></button>
+                <!-- ZMIANA: Dodanie data-i18n-placeholder i data-i18n do przycisków -->
+                <input type="text" id="city-input" placeholder="Wpisz nazwę miasta..." data-i18n-placeholder="searchPlaceholder">
+                <button id="search-weather-btn"><span data-i18n="searchButton">Szukaj</span></button>
+                <button id="geolocation-btn"><span data-i18n="geoButton">Użyj mojej lokalizacji</span></button>
             </section>
 
             <!-- Ten kontener jest pokazywany przez JS po załadowaniu danych -->
@@ -62,7 +71,7 @@
 
                     <div class="details-tiles-container">
                         <div class="detail-tile glass-card">
-                            <h4 class="tile-header">Warunki Atmosferyczne</h4>
+                            <h4 class="tile-header" data-i18n="sectionWeather">Warunki Atmosferyczne</h4>
                             <div class="tile-content">
                                 <div class="detail-row" id="detail-feels-like"></div>
                                 <div class="detail-row" id="detail-wind"></div>
@@ -71,7 +80,7 @@
                             </div>
                         </div>
                         <div class="detail-tile glass-card">
-                            <h4 class="tile-header">Wskaźniki i Bezpieczeństwo</h4>
+                            <h4 class="tile-header" data-i18n="sectionIndices">Wskaźniki i Bezpieczeństwo</h4>
                             <div class="tile-content">
                                 <div class="detail-row" id="detail-aqi"></div>
                                 <div class="detail-row" id="detail-uv"></div>
@@ -79,14 +88,14 @@
                             </div>
                         </div>
                         <div class="detail-tile glass-card">
-                            <h4 class="tile-header">Słońce</h4>
+                            <h4 class="tile-header" data-i18n="sectionSun">Słońce</h4>
                             <div class="tile-content">
                                 <div class="detail-row" id="detail-sunrise"></div>
                                 <div class="detail-row" id="detail-sunset"></div>
                             </div>
                         </div>
                         <div class="detail-tile glass-card">
-                            <h4 class="tile-header">Księżyc</h4>
+                            <h4 class="tile-header" data-i18n="sectionMoon">Księżyc</h4>
                             <div class="tile-content">
                                 <div class="detail-row" id="detail-moonrise"></div>
                                 <div class="detail-row" id="detail-moonset"></div>
@@ -96,17 +105,17 @@
                 </section>
                 
                 <section class="forecasts-container">
-                    <!-- ZMIANA: Dodanie zakładki "Mapa" -->
+                    <!-- ZMIANA: Dodanie zakładki "Mapa" i atrybutów i18n -->
                     <div class="forecast-switcher-mobile">
-                        <button data-forecast="minutely-forecast-wrapper" class="active">Opady</button>
-                        <button data-forecast="hourly-forecast-wrapper">Godzinowa</button>
-                        <button data-forecast="daily-forecast-wrapper">Dzienna</button>
-                        <button data-forecast="map-section">Mapa</button>
+                        <button data-forecast="minutely-forecast-wrapper" class="active" data-i18n="tabPrecipitation">Opady</button>
+                        <button data-forecast="hourly-forecast-wrapper" data-i18n="tabHourly">Godzinowa</button>
+                        <button data-forecast="daily-forecast-wrapper" data-i18n="tabDaily">Dzienna</button>
+                        <button data-forecast="map-section" data-i18n="tabMap">Mapa</button>
                     </div>
 
                     <div id="minutely-forecast-wrapper" class="forecast-section glass-card active">
                         <div class="forecast-header">
-                            <h3>Opady w najbliższej godzinie</h3>
+                            <h3 data-i18n="headerPrecipitation">Opady w najbliższej godzinie</h3>
                         </div>
                         <div id="minutely-chart-container" class="minutely-chart-container">
                             <!-- Canvas lub komunikat renderowany przez JS -->
@@ -115,7 +124,7 @@
                     
                     <div id="hourly-forecast-wrapper" class="forecast-section glass-card">
                         <div class="forecast-header">
-                            <h3>Prognoza godzinowa</h3>
+                            <h3 data-i18n="headerHourly">Prognoza godzinowa</h3>
                             <div class="hourly-range-switcher">
                                 <button data-range="24" class="active">24h</button>
                                 <button data-range="48">48h</button>
@@ -132,7 +141,7 @@
 
                     <div id="daily-forecast-wrapper" class="forecast-section glass-card">
                         <div class="forecast-header">
-                            <h3>Prognoza na następne dni</h3>
+                            <h3 data-i18n="headerDaily">Prognoza na następne dni</h3>
                         </div>
                         <div id="daily-forecast-content" class="daily-forecast-grid">
                              <!-- 7 kafelków renderowanych przez JS -->
@@ -142,7 +151,7 @@
                     <!-- NOWA SEKCJA MAPY -->
                     <section id="map-section" class="forecast-section glass-card">
                         <div class="forecast-header">
-                            <h3>Radar Opadów</h3>
+                            <h3 data-i18n="headerMap">Radar Opadów</h3>
                             <!-- W przyszłości można tu dodać przełącznik warstw -->
                         </div>
                         <div id="map" style="height: 400px; border-radius: 12px; z-index: 1; background-color: #334155;">

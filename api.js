@@ -16,16 +16,18 @@
  * Fetches weather data based on a query (city name or coordinates).
  *
  * @param {string|{latitude: number, longitude: number}} query - Nazwa miasta lub obiekt ze współrzędnymi. / The city name or an object with coordinates.
+ * @param {string} [lang='pl'] - Kod języka (pl, en). / Language code (pl, en).
  * @returns {Promise<Object>} Obietnica, która zwraca przetworzone dane pogodowe w formacie JSON. / A promise that resolves with the processed weather data as JSON.
  * @throws {Error} Rzuca błąd w przypadku problemów z siecią lub odpowiedzią API. / Throws an error in case of network or API response issues.
  */
-export async function getWeatherData(query) {
+export async function getWeatherData(query, lang = 'pl') {
     let url;
 
+    // ZMIANA: Dodanie parametru &lang=${lang} do URL
     if (typeof query === 'string' && query) {
-        url = `/.netlify/functions/weather?city=${encodeURIComponent(query.trim())}`;
+        url = `/.netlify/functions/weather?city=${encodeURIComponent(query.trim())}&lang=${lang}`;
     } else if (typeof query === 'object' && query.latitude) {
-        url = `/.netlify/functions/weather?lat=${query.latitude}&lon=${query.longitude}`;
+        url = `/.netlify/functions/weather?lat=${query.latitude}&lon=${query.longitude}&lang=${lang}`;
     } else {
         // --- PL --- Rzucamy błąd, jeśli zapytanie jest nieprawidłowe, zamiast zwracać null.
         // --- EN --- Throw an error if the query is invalid, instead of returning null.

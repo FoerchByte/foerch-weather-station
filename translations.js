@@ -12,12 +12,70 @@
  */
 export const translations = {
     pl: {
+        // --- NOWOŚĆ: Elementy statyczne UI ---
+        uiElements: {
+            appTitle: 'Stacja Pogody',
+            searchPlaceholder: 'Wpisz nazwę miasta...',
+            searchButton: 'Szukaj',
+            geoButton: 'Użyj mojej lokalizacji',
+            favoritesEmpty: 'Dodaj swoje ulubione lokalizacje za pomocą ikony gwiazdki ⭐',
+            sectionWeather: 'Warunki Atmosferyczne',
+            sectionIndices: 'Wskaźniki i Bezpieczeństwo',
+            sectionSun: 'Słońce',
+            sectionMoon: 'Księżyc',
+            tabPrecipitation: 'Opady',
+            tabHourly: 'Godzinowa',
+            tabDaily: 'Dzienna',
+            tabMap: 'Mapa',
+            headerPrecipitation: 'Opady w najbliższej godzinie',
+            headerHourly: 'Prognoza godzinowa',
+            headerDaily: 'Prognoza na następne dni',
+            headerMap: 'Radar Opadów'
+        },
         // --- Alerty i błędy ---
         alerts: {
             noAlerts: 'Brak alertów pogodowych w bieżącej lokalizacji',
             issuedBy: 'Wydane przez',
             effective: 'Obowiązuje od',
             to: 'do',
+        },
+        // --- NOWOŚĆ: Tłumaczenia typów alertów ---
+        alertEvents: {
+            // Deszcz
+            'Yellow Rain warning': 'Ostrzeżenie 1. stopnia: Intensywne opady deszczu',
+            'Orange Rain warning': 'Ostrzeżenie 2. stopnia: Ulewne opady deszczu',
+            'Red Rain warning': 'Ostrzeżenie 3. stopnia: Nawalne opady deszczu',
+            // Wiatr
+            'Yellow Wind warning': 'Ostrzeżenie 1. stopnia: Silny wiatr',
+            'Orange Wind warning': 'Ostrzeżenie 2. stopnia: Bardzo silny wiatr',
+            'Red Wind warning': 'Ostrzeżenie 3. stopnia: Huraganowy wiatr',
+            // Burze
+            'Yellow Thunderstorm warning': 'Ostrzeżenie 1. stopnia: Burze',
+            'Orange Thunderstorm warning': 'Ostrzeżenie 2. stopnia: Silne burze z gradem',
+            'Red Thunderstorm warning': 'Ostrzeżenie 3. stopnia: Gwałtowne burze',
+            // Temperatura
+            'Yellow High temperature warning': 'Ostrzeżenie 1. stopnia: Upał',
+            'Orange High temperature warning': 'Ostrzeżenie 2. stopnia: Silny upał',
+            'Red High temperature warning': 'Ostrzeżenie 3. stopnia: Ekstremalny upał',
+            'Yellow Low temperature warning': 'Ostrzeżenie 1. stopnia: Mróz',
+            'Orange Low temperature warning': 'Ostrzeżenie 2. stopnia: Silny mróz',
+            'Red Low temperature warning': 'Ostrzeżenie 3. stopnia: Ekstremalny mróz',
+            // Śnieg/Lód
+            'Yellow Snow/Ice warning': 'Ostrzeżenie 1. stopnia: Opady śniegu/oblodzenie',
+            'Orange Snow/Ice warning': 'Ostrzeżenie 2. stopnia: Intensywne opady śniegu',
+            'Red Snow/Ice warning': 'Ostrzeżenie 3. stopnia: Śnieżyce',
+            // Mgła
+            'Yellow Fog warning': 'Ostrzeżenie 1. stopnia: Gęsta mgła',
+            'Orange Fog warning': 'Ostrzeżenie 2. stopnia: Bardzo gęsta mgła',
+             // Ogólne (fallback)
+            'Thunderstorm warning': 'Ostrzeżenie przed burzami',
+            'Rain warning': 'Ostrzeżenie przed intensywnym deszczem',
+            'Wind warning': 'Ostrzeżenie przed silnym wiatrem',
+            'Snow warning': 'Ostrzeżenie przed opadami śniegu',
+            'Ice warning': 'Ostrzeżenie przed oblodzeniem',
+            'Fog warning': 'Ostrzeżenie przed mgłą',
+            'High temperature warning': 'Ostrzeżenie przed upałem',
+            'Low temperature warning': 'Ostrzeżenie przed mrozem',
         },
         errors: {
             default: 'Wpisz miasto lub zezwól na geolokalizację.',
@@ -41,7 +99,7 @@ export const translations = {
             sunset: 'Zachód słońca',
             moonrise: 'Wschód księżyca',
             moonset: 'Zachód księżyca',
-            description: 'Opis', // ZMIANA: Dodano brakujący klucz
+            description: 'Opis',
             daylightHours: 'Długość dnia',
             moonPhase: 'Faza księżyca',
         },
@@ -107,12 +165,36 @@ export const translations = {
         }
     },
     en: {
+        // --- NEW: Static UI Elements ---
+        uiElements: {
+            appTitle: 'Weather Station',
+            searchPlaceholder: 'Enter city name...',
+            searchButton: 'Search',
+            geoButton: 'Use my location',
+            favoritesEmpty: 'Add your favorite locations using the star icon ⭐',
+            sectionWeather: 'Weather Conditions',
+            sectionIndices: 'Indices & Safety',
+            sectionSun: 'Sun',
+            sectionMoon: 'Moon',
+            tabPrecipitation: 'Precipitation',
+            tabHourly: 'Hourly',
+            tabDaily: 'Daily',
+            tabMap: 'Map',
+            headerPrecipitation: 'Precipitation over the next hour',
+            headerHourly: 'Hourly Forecast',
+            headerDaily: '7-Day Forecast',
+            headerMap: 'Precipitation Radar'
+        },
         // --- Alerts and errors ---
         alerts: {
             noAlerts: 'No weather alerts for the current location',
             issuedBy: 'Issued by',
             effective: 'Effective from',
             to: 'to',
+        },
+        // --- NEW: Alert events (English usually doesn't need translation, but for consistency) ---
+        alertEvents: {
+            // We can leave this empty or map 1:1 if we want to normalize names
         },
         errors: {
             default: 'Enter a city or allow geolocation.',
@@ -136,7 +218,7 @@ export const translations = {
             sunset: 'Sunset',
             moonrise: 'Moonrise',
             moonset: 'Moonset',
-            description: 'Description', // CHANGE: Added missing key
+            description: 'Description',
             daylightHours: 'Daylight Hours',
             moonPhase: 'Moon Phase',
         },
@@ -176,12 +258,12 @@ export const translations = {
             'throughout the day': 'throughout the day',
             'and': 'and',
 
-            'light intensity drizzle': { nominative: 'light intensity drizzle', genitive: 'light intensity drizzle' },
+            'light intensity drizzle': { nominative: 'light drizzle', genitive: 'light drizzle' },
             'drizzle': { nominative: 'drizzle', genitive: 'drizzle' },
-            'heavy intensity drizzle': { nominative: 'heavy intensity drizzle', genitive: 'heavy intensity drizzle' },
+            'heavy intensity drizzle': { nominative: 'heavy drizzle', genitive: 'heavy drizzle' },
             'light rain': { nominative: 'light rain', genitive: 'light rain' },
             'moderate rain': { nominative: 'moderate rain', genitive: 'moderate rain' },
-            'heavy intensity rain': { nominative: 'heavy intensity rain', genitive: 'heavy intensity rain' },
+            'heavy intensity rain': { nominative: 'heavy rain', genitive: 'heavy rain' },
             'freezing rain': { nominative: 'freezing rain', genitive: 'freezing rain' },
             'shower rain': { nominative: 'shower rain', genitive: 'shower rain' },
             'light snow': { nominative: 'light snow', genitive: 'light snow' },

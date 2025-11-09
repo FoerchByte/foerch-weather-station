@@ -1,11 +1,11 @@
 /* --- PL ---
     Style dla Stacji Pogody v2.0, odtworzone na podstawie wzorca z Base44.
     Zawiera motyw ciemny, efekt glassmorphism oraz responsywny layout.
-    ZMIANA: Poprawki dla slidera godzinowego i logiki mobilnej.
+    ZMIANA: Dodano style dla przełącznika języka i grupy kontrolek w nagłówku.
     --- EN ---
     Styles for Weather Station v2.0, reconstructed from the Base44 pattern.
     Includes a dark theme, glassmorphism effect, and a responsive layout.
-    CHANGE: Fixes for hourly slider and mobile logic.
+    CHANGE: Added styles for language switcher and header controls group.
 */
 
 :root {
@@ -119,9 +119,42 @@ body {
     box-sizing: border-box; 
 }
 .header-bar h1 { font-size: 1.8rem; margin: 0; }
+
+/* --- NOWOŚĆ: Grupa kontrolek w nagłówku (Język + Motyw) --- */
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* --- NOWOŚĆ: Styl przełącznika języka (wzorowany na hourly-range-switcher) --- */
+.lang-switcher {
+    display: flex;
+    background-color: var(--inner-glass-background);
+    border-radius: 10px;
+    padding: 3px;
+}
+.lang-switcher button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: background-color 0.2s, color 0.2s;
+}
+.lang-switcher button.active {
+    background: var(--accent-color);
+    color: white;
+}
+
 .theme-toggle {
+    /* ZMIANA: Usunięcie margin-left, bo teraz jest w grupie flex (.header-controls) */
     background: none; border: none; color: var(--text-primary);
     font-size: 1.5rem; cursor: pointer;
+    padding: 0; display: flex; align-items: center;
 }
 .moon-icon { display: none; }
 body.dark-mode .sun-icon { display: none; }
@@ -651,4 +684,3 @@ body.light-mode .moon-icon { display: none; }
         font-size: 1rem; /* Mniejsza czcionka */
     }
 }
-
