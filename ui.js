@@ -4,13 +4,13 @@
  * Odpowiada za wszelkie manipulacje w drzewie DOM - renderowanie danych,
  * aktualizowanie widoków, pokazywanie/ukrywanie elementów, zarządzanie klasami CSS.
  * Operuje na istniejącej strukturze HTML zdefiniowanej w index.html.
- * Wersja zaktualizowana o pełne renderowanie danych i obsługę modala.
+ * Wersja zaktualizowana o pełne renderowanie danych, obsługę modala i i18n.
  * --- EN ---
  * UI (User Interface) Module for version 2.0.
  * Responsible for all DOM manipulations - rendering data, updating views,
  * showing/hiding elements, managing CSS classes.
  * Operates on the existing HTML structure defined in index.html.
- * Updated version with full data rendering and modal handling.
+ * Updated version with full data rendering, modal handling, and i18n.
  */
 
 // --- Referencje do elementów DOM / DOM Element References ---
@@ -51,18 +51,8 @@ export function initUI() {
 
 // --- Funkcje Pomocnicze / Helper Functions ---
 
-/**
- * --- PL --- Konwertuje metry na sekundę na kilometry na godzinę.
- * --- EN --- Converts meters per second to kilometers per hour.
- */
-function convertMsToKmh(ms) {
-    return Math.round(ms * 3.6);
-}
+function convertMsToKmh(ms) { return Math.round(ms * 3.6); }
 
-/**
- * --- PL --- Zwraca pełny HTML dla ikony pogody.
- * --- EN --- Returns the full HTML for the weather icon.
- */
 function getWeatherIconHtml(iconCode, description) {
     const iconBaseUrl = 'https://basmilius.github.io/weather-icons/production/fill/all/';
     const iconMap = { '01d': 'clear-day.svg', '01n': 'clear-night.svg', '02d': 'partly-cloudy-day.svg', '02n': 'partly-cloudy-night.svg', '03d': 'cloudy.svg', '03n': 'cloudy.svg', '04d': 'overcast-day.svg', '04n': 'overcast-night.svg', '09d': 'rain.svg', '09n': 'rain.svg', '10d': 'partly-cloudy-day-rain.svg', '10n': 'partly-cloudy-night-rain.svg', '11d': 'thunderstorms-day.svg', '11n': 'thunderstorms-night.svg', '13d': 'snow.svg', '13n': 'snow.svg', '50d': 'fog-day.svg', '50n': 'fog-night.svg', };
@@ -70,48 +60,33 @@ function getWeatherIconHtml(iconCode, description) {
     return `<img src="${iconBaseUrl}${iconName}" alt="${description}" class="weather-icon-img" style="width: 100%; height: 100%;">`;
 }
 
-/**
- * --- PL --- Tłumaczy opis pogody (summary) na zdanie w dopełniaczu.
- * --- EN --- Translates the weather summary into a genitive sentence.
- */
 function translateOverview(apiDescription, t) {
     if (!apiDescription) return '';
     const translationEntry = t.overview[apiDescription.toLowerCase()];
+    // ZMIANA: Obsługa różnych struktur tłumaczeń (PL ma genitive, EN może nie mieć)
     if (translationEntry && translationEntry.genitive) {
         let sentence = `${t.overview.expect} ${translationEntry.genitive} ${t.overview['throughout the day']}.`;
         return sentence.charAt(0).toUpperCase() + sentence.slice(1);
     }
-    // Fallback na zwykły opis
     return apiDescription.charAt(0).toUpperCase() + apiDescription.slice(1);
 }
 
-/**
- * --- PL --- Tłumaczy nazwy alertów pogodowych.
- * --- EN --- Translates weather alert event names.
- */
 function translateAlertEvent(eventName, t) {
-    // Prosta implementacja, w przyszłości można rozbudować
-    const translations = {
+    // Prosta mapa tłumaczeń dla najczęstszych alertów.
+    // W pełnej wersji produkcyjnej można to rozbudować w translations.js
+    const translationsMap = {
         'Yellow Rain warning': 'Ostrzeżenie: Intensywne opady deszczu',
         'Orange Rain warning': 'Ostrzeżenie 2. stopnia: Ulewne opady deszczu',
         'Yellow Wind warning': 'Ostrzeżenie: Silny wiatr',
-        'Orange Wind warning': 'Ostrzeżenie 2. stopnia: Bardzo silny wiatr',
-        'Yellow Thunderstorm warning': 'Ostrzeżenie: Burze z gradem',
-        'Yellow High temperature warning': 'Ostrzeżenie: Upał',
-        'Orange High temperature warning': 'Ostrzeżenie 2. stopnia: Upał',
-        'Yellow Low temperature warning': 'Ostrzeżenie: Mróz',
-        'Orange Low temperature warning': 'Ostrzeżenie 2. stopnia: Silny mróz',
+        // ... (można dodać więcej mapowań lub przenieść je do translations.js)
     };
-    return translations[eventName] || eventName;
+    // Jeśli nie mamy tłumaczenia w mapie, zwracamy oryginał (API OWM czasem zwraca lokalne nazwy)
+    return translationsMap[eventName] || eventName;
 }
 
-
-/**
- * --- PL --- Konwertuje stopnie na kierunek wiatru.
- * --- EN --- Converts degrees to wind direction.
- */
 function convertWindDirection(deg) {
-    const directions = ['Pn', 'Pn-Wsch', 'Wsch', 'Pd-Wsch', 'Pd', 'Pd-Zach', 'Zach', 'Pn-Zach'];
+    // Uproszczona konwersja, można by też dodać tłumaczenia kierunków
+    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
     return directions[Math.round(deg / 45) % 8];
 }
 
@@ -134,60 +109,64 @@ export function toggleButtonLoading(button, isLoading) {
     }
 }
 
-export function showInitialState() {
-    dom.favoritesContainer.innerHTML = `<p class="favorites-empty-state">Dodaj swoje ulubione lokalizacje za pomocą ikony gwiazdki ⭐</p>`;
+// ZMIANA: Funkcja aktualizująca statyczne teksty na stronie
+export function updateStaticElements(t) {
+    // 1. Zwykłe teksty (innerHTML/textContent)
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t.uiElements[key]) {
+            el.textContent = t.uiElements[key];
+        }
+    });
+
+    // 2. Placeholdery w inputach
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (t.uiElements[key]) {
+            el.placeholder = t.uiElements[key];
+        }
+    });
+
+    // 3. Atrybut lang w <html> (dla dostępności)
+    // Zakładamy, że t.uiElements.appTitle jest dobrym wyznacznikiem języka
+    document.documentElement.lang = t.uiElements.appTitle === 'Stacja Pogody' ? 'pl' : 'en';
+}
+
+// ZMIANA: showInitialState przyjmuje teraz 't'
+export function showInitialState(t) {
+    dom.favoritesContainer.innerHTML = `<p class="favorites-empty-state">${t.uiElements.favoritesEmpty}</p>`;
     hideContent();
 }
 
-export function showLoadingState() { 
-    // Na razie tylko ukrywamy stary kontener. Można dodać skeleton.
-    hideContent(); 
-}
+export function showLoadingState() { hideContent(); }
 
 export function showError(message) { 
-    // Używamy alertu systemowego, można zastąpić ładniejszym modalem
     alert(message); 
     hideContent(); 
 }
 
-function hideContent() { 
-    if (dom.weatherResultContainer) dom.weatherResultContainer.style.display = 'none'; 
-}
-
-export function showContent() { 
-    if (dom.weatherResultContainer) dom.weatherResultContainer.style.display = 'block'; 
-}
+function hideContent() { if (dom.weatherResultContainer) dom.weatherResultContainer.style.display = 'none'; }
+export function showContent() { if (dom.weatherResultContainer) dom.weatherResultContainer.style.display = 'block'; }
 
 // --- Renderowanie Komponentów / Component Rendering ---
 
-/**
- * --- PL --- Wypełnia pojedynczy wiersz detali w kafelku.
- * --- EN --- Populates a single detail row in a tile.
- */
 function renderDetailRow(containerId, icon, label, value, valueClass = '') {
     const container = document.getElementById(containerId);
-    if (!container) {
-        console.warn(`Nie znaleziono kontenera: ${containerId}`);
-        return;
-    }
+    if (!container) return;
     container.innerHTML = `
         <div class="label-container">${icon}<span class="label">${label}</span></div>
         <span class="value ${valueClass}">${value}</span>`;
 }
 
-/**
- * --- PL --- Wypełnia całą główną kartę pogody i wszystkie kafelki detali.
- * --- EN --- Populates the entire main weather card and all detail tiles.
- */
 export function renderCurrentWeather(data, t) {
-    if(!dom.cityName) initUI(); // Upewnij się, że DOM jest zainicjowany
+    if(!dom.cityName) initUI();
 
     dom.cityName.textContent = data.location.name;
     dom.currentTemp.textContent = `${Math.round(data.current.temp)}°C`;
+    // Opis pogody przychodzi już przetłumaczony z API dzięki parametrowi lang
     dom.weatherDescription.textContent = data.current.weather[0].description;
     dom.weatherIcon.innerHTML = getWeatherIconHtml(data.current.weather[0].icon, data.current.weather[0].description);
     
-    // ZMIANA: Przywrócenie renderowania podsumowania
     const translatedOverview = translateOverview(data.generatedOverview, t);
     if (translatedOverview && dom.weatherOverview) {
         dom.weatherOverview.innerHTML = `<p>${translatedOverview}</p>`;
@@ -196,7 +175,6 @@ export function renderCurrentWeather(data, t) {
         dom.weatherOverview.style.display = 'none';
     }
 
-    // Ikony dla kafelków detali
     const icons = {
         feelsLike: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h-2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M4 12h2.5"/><path d="M17.5 12H20"/></svg>`,
         humidity: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
@@ -224,15 +202,13 @@ export function renderCurrentWeather(data, t) {
     renderDetailRow('detail-moonset', icons.moonset, t.details.moonset, data.formattedTimes.moonset);
 }
 
-/**
- * --- PL --- Renderuje sekcję alertów pogodowych.
- * --- EN --- Renders the weather alerts section.
- */
 export function renderWeatherAlerts(data, t) {
     if (data.alerts && data.alerts.length > 0) {
         const alert = data.alerts[0];
-        const startTime = new Date(alert.start * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-        const endTime = new Date(alert.end * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+        // Używamy lokalnych formatów czasu, które przeglądarka dostosuje do języka
+        const locale = t.uiElements.appTitle === 'Stacja Pogody' ? 'pl-PL' : 'en-US';
+        const startTime = new Date(alert.start * 1000).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+        const endTime = new Date(alert.end * 1000).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
         const translatedEventName = translateAlertEvent(alert.event, t);
         
         dom.weatherAlertsContainer.innerHTML = `
@@ -253,10 +229,6 @@ export function renderWeatherAlerts(data, t) {
     }
 }
 
-/**
- * --- PL --- Renderuje wykres opadów na najbliższą godzinę.
- * --- EN --- Renders the precipitation chart for the next hour.
- */
 export function renderMinutelyForecast(minutelyData, t) {
     const container = dom.minutely.container;
     if (!container) return;
@@ -268,17 +240,22 @@ export function renderMinutelyForecast(minutelyData, t) {
 
     const hasPrecipitation = minutelyData && minutelyData.some(minute => minute.precipitation > 0);
     if (!hasPrecipitation) {
-        container.innerHTML = `<div class="no-data">Brak opadów w ciągu najbliższej godziny.</div>`;
+        // Tłumaczenie braku opadów
+        const noDataText = t.uiElements.headerPrecipitation === 'Opady w najbliższej godzinie' 
+            ? 'Brak opadów w ciągu najbliższej godziny.' 
+            : 'No precipitation within the next hour.';
+        container.innerHTML = `<div class="no-data">${noDataText}</div>`;
         return;
     }
 
-    // Upewnij się, że canvas istnieje przed użyciem
     if (!container.querySelector('#minutely-chart')) {
         container.innerHTML = `<canvas id="minutely-chart"></canvas>`;
     }
     const ctx = container.querySelector('#minutely-chart').getContext('2d');
     
-    const labels = minutelyData.map((_, index) => (index % 10 === 0 && index > 0) ? `${index}m` : (index === 0 ? 'Teraz' : ''));
+    // Etykiety osi X zależne od języka ('Teraz' vs 'Now')
+    const nowLabel = t.forecast.today === 'Dzisiaj' ? 'Teraz' : 'Now';
+    const labels = minutelyData.map((_, index) => (index % 10 === 0 && index > 0) ? `${index}m` : (index === 0 ? nowLabel : ''));
     const data = minutelyData.map(minute => minute.precipitation);
 
     minutelyChart = new Chart(ctx, {
@@ -286,7 +263,7 @@ export function renderMinutelyForecast(minutelyData, t) {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Intensywność opadów',
+                label: t.forecast.precipChance, // Używamy tłumaczenia jako etykiety
                 data: data,
                 backgroundColor: 'rgba(56, 189, 248, 0.6)',
                 borderColor: 'rgba(56, 189, 248, 1)',
@@ -308,38 +285,29 @@ export function renderMinutelyForecast(minutelyData, t) {
                 } 
             },
             scales: {
-                y: { 
-                    display: false, 
-                    beginAtZero: true 
-                },
+                y: { display: false, beginAtZero: true },
                 x: {
                     grid: { display: false },
-                    ticks: { 
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        autoSkip: false,
-                    }
+                    ticks: { color: 'rgba(255, 255, 255, 0.7)', autoSkip: false }
                 }
             }
         }
     });
 }
 
-/**
- * --- PL --- Renderuje prognozę godzinową w sliderze, grupując po dniach.
- * --- EN --- Renders the hourly forecast in a slider, grouped by day.
- */
 export function renderHourlyForecast(hourlyData, range, t) {
     const forecastToShow = hourlyData.slice(0, range);
+    const locale = t.uiElements.appTitle === 'Stacja Pogody' ? 'pl-PL' : 'en-US';
     
     const groupedByDay = forecastToShow.reduce((acc, item) => {
-        const dayKey = new Date(item.dt * 1000).toLocaleDateString('pl-PL', { weekday: 'long' });
+        const dayKey = new Date(item.dt * 1000).toLocaleDateString(locale, { weekday: 'long' });
         if (!acc[dayKey]) acc[dayKey] = [];
         acc[dayKey].push(item);
         return acc;
     }, {});
     
-    const todayKey = new Date().toLocaleDateString('pl-PL', { weekday: 'long' });
-    const tomorrowKey = new Date(Date.now() + 864e5).toLocaleDateString('pl-PL', { weekday: 'long' });
+    const todayKey = new Date().toLocaleDateString(locale, { weekday: 'long' });
+    const tomorrowKey = new Date(Date.now() + 864e5).toLocaleDateString(locale, { weekday: 'long' });
 
     let finalHtml = '';
     for (const [day, items] of Object.entries(groupedByDay)) {
@@ -364,16 +332,11 @@ export function renderHourlyForecast(hourlyData, range, t) {
     if(dom.hourly.scrollWrapper) dom.hourly.scrollWrapper.innerHTML = finalHtml;
 }
 
-
-/**
- * --- PL --- Renderuje prognozę dzienną (7 dni) w siatce.
- * --- EN --- Renders the daily forecast (7 days) in a grid.
- */
 export function renderDailyForecast(dailyData, t) {
-    // Pomiń dzisiejszy dzień (indeks 0) i weź 7 kolejnych
+    const locale = t.uiElements.appTitle === 'Stacja Pogody' ? 'pl-PL' : 'en-US';
     const itemsHtml = dailyData.slice(1, 8).map(day => `
         <div class="daily-forecast-item glass-card" data-timestamp="${day.dt}" role="button" tabindex="0">
-            <p class="day">${new Date(day.dt * 1000).toLocaleDateString('pl-PL', { weekday: 'short' })}</p>
+            <p class="day">${new Date(day.dt * 1000).toLocaleDateString(locale, { weekday: 'short' })}</p>
             <div class="icon">${getWeatherIconHtml(day.weather[0].icon, day.weather[0].description)}</div>
             <p class="temp">${Math.round(day.temp.max)}° / ${Math.round(day.temp.min)}°</p>
         </div>
@@ -381,11 +344,8 @@ export function renderDailyForecast(dailyData, t) {
     if(dom.daily.grid) dom.daily.grid.innerHTML = itemsHtml;
 }
 
-/**
- * --- PL --- Renderuje listę ulubionych lokalizacji.
- * --- EN --- Renders the list of favorite locations.
- */
-export function renderFavorites(favorites, currentLocation) {
+// ZMIANA: renderFavorites teraz przyjmuje 't' i używa tłumaczenia dla pustego stanu
+export function renderFavorites(favorites, currentLocation, t) {
     const container = dom.favoritesContainer;
     if (!container) return;
 
@@ -395,26 +355,21 @@ export function renderFavorites(favorites, currentLocation) {
             const clon = currentLocation ? parseFloat(currentLocation.lon) : NaN;
             const flat = parseFloat(fav.lat);
             const flon = parseFloat(fav.lon);
-            // Precyzyjne porównanie, aby uniknąć błędów zmiennoprzecinkowych
             const isActive = !isNaN(clat) && !isNaN(clon) && !isNaN(flat) && !isNaN(flon) &&
                              flat.toFixed(4) === clat.toFixed(4) &&
                              flon.toFixed(4) === clon.toFixed(4);
             return `<button class="favorite-location-btn ${isActive ? 'active' : ''}" data-city="${fav.name}">${fav.name}</button>`;
         }).join('');
     } else {
-        container.innerHTML = `<p class="favorites-empty-state">Dodaj swoje ulubione lokalizacje za pomocą ikony gwiazdki ⭐</p>`;
+        container.innerHTML = `<p class="favorites-empty-state">${t.uiElements.favoritesEmpty}</p>`;
     }
 }
 
-/**
- * --- PL --- Aktualizuje stan wizualny przycisku "Ulubione".
- * --- EN --- Updates the visual state of the "Favorite" button.
- */
 export function updateFavoriteButtonState(isFavorite, favoritesCount) {
     if (dom.addFavoriteBtn) {
         dom.addFavoriteBtn.classList.toggle('is-favorite', isFavorite);
+        // W pełnej wersji można by tu też użyć tłumaczeń dla aria-label
         dom.addFavoriteBtn.setAttribute('aria-label', isFavorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych');
-        // Zablokuj dodawanie, jeśli osiągnięto limit 5
         dom.addFavoriteBtn.disabled = !isFavorite && favoritesCount >= 5;
     }
 }
@@ -435,10 +390,12 @@ function buildHourlyModalBody(data, t) {
 }
 
 function buildDailyModalBody(data, t) {
-    const sunrise = new Date(data.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const sunset = new Date(data.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    // ZMIANA: Użycie 'description' zamiast 'summary' dla spójności
-    const translatedSummary = translateOverview(data.weather[0].description, t);
+    const locale = t.uiElements.appTitle === 'Stacja Pogody' ? 'pl-PL' : 'en-US';
+    const sunrise = new Date(data.sunrise * 1000).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+    const sunset = new Date(data.sunset * 1000).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+    // Używamy 'description' dla spójności, API powinno zwrócić je już przetłumaczone
+    const translatedSummary = data.weather[0].description.charAt(0).toUpperCase() + data.weather[0].description.slice(1);
+    
     return `
         <div class="detail-row"><span class="label-container">${t.details.description}</span><span class="value">${translatedSummary}</span></div>
         <div class="detail-row"><span class="label-container">${t.forecast.precipChance}</span><span class="value">${Math.round(data.pop * 100)}%</span></div>
@@ -456,32 +413,32 @@ function buildDailyModalBody(data, t) {
 
 export function showDetailsModal(data, type, t) {
     const date = new Date(data.dt * 1000);
+    const locale = t.uiElements.appTitle === 'Stacja Pogody' ? 'pl-PL' : 'en-US';
     let title = '', bodyHtml = '';
+    
     if (type === 'hourly') {
-        title = `Prognoza na ${date.toLocaleDateString('pl-PL', { weekday: 'long' })}, ${date.getHours()}:00`;
+        // Tłumaczenie tytułu modala "Prognoza na..."
+        const prefix = t.uiElements.appTitle === 'Stacja Pogody' ? 'Prognoza na' : 'Forecast for';
+        title = `${prefix} ${date.toLocaleDateString(locale, { weekday: 'long' })}, ${date.getHours()}:00`;
         bodyHtml = buildHourlyModalBody(data, t);
     } else if (type === 'daily') {
-        title = `Prognoza na ${date.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })}`;
+        const prefix = t.uiElements.appTitle === 'Stacja Pogody' ? 'Prognoza na' : 'Forecast for';
+        title = `${prefix} ${date.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}`;
         bodyHtml = buildDailyModalBody(data, t);
     }
     
     dom.modal.title.textContent = title;
     dom.modal.body.innerHTML = bodyHtml;
     
-    activeModalTrigger = document.activeElement; // Zapisz, co miało focus
+    activeModalTrigger = document.activeElement;
     dom.modal.overlay.hidden = false;
-    
-    // Po krótkim opóźnieniu, aby umożliwić renderowanie, ustaw focus
-    setTimeout(() => { 
-        dom.modal.closeBtn.focus();
-    }, 10);
+    setTimeout(() => { dom.modal.closeBtn.focus(); }, 10);
 }
 
 export function hideDetailsModal() {
     dom.modal.overlay.hidden = true;
     if (activeModalTrigger) {
-        activeModalTrigger.focus(); // Przywróć focus
+        activeModalTrigger.focus();
         activeModalTrigger = null;
     }
 }
-
