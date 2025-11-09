@@ -1,11 +1,11 @@
 /* --- PL ---
     Style dla Stacji Pogody v2.0, odtworzone na podstawie wzorca z Base44.
     Zawiera motyw ciemny, efekt glassmorphism oraz responsywny layout.
-    ZMIANA: Poprawki dla slidera godzinowego i logiki mobilnej.
+    ZMIANA: Dodano style dla przełącznika języka i grupy kontrolek w nagłówku.
     --- EN ---
     Styles for Weather Station v2.0, reconstructed from the Base44 pattern.
     Includes a dark theme, glassmorphism effect, and a responsive layout.
-    CHANGE: Fixes for hourly slider and mobile logic.
+    CHANGE: Added styles for language switcher and header controls group.
 */
 
 :root {
@@ -120,50 +120,41 @@ body {
 }
 .header-bar h1 { font-size: 1.8rem; margin: 0; }
 
-/* --- NOWE: Kontrolki Nagłówka (Język + Motyw) --- */
+/* --- NOWOŚĆ: Grupa kontrolek w nagłówku (Język + Motyw) --- */
 .header-controls {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-/* --- NOWE: Przełącznik Języka --- */
+/* --- NOWOŚĆ: Styl przełącznika języka (wzorowany na hourly-range-switcher) --- */
 .lang-switcher {
     display: flex;
     background-color: var(--inner-glass-background);
-    border: 1px solid var(--glass-border-color);
-    border-radius: 12px;
-    padding: 2px;
-    overflow: hidden;
+    border-radius: 10px;
+    padding: 3px;
 }
-
 .lang-switcher button {
     background: none;
     border: none;
     color: var(--text-secondary);
     padding: 0.4rem 0.6rem;
-    font-size: 0.8rem;
-    font-weight: 500;
+    border-radius: 8px;
     cursor: pointer;
-    border-radius: 10px;
-    transition: color 0.3s, background-color 0.3s;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: background-color 0.2s, color 0.2s;
 }
-
 .lang-switcher button.active {
-    background-color: var(--accent-color);
+    background: var(--accent-color);
     color: white;
 }
 
-.lang-switcher button:hover:not(.active) {
-    color: var(--text-primary);
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
 .theme-toggle {
+    /* ZMIANA: Usunięcie margin-left, bo teraz jest w grupie flex (.header-controls) */
     background: none; border: none; color: var(--text-primary);
     font-size: 1.5rem; cursor: pointer;
-    padding: 0; /* Reset paddingu */
-    display: flex; /* Ułatwia centrowanie ikony */
+    padding: 0; display: flex; align-items: center;
 }
 .moon-icon { display: none; }
 body.dark-mode .sun-icon { display: none; }
@@ -396,33 +387,16 @@ body.light-mode .moon-icon { display: none; }
 
 .daily-forecast-grid {
     display: grid;
-    /* ZMIANA: Ujednolicenie z .slider-scroll-wrapper */
-    flex-grow: 1;
-    max-width: 100%;
-    margin: 0;
-    display: flex;
-    gap: var(--tile-gap);
-    overflow-x: hidden;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    /* --- */
     grid-template-columns: repeat(7, 1fr);
+    gap: var(--tile-gap);
+    margin: 0 auto;
     /* ZMIANA: Ograniczenie szerokości dla spójności */
     max-width: var(--content-limiter-width);
-    /* ZMIANA: Wymuszenie flex (grid był nadrzędny) */
-    display: flex; 
-}
-.daily-forecast-grid::-webkit-scrollbar {
-    display: none;
 }
 .daily-forecast-item {
-    /* ZMIANA: Ujednolicenie z .hourly-forecast-item */
-    scroll-snap-align: start;
-    flex: 0 0 var(--hourly-tile-width);
-    min-width: 90px;
-    /* --- */
     display: flex; flex-direction: column; align-items: center;
     justify-content: center; 
+    /* ZMIANA: Ujednolicony odstęp dla tej samej wysokości co kafelki godzinowe */
     gap: 0.75rem; 
     padding: 1.25rem 0.5rem; 
     text-align: center;
@@ -549,37 +523,31 @@ body.light-mode .moon-icon { display: none; }
         grid-template-columns: 1fr; 
         gap: 0.25rem; /* ZMIANA: Zmniejszony odstęp (było 0.5rem) */
         max-width: 100%; 
-        /* ZMIANA: Zapewnienie, że nadal jest to flex wrapper */
-        display: flex;
-        overflow-x: auto; /* Włączenie przewijania na mobile */
     }
     .daily-forecast-item {
-        /* ZMIANA: Przywrócenie pionowego kafelka na mobile (dla spójności ze sliderem) */
-        flex-direction: column;
-        justify-content: center;
-        padding: 1.25rem 0.5rem; /* Jak na desktopie */
-        gap: 0.75rem; 
+        /* ZMIANA: Przechodzimy na układ rzędu dla listy mobilnej */
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 1rem 1.5rem; /* ZMIANA: Było 1.5rem 1.5rem */
+        gap: 1rem; 
         align-items: center; 
-        /* ZMIANA: Ustawienie szerokości kafelka (jak w .hourly-forecast-item) */
-        flex-basis: auto;
-        min-width: 90px;
     }
     
-    /* ZMIANA: Ujednolicenie stylów kafelków dziennych i godzinowych na mobile */
+    /* ZMIANA: Zwiększenie czcionek i ikon w liście mobilnej */
     .daily-forecast-item .day {
-        font-size: 0.9rem;
+        font-size: 1.2rem; /* Było 1.1rem */
         font-weight: 500;
     }
     .daily-forecast-item .icon {
-        width: 50px;
-        height: 50px;
-        margin: 0.25rem 0; 
+        width: 70px; /* ZMIANA: Było 60px */
+        height: 70px;
+        margin: 0; 
     }
     .daily-forecast-item .temp {
-        font-size: 1.1rem;
+        font-size: 1.3rem; /* Było 1.2rem */
         font-weight: 500;
-        min-width: auto; 
-        text-align: center;
+        min-width: 70px; 
+        text-align: right;
     }
     
     #minutely-chart-container {
@@ -639,12 +607,6 @@ body.light-mode .moon-icon { display: none; }
         display: block;
         overflow-x: hidden;
     }
-    /* ZMIANA: Dotyczy to teraz także slidera dziennego */
-    #daily-forecast-content.slider-scroll-wrapper {
-        display: block;
-        overflow-x: hidden;
-    }
-
 
     /* 2. Grupa dzienna (Dzisiaj, Jutro) - teraz to blok */
     .hourly-day-group {
@@ -657,49 +619,30 @@ body.light-mode .moon-icon { display: none; }
         flex-direction: column;
         gap: 0.25rem; /* Taki sam odstęp jak w prognozie dziennej */
     }
-    /* ZMIANA: Dotyczy to teraz także slidera dziennego */
-    #daily-forecast-content.daily-forecast-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
     
     /* 4. Sam kafelek staje się poziomym paskiem */
     .hourly-forecast-item {
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        padding: 1rem 1.5rem; 
+        /* Używamy tych samych wartości co w .daily-forecast-item dla spójności */
+        padding: 1rem 1.5rem; /* ZMIANA: Było 1.5rem 1.5rem */
         flex: 1 1 auto; /* Reset flex-basis */
         min-width: 100%; /* Pełna szerokość */
         gap: 1rem;
     }
-    /* ZMIANA: Dotyczy to teraz także slidera dziennego */
-    .daily-forecast-item {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 1.5rem; 
-        flex: 1 1 auto; /* Reset flex-basis */
-        min-width: 100%; /* Pełna szerokość */
-        gap: 1rem;
-    }
-    
     
     /* 5. Ułóż elementy wewnątrz paska (jak w .daily-forecast-item) */
-    .hourly-forecast-item .time,
-    .daily-forecast-item .day {
+    .hourly-forecast-item .time {
         font-size: 1.2rem;
         font-weight: 500;
     }
-    .hourly-forecast-item .icon,
-    .daily-forecast-item .icon {
-         width: 70px;
+    .hourly-forecast-item .icon {
+         width: 70px; /* ZMIANA: Było 60px */
          height: 70px;
          margin: 0;
     }
-    .hourly-forecast-item .temp,
-    .daily-forecast-item .temp {
+    .hourly-forecast-item .temp {
         font-size: 1.3rem;
         font-weight: 500;
         min-width: 70px; 
@@ -719,36 +662,25 @@ body.light-mode .moon-icon { display: none; }
         * This rule shrinks the tiles to fit 7.
     */
     
-    /* ZMIANA: Ściśnięcie odstępów (dotyczy OBU sliderów) */
+    /* ZMIANA: Ściśnięcie odstępów */
     #hourly-forecast-content.slider-scroll-wrapper,
-    #daily-forecast-content.slider-scroll-wrapper,
     .hourly-day-group .items-wrapper {
-        gap: 7px; /* Było 8px */
+        gap: 7px; /* Było 12px */
     }
     
-    /* ZMIANA: Ściśnięcie kafelków (dotyczy OBU sliderów) */
-    .hourly-forecast-item,
-    .daily-forecast-item {
-        /* ZMIANA: Precyzyjne dostrojenie - idealne wypełnienie */
+    .hourly-forecast-item {
+        /* ZMIANA: Precyzyjne dostrojenie - lekko szerzej niż 84px */
         flex-basis: 87px; 
         min-width: 87px; 
         padding: 1rem 0.25rem; 
-        gap: 0.5rem; /* Mniejszy odstęp wewnątrz */
     }
 
-    .hourly-forecast-item .icon,
-    .daily-forecast-item .icon {
-        width: 40px; /* Mniejsza ikona */
-        height: 40px;
-    }
-    
-    .hourly-forecast-item .time,
-    .daily-forecast-item .day {
-        font-size: 0.8rem;
+    .hourly-forecast-item .icon {
+        width: 45px; /* Mniejsza ikona */
+        height: 45px;
     }
 
-    .hourly-forecast-item .temp,
-    .daily-forecast-item .temp {
+    .hourly-forecast-item .temp {
         font-size: 1rem; /* Mniejsza czcionka */
     }
 }
