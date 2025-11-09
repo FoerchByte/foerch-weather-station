@@ -20,11 +20,17 @@
         
         <header class="header-bar">
             <h1>Stacja Pogody</h1>
-            <button id="theme-toggle" class="theme-toggle" aria-label="Zmień motyw">
-                <!-- Ikony zostaną dodane przez CSS lub pozostawione jako emoji -->
-                <span class="sun-icon">☀️</span>
-                <span class="moon-icon">🌙</span>
-            </button>
+            <!-- NOWE: Grupa kontrolek (Język + Motyw) -->
+            <div class="header-controls">
+                <div class="lang-switcher" id="lang-switcher">
+                    <button data-lang="pl" class="active" aria-label="Zmień język na polski">PL</button>
+                    <button data-lang="en" aria-label="Change language to English">EN</button>
+                </div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Zmień motyw">
+                    <span class="sun-icon">☀️</span>
+                    <span class="moon-icon">🌙</span>
+                </button>
+            </div>
         </header>
 
         <main class="weather-app-content">
@@ -62,7 +68,7 @@
 
                     <div class="details-tiles-container">
                         <div class="detail-tile glass-card">
-                            <h4 class="tile-header">Warunki Atmosferyczne</h4>
+                            <h4 class="tile-header" data-translate="details.atmosphericConditions">Warunki Atmosferyczne</h4>
                             <div class="tile-content">
                                 <div class="detail-row" id="detail-feels-like"></div>
                                 <div class="detail-row" id="detail-wind"></div>
@@ -71,7 +77,7 @@
                             </div>
                         </div>
                         <div class="detail-tile glass-card">
-                            <h4 class="tile-header">Wskaźniki i Bezpieczeństwo</h4>
+                            <h4 class="tile-header" data-translate="details.indicators">Wskaźniki i Bezpieczeństwo</h4>
                             <div class="tile-content">
                                 <div class="detail-row" id="detail-aqi"></div>
                                 <div class="detail-row" id="detail-uv"></div>
@@ -79,14 +85,14 @@
                             </div>
                         </div>
                         <div class="detail-tile glass-card">
-                            <h4 class="tile-header">Słońce</h4>
+                            <h4 class="tile-header" data-translate="details.sun">Słońce</h4>
                             <div class="tile-content">
                                 <div class="detail-row" id="detail-sunrise"></div>
                                 <div class="detail-row" id="detail-sunset"></div>
                             </div>
                         </div>
                         <div class="detail-tile glass-card">
-                            <h4 class="tile-header">Księżyc</h4>
+                            <h4 class="tile-header" data-translate="details.moon">Księżyc</h4>
                             <div class="tile-content">
                                 <div class="detail-row" id="detail-moonrise"></div>
                                 <div class="detail-row" id="detail-moonset"></div>
@@ -132,10 +138,15 @@
 
                     <div id="daily-forecast-wrapper" class="forecast-section glass-card">
                         <div class="forecast-header">
-                            <h3>Prognoza na następne dni</h3>
-                        </div>
-                        <div id="daily-forecast-content" class="daily-forecast-grid">
-                             <!-- 7 kafelków renderowanych przez JS -->
+                            <h3>Prognoza na 7 dni</h3>
+                            <!-- NOWE: Slider container dla spójności z v1.0 i desktop -->
+                            <div class="slider-container daily-forecast-slider-container">
+                                 <button id="daily-slider-prev" class="slider-nav prev">&lt;</button>
+                                 <div id="daily-forecast-content" class="slider-scroll-wrapper daily-forecast-grid">
+                                      <!-- 7 kafelków renderowanych przez JS -->
+                                 </div>
+                                 <button id="daily-slider-next" class="slider-nav next">&gt;</button>
+                            </div>
                         </div>
                     </div>
 
