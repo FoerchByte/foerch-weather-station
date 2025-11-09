@@ -1,17 +1,33 @@
 /**
  * --- PL ---
  * Moduł internacjonalizacji (i18n).
- * Eksportuje obiekt zawierający wszystkie teksty używane w aplikacji
- * w różnych językach. Umożliwia łatwe zarządzanie tłumaczeniami i dodawanie
- * nowych języków bez modyfikacji głównej logiki aplikacji.
+ * Eksportuje obiekt zawierający wszystkie teksty używane w aplikacji.
  * --- EN ---
  * Internationalization (i18n) module.
- * Exports an object containing all texts used in the application
- * in various languages. It allows for easy management of translations and
- * addition of new languages without modifying the main application logic.
+ * Exports an object containing all texts used in the application.
  */
 export const translations = {
     pl: {
+        // --- NOWOŚĆ: Elementy statyczne UI ---
+        uiElements: {
+            appTitle: 'Stacja Pogody',
+            searchPlaceholder: 'Wpisz nazwę miasta...',
+            searchButton: 'Szukaj',
+            geoButton: 'Użyj mojej lokalizacji',
+            favoritesEmpty: 'Dodaj swoje ulubione lokalizacje za pomocą ikony gwiazdki ⭐',
+            sectionWeather: 'Warunki Atmosferyczne',
+            sectionIndices: 'Wskaźniki i Bezpieczeństwo',
+            sectionSun: 'Słońce',
+            sectionMoon: 'Księżyc',
+            tabPrecipitation: 'Opady',
+            tabHourly: 'Godzinowa',
+            tabDaily: 'Dzienna',
+            tabMap: 'Mapa',
+            headerPrecipitation: 'Opady w najbliższej godzinie',
+            headerHourly: 'Prognoza godzinowa',
+            headerDaily: 'Prognoza na następne dni',
+            headerMap: 'Radar Opadów'
+        },
         // --- Alerty i błędy ---
         alerts: {
             noAlerts: 'Brak alertów pogodowych w bieżącej lokalizacji',
@@ -41,7 +57,7 @@ export const translations = {
             sunset: 'Zachód słońca',
             moonrise: 'Wschód księżyca',
             moonset: 'Zachód księżyca',
-            description: 'Opis', // ZMIANA: Dodano brakujący klucz
+            description: 'Opis',
             daylightHours: 'Długość dnia',
             moonPhase: 'Faza księżyca',
         },
@@ -107,6 +123,26 @@ export const translations = {
         }
     },
     en: {
+        // --- NEW: Static UI Elements ---
+        uiElements: {
+            appTitle: 'Weather Station',
+            searchPlaceholder: 'Enter city name...',
+            searchButton: 'Search',
+            geoButton: 'Use my location',
+            favoritesEmpty: 'Add your favorite locations using the star icon ⭐',
+            sectionWeather: 'Weather Conditions',
+            sectionIndices: 'Indices & Safety',
+            sectionSun: 'Sun',
+            sectionMoon: 'Moon',
+            tabPrecipitation: 'Precipitation',
+            tabHourly: 'Hourly',
+            tabDaily: 'Daily',
+            tabMap: 'Map',
+            headerPrecipitation: 'Precipitation over the next hour',
+            headerHourly: 'Hourly Forecast',
+            headerDaily: '7-Day Forecast',
+            headerMap: 'Precipitation Radar'
+        },
         // --- Alerts and errors ---
         alerts: {
             noAlerts: 'No weather alerts for the current location',
@@ -136,7 +172,7 @@ export const translations = {
             sunset: 'Sunset',
             moonrise: 'Moonrise',
             moonset: 'Moonset',
-            description: 'Description', // CHANGE: Added missing key
+            description: 'Description',
             daylightHours: 'Daylight Hours',
             moonPhase: 'Moon Phase',
         },
@@ -170,18 +206,19 @@ export const translations = {
             }
         },
         
-        // --- English versions for API summaries (mostly 1:1) ---
+        // --- English versions for API summaries ---
         overview: {
             'expect': 'Expect',
             'throughout the day': 'throughout the day',
             'and': 'and',
-
-            'light intensity drizzle': { nominative: 'light intensity drizzle', genitive: 'light intensity drizzle' },
+             // W angielskim API zwraca te same klucze co description, zazwyczaj nie trzeba odmieniać
+             // ale dla spójności struktury zachowujemy mapowanie, choć uproszczone.
+            'light intensity drizzle': { nominative: 'light drizzle', genitive: 'light drizzle' },
             'drizzle': { nominative: 'drizzle', genitive: 'drizzle' },
-            'heavy intensity drizzle': { nominative: 'heavy intensity drizzle', genitive: 'heavy intensity drizzle' },
+            'heavy intensity drizzle': { nominative: 'heavy drizzle', genitive: 'heavy drizzle' },
             'light rain': { nominative: 'light rain', genitive: 'light rain' },
             'moderate rain': { nominative: 'moderate rain', genitive: 'moderate rain' },
-            'heavy intensity rain': { nominative: 'heavy intensity rain', genitive: 'heavy intensity rain' },
+            'heavy intensity rain': { nominative: 'heavy rain', genitive: 'heavy rain' },
             'freezing rain': { nominative: 'freezing rain', genitive: 'freezing rain' },
             'shower rain': { nominative: 'shower rain', genitive: 'shower rain' },
             'light snow': { nominative: 'light snow', genitive: 'light snow' },
