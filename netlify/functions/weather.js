@@ -15,8 +15,9 @@ exports.handler = async function (event, context) {
         return { statusCode: 500, body: JSON.stringify({ message: 'Klucz API nie jest skonfigurowany. / API key is not configured.' }) };
     }
 
-    const { city, lat: latParam, lon: lonParam } = event.queryStringParameters;
-    let lat, lon;
+    // ZMIANA: Odczyt parametru 'lang' z zapytania (domyślnie 'pl')
+    const { city, lat: latParam, lon: lonParam, lang = 'pl' } = event.queryStringParameters;
+    let lat, lon, locationName;
 
     try {
         // Krok 1: Geokodowanie, jeśli potrzebne / Step 1: Geocoding, if needed
@@ -30,7 +31,8 @@ exports.handler = async function (event, context) {
             
             lat = geoData[0].lat;
             lon = geoData[0].lon;
-            locationName = geoData[0].local_names?.pl || geoData[0].name;
+            // ZMIANA: Próba pobrania nazwy w żądanym języku, fallback do PL lub domyślnej
+            locationName = geoData[0].local_names?.[lang] || geoData[0].local_names?.pl || geoData[0].name;
 
         } else if (latParam && lonParam) {
             lat = latParam;
@@ -40,15 +42,17 @@ exports.handler = async function (event, context) {
             if (!reverseGeoResponse.ok) throw new Error(`Błąd geokodowania odwrotnego: ${reverseGeoResponse.statusText}`);
             
             const reverseGeoData = await reverseGeoResponse.json();
+            // ZMIANA: Analogicznie dla odwrotnego geokodowania
             locationName = (reverseGeoData && reverseGeoData.length > 0) 
-                ? (reverseGeoData[0].local_names?.pl || reverseGeoData[0].name) 
+                ? (reverseGeoData[0].local_names?.[lang] || reverseGeoData[0].local_names?.pl || reverseGeoData[0].name) 
                 : 'Nieznana lokalizacja';
         } else {
             return { statusCode: 400, body: JSON.stringify({ message: 'Brak miasta lub współrzędnych. / Missing city or coordinates.' }) };
         }
 
         // Krok 2: Równoległe zapytania do API / Step 2: Parallel API Requests
-        const oneCallUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=pl`;
+        // ZMIANA: Dodanie parametru &lang=${lang} do URL One Call API
+        const oneCallUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=${lang}`;
         const airPollutionUrl = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
 
         const [oneCallResponse, airPollutionResponse] = await Promise.all([
