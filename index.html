@@ -7,24 +7,28 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- ZMIANA: Dodanie linku do CSS Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
     <link rel="stylesheet" href="weather.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="dark-mode">
+<body class="dark-mode"> <!-- ZMIANA: Domyślnie ustawiony motyw ciemny -->
 
     <div class="app-container">
         
         <header class="header-bar">
             <h1 data-i18n="appTitle">Stacja Pogody</h1>
             
-            <!-- ZMIANA: Grupowanie kontrolek -->
+            <!-- ZMIANA: Grupowanie kontrolek (język + motyw) -->
             <div class="header-controls">
                  <div class="lang-switcher">
                     <button data-lang="pl" class="active">PL</button>
                     <button data-lang="en">EN</button>
                 </div>
                 <button id="theme-toggle" class="theme-toggle" aria-label="Zmień motyw">
+                    <!-- Ikony zostaną dodane przez CSS lub pozostawione jako emoji -->
                     <span class="sun-icon">☀️</span>
                     <span class="moon-icon">🌙</span>
                 </button>
@@ -34,15 +38,17 @@
         <main class="weather-app-content">
 
             <section id="favorites-container" class="favorites-section glass-card">
-                <!-- JS wypełni to tekstem z translations.js -->
+                <!-- Treść renderowana przez JS (teraz dynamicznie z tłumaczeń) -->
             </section>
 
             <section class="search-section glass-card">
+                <!-- ZMIANA: Dodanie data-i18n-placeholder i data-i18n do przycisków -->
                 <input type="text" id="city-input" placeholder="Wpisz nazwę miasta..." data-i18n-placeholder="searchPlaceholder">
                 <button id="search-weather-btn"><span data-i18n="searchButton">Szukaj</span></button>
                 <button id="geolocation-btn"><span data-i18n="geoButton">Użyj mojej lokalizacji</span></button>
             </section>
 
+            <!-- Ten kontener jest pokazywany przez JS po załadowaniu danych -->
             <div id="weather-result-container" style="display: none;">
                 
                 <section class="current-weather-card glass-card">
@@ -59,6 +65,7 @@
                             <span id="weather-description"></span>
                         </div>
                     </div>
+                    <!-- ZMIANA: Przywrócenie kontenera na podsumowanie (overview) -->
                     <div id="weather-overview" class="weather-overview"></div>
                     <div id="weather-alerts-container"></div>
 
@@ -98,6 +105,7 @@
                 </section>
                 
                 <section class="forecasts-container">
+                    <!-- ZMIANA: Dodanie zakładki "Mapa" i atrybutów i18n -->
                     <div class="forecast-switcher-mobile">
                         <button data-forecast="minutely-forecast-wrapper" class="active" data-i18n="tabPrecipitation">Opady</button>
                         <button data-forecast="hourly-forecast-wrapper" data-i18n="tabHourly">Godzinowa</button>
@@ -109,7 +117,9 @@
                         <div class="forecast-header">
                             <h3 data-i18n="headerPrecipitation">Opady w najbliższej godzinie</h3>
                         </div>
-                        <div id="minutely-chart-container" class="minutely-chart-container"></div>
+                        <div id="minutely-chart-container" class="minutely-chart-container">
+                            <!-- Canvas lub komunikat renderowany przez JS -->
+                        </div>
                     </div>
                     
                     <div id="hourly-forecast-wrapper" class="forecast-section glass-card">
@@ -122,7 +132,9 @@
                         </div>
                         <div class="slider-container">
                             <button id="hourly-slider-prev" class="slider-nav prev">&lt;</button>
-                            <div id="hourly-forecast-content" class="slider-scroll-wrapper"></div>
+                            <div id="hourly-forecast-content" class="slider-scroll-wrapper">
+                                <!-- Grupy dni i kafelki renderowane przez JS -->
+                            </div>
                             <button id="hourly-slider-next" class="slider-nav next">&gt;</button>
                         </div>
                     </div>
@@ -131,20 +143,27 @@
                         <div class="forecast-header">
                             <h3 data-i18n="headerDaily">Prognoza na następne dni</h3>
                         </div>
-                        <div id="daily-forecast-content" class="daily-forecast-grid"></div>
+                        <div id="daily-forecast-content" class="daily-forecast-grid">
+                             <!-- 7 kafelków renderowanych przez JS -->
+                        </div>
                     </div>
 
+                    <!-- NOWA SEKCJA MAPY -->
                     <section id="map-section" class="forecast-section glass-card">
                         <div class="forecast-header">
                             <h3 data-i18n="headerMap">Radar Opadów</h3>
+                            <!-- W przyszłości można tu dodać przełącznik warstw -->
                         </div>
-                        <div id="map" style="height: 400px; border-radius: 12px; z-index: 1; background-color: #334155;"></div>
+                        <div id="map" style="height: 400px; border-radius: 12px; z-index: 1; background-color: #334155;">
+                            <!-- Mapa Leaflet renderowana przez JS -->
+                        </div>
                     </section>
                 </section>
             </div>
         </main>
     </div>
 
+    <!-- Kontener modala -->
     <div id="details-modal" class="modal-overlay" hidden>
         <div class="modal-content glass-card">
             <div class="modal-header">
@@ -155,6 +174,7 @@
         </div>
     </div>
     
+    <!-- ZMIANA: Dodanie skryptu Leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module" src="main.js"></script>
 </body>
