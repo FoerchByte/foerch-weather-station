@@ -39,6 +39,44 @@ export const translations = {
             effective: 'Obowiązuje od',
             to: 'do',
         },
+        // --- NOWOŚĆ: Tłumaczenia typów alertów ---
+        alertEvents: {
+            // Deszcz
+            'Yellow Rain warning': 'Ostrzeżenie 1. stopnia: Intensywne opady deszczu',
+            'Orange Rain warning': 'Ostrzeżenie 2. stopnia: Ulewne opady deszczu',
+            'Red Rain warning': 'Ostrzeżenie 3. stopnia: Nawalne opady deszczu',
+            // Wiatr
+            'Yellow Wind warning': 'Ostrzeżenie 1. stopnia: Silny wiatr',
+            'Orange Wind warning': 'Ostrzeżenie 2. stopnia: Bardzo silny wiatr',
+            'Red Wind warning': 'Ostrzeżenie 3. stopnia: Huraganowy wiatr',
+            // Burze
+            'Yellow Thunderstorm warning': 'Ostrzeżenie 1. stopnia: Burze',
+            'Orange Thunderstorm warning': 'Ostrzeżenie 2. stopnia: Silne burze z gradem',
+            'Red Thunderstorm warning': 'Ostrzeżenie 3. stopnia: Gwałtowne burze',
+            // Temperatura
+            'Yellow High temperature warning': 'Ostrzeżenie 1. stopnia: Upał',
+            'Orange High temperature warning': 'Ostrzeżenie 2. stopnia: Silny upał',
+            'Red High temperature warning': 'Ostrzeżenie 3. stopnia: Ekstremalny upał',
+            'Yellow Low temperature warning': 'Ostrzeżenie 1. stopnia: Mróz',
+            'Orange Low temperature warning': 'Ostrzeżenie 2. stopnia: Silny mróz',
+            'Red Low temperature warning': 'Ostrzeżenie 3. stopnia: Ekstremalny mróz',
+            // Śnieg/Lód
+            'Yellow Snow/Ice warning': 'Ostrzeżenie 1. stopnia: Opady śniegu/oblodzenie',
+            'Orange Snow/Ice warning': 'Ostrzeżenie 2. stopnia: Intensywne opady śniegu',
+            'Red Snow/Ice warning': 'Ostrzeżenie 3. stopnia: Śnieżyce',
+            // Mgła
+            'Yellow Fog warning': 'Ostrzeżenie 1. stopnia: Gęsta mgła',
+            'Orange Fog warning': 'Ostrzeżenie 2. stopnia: Bardzo gęsta mgła',
+             // Ogólne (fallback)
+            'Thunderstorm warning': 'Ostrzeżenie przed burzami',
+            'Rain warning': 'Ostrzeżenie przed intensywnym deszczem',
+            'Wind warning': 'Ostrzeżenie przed silnym wiatrem',
+            'Snow warning': 'Ostrzeżenie przed opadami śniegu',
+            'Ice warning': 'Ostrzeżenie przed oblodzeniem',
+            'Fog warning': 'Ostrzeżenie przed mgłą',
+            'High temperature warning': 'Ostrzeżenie przed upałem',
+            'Low temperature warning': 'Ostrzeżenie przed mrozem',
+        },
         errors: {
             default: 'Wpisz miasto lub zezwól na geolokalizację.',
             location: 'Nie udało się pobrać lokalizacji.',
@@ -61,7 +99,7 @@ export const translations = {
             sunset: 'Zachód słońca',
             moonrise: 'Wschód księżyca',
             moonset: 'Zachód księżyca',
-            description: 'Opis', // ZMIANA: Dodano brakujący klucz
+            description: 'Opis',
             daylightHours: 'Długość dnia',
             moonPhase: 'Faza księżyca',
         },
@@ -154,6 +192,10 @@ export const translations = {
             effective: 'Effective from',
             to: 'to',
         },
+        // --- NEW: Alert events (English usually doesn't need translation, but for consistency) ---
+        alertEvents: {
+            // We can leave this empty or map 1:1 if we want to normalize names
+        },
         errors: {
             default: 'Enter a city or allow geolocation.',
             location: 'Could not retrieve location.',
@@ -176,7 +218,7 @@ export const translations = {
             sunset: 'Sunset',
             moonrise: 'Moonrise',
             moonset: 'Moonset',
-            description: 'Description', // CHANGE: Added missing key
+            description: 'Description',
             daylightHours: 'Daylight Hours',
             moonPhase: 'Moon Phase',
         },
