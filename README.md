@@ -1,4 +1,4 @@
-Stacja Pogody v2.0 / Weather Station v2.0 ☀️
+Stacja Pogody v2.1 / Weather Station v2.1 ☀️🌍
 
 🇵🇱 [Wersja po polsku](#polski) | 🇺🇸 [English version](#english)
 
@@ -8,83 +8,89 @@ Stacja Pogody v2.0 / Weather Station v2.0 ☀️
 
 About The Project
 
-Weather Station v2.0 is a fully responsive, standalone web application built with Vanilla JavaScript, HTML5, and CSS3. This version introduces a major UI overhaul, migrating to a modern, clean "glassmorphism" interface.
+Weather Station v2.1 is a fully responsive, standalone web application built with pure Vanilla JavaScript, HTML5, and modern CSS3.
 
-The application uses a serverless function (Netlify Function) to securely query the OpenWeatherMap API, providing real-time weather information, precipitation radar, an hourly forecast, and a 7-day forecast.
+This project represents a major evolution from its predecessors, introducing a complete UI overhaul based on the "Glassmorphism" design trend. It goes beyond simple data display by providing a rich, interactive user experience complete with real-time data, visualizations, and full internationalization.
 
-This project demonstrates skills in:
+The application leverages Serverless Functions (Netlify Functions) to act as a secure proxy for the OpenWeatherMap API, ensuring API keys never leak to the client-side while delivering comprehensive weather data (current, minutely, hourly, daily, and alerts).
 
-Integrating with external APIs (REST)
+What's New in v2.1?
 
-Securing API keys on the server-side (Netlify Functions)
+🌐 Full Internationalization (i18n): Seamless, instant language switching between English (EN) and Polish (PL), persisting user preference.
 
-Building a modern, responsive UI with advanced CSS (Glassmorphism, Flexbox, Grid)
+🗺️ Interactive Weather Radar: A dynamic precipitation map powered by Leaflet.js and OpenWeatherMap tile layers.
 
-Writing clean, modular Vanilla JavaScript (Separation of Concerns)
-
-Handling geolocation
-
-Modular Architecture (Separation of Concerns)
-
-This project was built without a framework, relying on a professional, modular architecture to keep the code clean, scalable, and maintainable:
-
-main.js (Orchestrator): The "brain" of the application. Manages application state, binds all events, and coordinates communication between the other modules.
-
-ui.js (UI Module): The "hands" of the application. Responsible for all DOM manipulation. It renders data, manages CSS classes, and handles the visual state (modals, loading, errors). It receives data but contains no business logic.
-
-api.js (API Module): Encapsulates all network logic. Responsible for fetching data from the serverless functions.
-
-translations.js (i18n Module): Isolates all UI strings, allowing for easy translation and management of text content.
+⚠️ Localized Alerts: Weather warnings are now properly formatted and translated to the selected language.
 
 Core Features
 
-Secure API Requests: The API key is 100% protected on the server-side using Netlify Functions.
+🔒 Secure Architecture: 100% server-side API key protection using Netlify Functions (proxy pattern).
 
-Modern "Glassmorphism" UI: A complete redesign moving away from v1.0's simple cards.
+🎨 Modern "Glassmorphism" UI: A clean, translucent aesthetic with dynamic background gradients and blurred elements.
 
-Precipitation Radar: An interactive map (Leaflet.js) showing upcoming precipitation.
+📱 Advanced Responsiveness: A mobile-first approach with pixel-perfect adaptations for various viewports (including specific optimizations for mobile landscape mode).
 
-City Search & Geolocation: Full support for both city name search and browser-based automatic geolocation.
+🔎 Flexible Search & Geolocation: Support for city-name search and automatic browser-based geolocation.
 
-Favorites Management: Ability to save (up to 5) favorite locations to localStorage.
+⭐ Favorites Manager: Save up to 5 favorite cities to localStorage for quick access.
 
-Complete Forecasts: Current conditions, 1-hour precipitation chart (Chart.js), hourly forecast (24/48h), and a 7-day daily forecast.
+📊 Complete Forecasts:
 
-Advanced Responsive UI: A pixel-perfect, mobile-first interface with custom CSS logic to handle different viewports, including special rules for portrait vs. landscape modes.
+Real-time current conditions.
 
-Light/Dark Theme: A user-toggled theme stored in localStorage.
+Minutely precipitation chart (Chart.js).
 
-Unique Indicators: The app calculates and displays derived data, like estimated Road Surface Condition (Dry, Wet, Icy).
+Hourly forecast slider (switchable 24h/48h range).
+
+7-Day Daily forecast grid.
+
+🌓 Dark/Light Theme: User-toggled visual theme persisted in local storage.
+
+🚗 Unique Indicators: Custom-calculated metrics like "Road Conditions" (Dry/Wet/Icy) based on multiple weather parameters.
+
+Modular Architecture (Separation of Concerns)
+
+The codebase follows strict engineering principles without relying on frameworks:
+
+main.js (Orchestrator): The central brain managing application state, event listeners, and module coordination.
+
+ui.js (View Layer): Handles all DOM manipulations, rendering logic, and UI state updates. Zero business logic.
+
+api.js (Network Layer): Encapsulates all fetch requests to the serverless backend.
+
+translations.js (i18n Layer): A dedicated dictionary containing all static and dynamic text strings for supported languages.
 
 Technology Stack
 
-Frontend: HTML5, CSS3 (Glassmorphism, CSS Variables, Flexbox, Grid, Media Queries)
+Frontend: HTML5, CSS3 (CSS Variables, Flexbox, Grid, Glassmorphism effects), Vanilla ES6+ JavaScript.
 
-JavaScript: Vanilla JavaScript (ES6+, Modules, Async/Await, Fetch API, Geolocation API)
+Libraries:
 
-Libraries: Leaflet.js, Chart.js
+Leaflet.js: For rendering the interactive precipitation map.
 
-Backend (Serverless): Netlify Functions (Node.js)
+Chart.js: For visualizing minutely precipitation data.
 
-API: OpenWeatherMap (One Call API 3.0, Geocoding API, Air Pollution API)
+Backend (Serverless): Netlify Functions (Node.js environment).
+
+External API: OpenWeatherMap (One Call API 3.0, Maps 2.0, Geocoding, Air Pollution).
 
 Deployment and Setup
 
-This application is designed to be deployed on Netlify to take full advantage of serverless functions.
+This project is optimized for deployment on Netlify to utilize its serverless function capabilities.
 
-Clone this repository and create your own on GitHub.
+Clone this repository to your GitHub account.
 
-Get an API key from OpenWeatherMap.
+Create a new site on Netlify from your Git repository.
 
-Deploy to Netlify by connecting your GitHub repository to your Netlify account.
+Configure Environment Variables in Netlify (Site Settings > Build & deploy > Environment):
 
-Set the environment variable:
+Key: WEATHER_API_KEY
 
-In your project settings on Netlify, go to: Site configuration > Build & deploy > Environment.
+Value: Your_OpenWeatherMap_API_Key
 
-Add a new variable named WEATHER_API_KEY and paste your API key there.
+Deploy: Netlify will automatically build and deploy the site along with the functions.
 
-Done! After re-deploying, your application will be live.
+
 
 <a name="polski"></a>
 
@@ -92,83 +98,32 @@ Done! After re-deploying, your application will be live.
 
 O Projekcie
 
-Stacja Pogody v2.0 to w pełni responsywna, samodzielna aplikacja webowa zbudowana przy użyciu Vanilla JavaScript, HTML5 i CSS3. Ta wersja wprowadza gruntowną przebudowę interfejsu użytkownika, migrując do nowoczesnego, czystego designu "glassmorphism".
+Stacja Pogody v2.1 to w pełni responsywna, samodzielna aplikacja webowa zbudowana w czystym Vanilla JavaScript, HTML5 i nowoczesnym CSS3.
 
-Aplikacja wykorzystuje funkcje serwerless (Netlify Functions) do bezpiecznego odpytywania API OpenWeatherMap, dostarczając dane pogodowe w czasie rzeczywistym, radar opadów, prognozę godzinową i 7-dniową.
+Ten projekt stanowi znaczącą ewolucję względem poprzednich wersji, wprowadzając całkowicie nowy interfejs użytkownika oparty o styl "Glassmorphism". Aplikacja wykracza poza proste wyświetlanie danych, oferując bogate, interaktywne doświadczenie użytkownika, kompletne dane w czasie rzeczywistym, wizualizacje oraz pełną internacjonalizację.
 
-Ten projekt demonstruje umiejętności w zakresie:
+Wykorzystuje ona Funkcje Serverless (Netlify Functions) jako bezpieczne proxy do API OpenWeatherMap. Gwarantuje to, że klucze API nigdy nie wyciekną do klienta, jednocześnie dostarczając kompleksowe dane pogodowe (aktualne, minutowe, godzinowe, dzienne oraz alerty).
 
-Integracji z zewnętrznymi API (REST)
+Co nowego w wersji v2.1?
 
-Zabezpieczania kluczy API po stronie serwera (Netlify Functions)
+🌐 Pełna Internacjonalizacja (i18n): Płynne, natychmiastowe przełączanie języka między polskim (PL) i angielskim (EN) z zapamiętywaniem preferencji użytkownika.
 
-Budowania nowoczesnego, responsywnego interfejsu przy użyciu zaawansowanego CSS (Glassmorphism, Flexbox, Grid)
+🗺️ Interaktywny Radar Pogodowy: Dynamiczna mapa opadów zasilana przez Leaflet.js i warstwy kafelków OpenWeatherMap.Wido⚠️ k): Odpowiada za wszelkie manipulacje DOM i renderowanie.
 
-Pisania czystego, modularnego kodu Vanilla JavaScript (Separacja Odpowiedzialności)
+api.js (Sieć): Hermetyzuje logikę komunikacji z API.
 
-Obsługi geolokalizacji
-
-Architektura Modularna (Separation of Concerns)
-
-Projekt ten został zbudowany bez frameworka, opierając się na profesjonalnej, modularnej architekturze, aby utrzymać kod w czystości, skalowalności i łatwości utrzymania:
-
-main.js (Orkiestrator): "Mózg" aplikacji. Zarządza stanem, łączy wszystkie zdarzenia i koordynuje komunikację między modułami.
-
-ui.js (Moduł UI): "Ręce" aplikacji. Odpowiedzialny wyłącznie za manipulację DOM. Renderuje dane, zarządza klasami CSS i obsługuje stan wizualny (okna modalne, ładowanie, błędy). Otrzymuje dane, ale nie zawiera logiki biznesowej.
-
-api.js (Moduł API): Hermetyzuje całą logikę sieciową. Odpowiedzialny za pobieranie danych z funkcji serwerless.
-
-translations.js (Moduł i18n): Izoluje wszystkie teksty interfejsu, pozwalając na łatwe tłumaczenie i zarządzanie treścią.
-
-Kluczowe Funkcjonalności
-
-Bezpieczne Zapytania API: Klucz API jest w 100% chroniony po stronie serwera przy użyciu Netlify Functions.
-
-Nowoczesny Interfejs "Glassmorphism": Całkowity redesign w stosunku do prostych kart z v1.0.
-
-Radar Opadów: Interaktywna mapa (Leaflet.js) pokazująca nadchodzące opady.
-
-Wyszukiwanie i Geolokalizacja: Pełne wsparcie zarówno dla wyszukiwania po nazwie miasta, jak i automatycznej geolokalizacji przeglądarki.
-
-Zarządzanie Ulubionymi: Możliwość zapisania (do 5) ulubionych lokalizacji w localStorage.
-
-Kompletne Prognozy: Aktualne warunki, wykres opadów na 1 godzinę (Chart.js), prognoza godzinowa (z przełącznikiem 24/48h) i 7-dniowa prognoza dzienna.
-
-Zaawansowany Interfejs Responsywny: Dopracowany co do piksela, mobilny interfejs z niestandardową logiką CSS do obsługi różnych widoków, w tym specjalnymi zasadami dla trybów portretowego i landscape.
-
-Motyw Jasny/Ciemny: Przełącznik motywu zapisywany w localStorage.
-
-Unikalne Wskaźniki: Aplikacja oblicza i wyświetla dane pochodne, takie jak szacowany Stan Nawierzchni (Sucha, Mokra, Oblodzona).
+translations.js (i18n): Zawiera wszystkie teksty statyczne i dynamiczne dla PL/EN.
 
 Stos Technologiczny
 
-Frontend: HTML5, CSS3 (Glassmorphism, Zmienne CSS, Flexbox, Grid, Media Queries)
+Frontend: HTML5, CSS3 (Zmienne, Flexbox, Grid), Vanilla JS (ES6+ Modules)
 
-JavaScript: Vanilla JavaScript (ES6+, Moduły, Async/Await, Fetch API, Geolocation API)
+Biblioteki: Leaflet.js (Mapa), Chart.js (Wykres opadów)
 
-Libraries: Leaflet.js, Chart.js
+Backend: Netlify Functions (Node.js)
 
-Backend (Serverless): Netlify Functions (Node.js)
+API: OpenWeatherMap (One Call 3.0, Maps, Geocoding, Air Pollution)
 
-API: OpenWeatherMap (One Call API 3.0, Geocoding API, Air Pollution API)
-
-Wdrożenie i Konfiguracja
-
-Aplikacja jest zaprojektowana do wdrożenia na Netlify, aby w pełni wykorzystać funkcje serwerless.
-
-Sklonuj to repozytorium i stwórz własne na GitHubie.
-
-Zdobądź klucz API z OpenWeatherMap.
-
-Wdróż na Netlify, łącząc swoje repozytorium GitHub z kontem Netlify.
-
-Ustaw zmienną środowiskową:
-
-W ustawieniach projektu na Netlify przejdź do: Site configuration > Build & deploy > Environment.
-
-Dodaj nową zmienną o nazwie WEATHER_API_KEY i wklej tam swój klucz API.
-
-Gotowe! Po ponownym wdrożeniu aplikacja będzie działać.
 
 #### Skontaktuj się ze mną / Connect with me
 - **Email:** [Napisz do mnie e-maila](mailto:michal.herbich@gmail.com)
